@@ -2,38 +2,38 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
         layout:decorate="~{layout}">
     <head>
-        <title>[[#{memberInfo.list.headline}]]</title>
+        <title>[[#{userInfo.list.headline}]]</title>
     </head>
     <body>
         <div layout:fragment="content">
             <div class="d-flex flex-wrap mb-4">
-                <h1 class="flex-grow-1">[[#{memberInfo.list.headline}]]</h1>
+                <h1 class="flex-grow-1">[[#{userInfo.list.headline}]]</h1>
                 <div>
-                    <a th:href="@{/userInfos/add}" class="btn btn-primary ms-2">[[#{memberInfo.list.createNew}]]</a>
+                    <a th:href="@{/userInfos/add}" class="btn btn-primary ms-2">[[#{userInfo.list.createNew}]]</a>
                 </div>
             </div>
-            <div th:if="${memberInfoes.empty}">[[#{memberInfo.list.empty}]]</div>
-            <div th:if="${!memberInfoes.empty}" class="table-responsive">
+            <div th:if="${userInfoes.empty}">[[#{userInfo.list.empty}]]</div>
+            <div th:if="${!userInfoes.empty}" class="table-responsive">
                 <table class="table table-striped table-hover align-middle">
                     <thead>
                         <tr>
-                            <th scope="col">[[#{memberInfo.email.label}]]</th>
-                            <th scope="col">[[#{memberInfo.imageUrl.label}]]</th>
-                            <th scope="col">[[#{memberInfo.introduction.label}]]</th>
+                            <th scope="col">[[#{userInfo.email.label}]]</th>
+                            <th scope="col">[[#{userInfo.imageUrl.label}]]</th>
+                            <th scope="col">[[#{userInfo.introduction.label}]]</th>
                             <th><!-- --></th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr th:each="memberInfo : ${memberInfoes}">
-                            <td>[[${memberInfo.email}]]</td>
-                            <td>[[${memberInfo.imageUrl}]]</td>
-                            <td>[[${memberInfo.introduction}]]</td>
+                        <tr th:each="userInfo : ${userInfoes}">
+                            <td>[[${userInfo.email}]]</td>
+                            <td>[[${userInfo.imageUrl}]]</td>
+                            <td>[[${userInfo.introduction}]]</td>
                             <td>
                                 <div class="float-end text-nowrap">
-                                    <a th:href="@{/userInfos/edit/{email}(email=${memberInfo.email})}" class="btn btn-sm btn-secondary">[[#{memberInfo.list.edit}]]</a>
-                                    <form th:action="@{/userInfos/delete/{email}(email=${memberInfo.email})}"
+                                    <a th:href="@{/userInfos/edit/{email}(email=${userInfo.email})}" class="btn btn-sm btn-secondary">[[#{userInfo.list.edit}]]</a>
+                                    <form th:action="@{/userInfos/delete/{email}(email=${userInfo.email})}"
                                             th:data-confirm-message="#{delete.confirm}" method="post" class="js-submit-confirm d-inline">
-                                        <button type="submit" class="btn btn-sm btn-secondary">[[#{memberInfo.list.delete}]]</button>
+                                        <button type="submit" class="btn btn-sm btn-secondary">[[#{userInfo.list.delete}]]</button>
                                     </form>
                                 </div>
                             </td>

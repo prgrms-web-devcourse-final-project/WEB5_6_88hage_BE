@@ -2,35 +2,35 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
         layout:decorate="~{layout}">
     <head>
-        <title>[[#{member.edit.headline}]]</title>
+        <title>[[#{user.edit.headline}]]</title>
     </head>
     <body>
         <div layout:fragment="content">
             <div class="d-flex flex-wrap mb-4">
-                <h1 class="flex-grow-1">[[#{member.edit.headline}]]</h1>
+                <h1 class="flex-grow-1">[[#{user.edit.headline}]]</h1>
                 <div>
-                    <a th:href="@{/members}" class="btn btn-secondary">[[#{member.edit.back}]]</a>
+                    <a th:href="@{/users}" class="btn btn-secondary">[[#{user.edit.back}]]</a>
                 </div>
             </div>
-            <div th:replace="~{fragments/forms::globalErrors('member')}" />
+            <div th:replace="~{fragments/forms::globalErrors('user')}" />
             <form th:action="${requestUri}" method="post" novalidate="">
-                <input type="submit" th:value="#{member.edit.headline}" class="btn btn-primary mt-4 mb-4" />
-                <div th:replace="~{fragments/forms::inputRow(object='member', field='email', disabled=true)}" />
-                <div th:replace="~{fragments/forms::inputRow(object='member', field='password', required=true)}" />
-                <div th:replace="~{fragments/forms::inputRow(object='member', field='nickname', required=true)}" />
-                <div th:replace="~{fragments/forms::inputRow(object='member', field='age', type='number')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='member', field='gender', type='radio')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='member', field='tel')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='member', field='address')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='member', field='role', type='radio')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='member', field='status', type='radio')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='member', field='dueDate', inputClass='js-datepicker')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='member', field='suspendDuration', type='number')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='member', field='dueReason')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='member', field='isVerified', type='checkbox')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='member', field='isMarketingAgreed', type='checkbox')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='member', field='info', type='select')}" />
-                <input type="submit" th:value="#{member.edit.headline}" class="btn btn-primary mt-4" />
+                <input type="submit" th:value="#{user.edit.headline}" class="btn btn-primary mt-4 mb-4" />
+                <div th:replace="~{fragments/forms::inputRow(object='user', field='email', disabled=true)}" />
+                <div th:replace="~{fragments/forms::inputRow(object='user', field='password', required=true)}" />
+                <div th:replace="~{fragments/forms::inputRow(object='user', field='nickname', required=true)}" />
+                <div th:replace="~{fragments/forms::inputRow(object='user', field='age', type='number')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='user', field='gender', type='radio')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='user', field='tel')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='user', field='address')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='user', field='role', type='radio')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='user', field='status', type='radio')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='user', field='dueDate', inputClass='js-datepicker')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='user', field='suspendDuration', type='number')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='user', field='dueReason')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='user', field='isVerified', type='checkbox')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='user', field='isMarketingAgreed', type='checkbox')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='user', field='info', type='select')}" />
+                <input type="submit" th:value="#{user.edit.headline}" class="btn btn-primary mt-4" />
             </form>
         </div>
     </body>

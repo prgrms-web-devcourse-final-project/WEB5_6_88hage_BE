@@ -16,7 +16,7 @@
             <form th:action="${requestUri}" method="post" novalidate="">
                 <div th:replace="~{fragments/forms::inputRow(object='participant', field='role', type='radio')}" />
                 <div th:replace="~{fragments/forms::inputRow(object='participant', field='status', type='radio')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='participant', field='member', required=true, type='select')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='participant', field='user', required=true, type='select')}" />
                 <div th:replace="~{fragments/forms::inputRow(object='participant', field='group', required=true, type='select')}" />
                 <input type="submit" th:value="#{participant.add.headline}" class="btn btn-primary mt-4" />
             </form>

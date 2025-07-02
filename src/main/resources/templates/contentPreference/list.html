@@ -19,7 +19,7 @@
                         <tr>
                             <th scope="col">[[#{contentPreference.id.label}]]</th>
                             <th scope="col">[[#{contentPreference.category.label}]]</th>
-                            <th scope="col">[[#{contentPreference.member.label}]]</th>
+                            <th scope="col">[[#{contentPreference.user.label}]]</th>
                             <th><!-- --></th>
                         </tr>
                     </thead>
@@ -27,7 +27,7 @@
                         <tr th:each="contentPreference : ${contentPreferences}">
                             <td>[[${contentPreference.id}]]</td>
                             <td>[[${contentPreference.category}]]</td>
-                            <td>[[${contentPreference.member}]]</td>
+                            <td>[[${contentPreference.user}]]</td>
                             <td>
                                 <div class="float-end text-nowrap">
                                     <a th:href="@{/contentPreferences/edit/{id}(id=${contentPreference.id})}" class="btn btn-sm btn-secondary">[[#{contentPreference.list.edit}]]</a>

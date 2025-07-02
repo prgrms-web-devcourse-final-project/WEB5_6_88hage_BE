@@ -20,7 +20,7 @@
                 <div th:replace="~{fragments/forms::inputRow(object='contact', field='status', type='radio')}" />
                 <div th:replace="~{fragments/forms::inputRow(object='contact', field='answer')}" />
                 <div th:replace="~{fragments/forms::inputRow(object='contact', field='answeredAt', inputClass='js-datetimepicker')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='contact', field='member', required=true, type='select')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='contact', field='user', required=true, type='select')}" />
                 <input type="submit" th:value="#{contact.edit.headline}" class="btn btn-primary mt-4" />
             </form>
         </div>

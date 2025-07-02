@@ -15,7 +15,7 @@
             <div th:replace="~{fragments/forms::globalErrors('contentPreference')}" />
             <form th:action="${requestUri}" method="post" novalidate="">
                 <div th:replace="~{fragments/forms::inputRow(object='contentPreference', field='category', type='select')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='contentPreference', field='member', required=true, type='select')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='contentPreference', field='user', required=true, type='select')}" />
                 <input type="submit" th:value="#{contentPreference.add.headline}" class="btn btn-primary mt-4" />
             </form>
         </div>

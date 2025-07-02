@@ -19,7 +19,7 @@
                         <tr>
                             <th scope="col">[[#{groupPreference.id.label}]]</th>
                             <th scope="col">[[#{groupPreference.category.label}]]</th>
-                            <th scope="col">[[#{groupPreference.member.label}]]</th>
+                            <th scope="col">[[#{groupPreference.user.label}]]</th>
                             <th><!-- --></th>
                         </tr>
                     </thead>
@@ -27,7 +27,7 @@
                         <tr th:each="groupPreference : ${groupPreferences}">
                             <td>[[${groupPreference.id}]]</td>
                             <td>[[${groupPreference.category}]]</td>
-                            <td>[[${groupPreference.member}]]</td>
+                            <td>[[${groupPreference.user}]]</td>
                             <td>
                                 <div class="float-end text-nowrap">
                                     <a th:href="@{/groupPreferences/edit/{id}(id=${groupPreference.id})}" class="btn btn-sm btn-secondary">[[#{groupPreference.list.edit}]]</a>

@@ -23,7 +23,7 @@
                             <th scope="col">[[#{contact.status.label}]]</th>
                             <th scope="col">[[#{contact.answer.label}]]</th>
                             <th scope="col">[[#{contact.answeredAt.label}]]</th>
-                            <th scope="col">[[#{contact.member.label}]]</th>
+                            <th scope="col">[[#{contact.user.label}]]</th>
                             <th><!-- --></th>
                         </tr>
                     </thead>
@@ -35,7 +35,7 @@
                             <td>[[${contact.status}]]</td>
                             <td>[[${contact.answer}]]</td>
                             <td>[[${contact.answeredAt}]]</td>
-                            <td>[[${contact.member}]]</td>
+                            <td>[[${contact.user}]]</td>
                             <td>
                                 <div class="float-end text-nowrap">
                                     <a th:href="@{/contacts/edit/{id}(id=${contact.id})}" class="btn btn-sm btn-secondary">[[#{contact.list.edit}]]</a>

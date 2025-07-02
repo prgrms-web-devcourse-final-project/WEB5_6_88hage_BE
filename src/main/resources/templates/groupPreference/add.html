@@ -15,7 +15,7 @@
             <div th:replace="~{fragments/forms::globalErrors('groupPreference')}" />
             <form th:action="${requestUri}" method="post" novalidate="">
                 <div th:replace="~{fragments/forms::inputRow(object='groupPreference', field='category', type='select')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='groupPreference', field='member', required=true, type='select')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='groupPreference', field='user', required=true, type='select')}" />
                 <input type="submit" th:value="#{groupPreference.add.headline}" class="btn btn-primary mt-4" />
             </form>
         </div>

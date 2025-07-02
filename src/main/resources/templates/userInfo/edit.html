@@ -2,22 +2,22 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
         layout:decorate="~{layout}">
     <head>
-        <title>[[#{memberInfo.edit.headline}]]</title>
+        <title>[[#{userInfo.edit.headline}]]</title>
     </head>
     <body>
         <div layout:fragment="content">
             <div class="d-flex flex-wrap mb-4">
-                <h1 class="flex-grow-1">[[#{memberInfo.edit.headline}]]</h1>
+                <h1 class="flex-grow-1">[[#{userInfo.edit.headline}]]</h1>
                 <div>
-                    <a th:href="@{/userInfos}" class="btn btn-secondary">[[#{memberInfo.edit.back}]]</a>
+                    <a th:href="@{/userInfos}" class="btn btn-secondary">[[#{userInfo.edit.back}]]</a>
                 </div>
             </div>
-            <div th:replace="~{fragments/forms::globalErrors('memberInfo')}" />
+            <div th:replace="~{fragments/forms::globalErrors('userInfo')}" />
             <form th:action="${requestUri}" method="post" novalidate="">
-                <div th:replace="~{fragments/forms::inputRow(object='memberInfo', field='email', disabled=true)}" />
-                <div th:replace="~{fragments/forms::inputRow(object='memberInfo', field='imageUrl')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='memberInfo', field='introduction')}" />
-                <input type="submit" th:value="#{memberInfo.edit.headline}" class="btn btn-primary mt-4" />
+                <div th:replace="~{fragments/forms::inputRow(object='userInfo', field='email', disabled=true)}" />
+                <div th:replace="~{fragments/forms::inputRow(object='userInfo', field='imageUrl')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='userInfo', field='introduction')}" />
+                <input type="submit" th:value="#{userInfo.edit.headline}" class="btn btn-primary mt-4" />
             </form>
         </div>
     </body>
