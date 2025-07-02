@@ -41,11 +41,18 @@ public class JwtTokenProvider {
     @Getter
     @Value("${jwt.expiration}")
     private long accessTokenExpiration;
-    
-    @Getter
-    @Value("${jwt.refresh-expiration}")
-    private long refreshTokenExpiration;
-    
+
+    @Value("${jwt.refresh.ttl-default}")
+    private long defaultTtl;
+
+    @Value("${jwt.refresh.ttl-remember}")
+    private long rememberTtl;
+
+    public long getRefreshTokenExpiration(boolean rememberMe) {
+        return rememberMe ? rememberTtl : defaultTtl;
+    }
+
+
     private SecretKey secretKey;
     
     public SecretKey getSecretKey() {
@@ -61,7 +68,8 @@ public class JwtTokenProvider {
     public AccessTokenDto generateAccessToken(String username, String roles) {
         String id = UUID.randomUUID().toString();
         long now = (new Date()).getTime();
-        Date accessTokenExpiresIn = new Date(now + accessTokenExpiration);
+        // ms 단위
+        Date accessTokenExpiresIn = new Date(now + (accessTokenExpiration * 1000L));
         String token = Jwts.builder()
                            .subject(username)
                            .id(id)

@@ -35,7 +35,7 @@ public class AuthApiController {
         ResponseCookie accessToken = TokenCookieFactory.create(AuthToken.ACCESS_TOKEN.name(),
             tokenDto.getAccessToken(), tokenDto.getExpiresIn());
         ResponseCookie refreshToken = TokenCookieFactory.create(AuthToken.REFRESH_TOKEN.name(),
-            tokenDto.getRefreshToken(), tokenDto.getExpiresIn());
+            tokenDto.getRefreshToken(), tokenDto.getRefreshExpiresIn());
         
         response.addHeader("Set-Cookie", accessToken.toString());
         response.addHeader("Set-Cookie", refreshToken.toString());
