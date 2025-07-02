@@ -2,8 +2,8 @@ package com.grepp.funfun.app.controller.web.bookmark;
 
 import com.grepp.funfun.app.model.content.entity.Content;
 import com.grepp.funfun.app.model.content.repository.ContentRepository;
-import com.grepp.funfun.app.model.bookmark.dto.ContentBookMarkDTO;
-import com.grepp.funfun.app.model.bookmark.service.ContentBookMarkService;
+import com.grepp.funfun.app.model.bookmark.dto.ContentBookmarkDTO;
+import com.grepp.funfun.app.model.bookmark.service.ContentBookmarkService;
 import com.grepp.funfun.util.CustomCollectors;
 import com.grepp.funfun.util.WebUtils;
 import jakarta.validation.Valid;
@@ -20,15 +20,15 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 
 @Controller
-@RequestMapping("/contentBookMarks")
-public class ContentBookMarkController {
+@RequestMapping("/contentBookmarks")
+public class ContentBookmarkController {
 
-    private final ContentBookMarkService contentBookMarkService;
+    private final ContentBookmarkService contentBookmarkService;
     private final ContentRepository contentRepository;
 
-    public ContentBookMarkController(final ContentBookMarkService contentBookMarkService,
+    public ContentBookmarkController(final ContentBookmarkService contentBookmarkService,
             final ContentRepository contentRepository) {
-        this.contentBookMarkService = contentBookMarkService;
+        this.contentBookmarkService = contentBookmarkService;
         this.contentRepository = contentRepository;
     }
 
@@ -41,52 +41,52 @@ public class ContentBookMarkController {
 
     @GetMapping
     public String list(final Model model) {
-        model.addAttribute("contentBookMarks", contentBookMarkService.findAll());
-        return "contentBookMark/list";
+        model.addAttribute("contentBookmarks", contentBookmarkService.findAll());
+        return "contentBookmark/list";
     }
 
     @GetMapping("/add")
     public String add(
-            @ModelAttribute("contentBookMark") final ContentBookMarkDTO contentBookMarkDTO) {
-        return "contentBookMark/add";
+            @ModelAttribute("contentBookmark") final ContentBookmarkDTO contentBookmarkDTO) {
+        return "contentBookmark/add";
     }
 
     @PostMapping("/add")
     public String add(
-            @ModelAttribute("contentBookMark") @Valid final ContentBookMarkDTO contentBookMarkDTO,
+            @ModelAttribute("contentBookmark") @Valid final ContentBookmarkDTO contentBookmarkDTO,
             final BindingResult bindingResult, final RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
-            return "contentBookMark/add";
+            return "contentBookmark/add";
         }
-        contentBookMarkService.create(contentBookMarkDTO);
-        redirectAttributes.addFlashAttribute(WebUtils.MSG_SUCCESS, WebUtils.getMessage("contentBookMark.create.success"));
-        return "redirect:/contentBookMarks";
+        contentBookmarkService.create(contentBookmarkDTO);
+        redirectAttributes.addFlashAttribute(WebUtils.MSG_SUCCESS, WebUtils.getMessage("contentBookmark.create.success"));
+        return "redirect:/contentBookmarks";
     }
 
     @GetMapping("/edit/{id}")
     public String edit(@PathVariable(name = "id") final Long id, final Model model) {
-        model.addAttribute("contentBookMark", contentBookMarkService.get(id));
-        return "contentBookMark/edit";
+        model.addAttribute("contentBookmark", contentBookmarkService.get(id));
+        return "contentBookmark/edit";
     }
 
     @PostMapping("/edit/{id}")
     public String edit(@PathVariable(name = "id") final Long id,
-            @ModelAttribute("contentBookMark") @Valid final ContentBookMarkDTO contentBookMarkDTO,
+            @ModelAttribute("contentBookmark") @Valid final ContentBookmarkDTO contentBookmarkDTO,
             final BindingResult bindingResult, final RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
-            return "contentBookMark/edit";
+            return "contentBookmark/edit";
         }
-        contentBookMarkService.update(id, contentBookMarkDTO);
-        redirectAttributes.addFlashAttribute(WebUtils.MSG_SUCCESS, WebUtils.getMessage("contentBookMark.update.success"));
-        return "redirect:/contentBookMarks";
+        contentBookmarkService.update(id, contentBookmarkDTO);
+        redirectAttributes.addFlashAttribute(WebUtils.MSG_SUCCESS, WebUtils.getMessage("contentBookmark.update.success"));
+        return "redirect:/contentBookmarks";
     }
 
     @PostMapping("/delete/{id}")
     public String delete(@PathVariable(name = "id") final Long id,
             final RedirectAttributes redirectAttributes) {
-        contentBookMarkService.delete(id);
-        redirectAttributes.addFlashAttribute(WebUtils.MSG_INFO, WebUtils.getMessage("contentBookMark.delete.success"));
-        return "redirect:/contentBookMarks";
+        contentBookmarkService.delete(id);
+        redirectAttributes.addFlashAttribute(WebUtils.MSG_INFO, WebUtils.getMessage("contentBookmark.delete.success"));
+        return "redirect:/contentBookmarks";
     }
 
 }

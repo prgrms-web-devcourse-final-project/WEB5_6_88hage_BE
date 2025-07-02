@@ -2,21 +2,21 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
         layout:decorate="~{layout}">
     <head>
-        <title>[[#{groupHashTag.add.headline}]]</title>
+        <title>[[#{groupHashtag.add.headline}]]</title>
     </head>
     <body>
         <div layout:fragment="content">
             <div class="d-flex flex-wrap mb-4">
-                <h1 class="flex-grow-1">[[#{groupHashTag.add.headline}]]</h1>
+                <h1 class="flex-grow-1">[[#{groupHashtag.add.headline}]]</h1>
                 <div>
-                    <a th:href="@{/groupHashTags}" class="btn btn-secondary">[[#{groupHashTag.add.back}]]</a>
+                    <a th:href="@{/groupHashtags}" class="btn btn-secondary">[[#{groupHashtag.add.back}]]</a>
                 </div>
             </div>
-            <div th:replace="~{fragments/forms::globalErrors('groupHashTag')}" />
+            <div th:replace="~{fragments/forms::globalErrors('groupHashtag')}" />
             <form th:action="${requestUri}" method="post" novalidate="">
-                <div th:replace="~{fragments/forms::inputRow(object='groupHashTag', field='tag')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='groupHashTag', field='group', type='select')}" />
-                <input type="submit" th:value="#{groupHashTag.add.headline}" class="btn btn-primary mt-4" />
+                <div th:replace="~{fragments/forms::inputRow(object='groupHashtag', field='tag')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='groupHashtag', field='group', type='select')}" />
+                <input type="submit" th:value="#{groupHashtag.add.headline}" class="btn btn-primary mt-4" />
             </form>
         </div>
     </body>

@@ -69,6 +69,6 @@ public class Group extends BaseEntity {
     private Set<Participant> participants = new HashSet<>();
 
     @OneToMany(mappedBy = "group")
-    private Set<GroupHashTag> hashTags = new HashSet<>();
+    private Set<GroupHashtag> hashtags = new HashSet<>();
 
 }

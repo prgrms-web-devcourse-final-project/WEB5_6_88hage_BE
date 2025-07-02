@@ -1,7 +1,7 @@
 package com.grepp.funfun.app.model.content.service;
 
-import com.grepp.funfun.app.model.bookmark.entity.ContentBookMark;
-import com.grepp.funfun.app.model.bookmark.repository.ContentBookMarkRepository;
+import com.grepp.funfun.app.model.bookmark.entity.ContentBookmark;
+import com.grepp.funfun.app.model.bookmark.repository.ContentBookmarkRepository;
 import com.grepp.funfun.app.model.calendar.entity.Calendar;
 import com.grepp.funfun.app.model.calendar.repository.CalendarRepository;
 import com.grepp.funfun.app.model.content.dto.ContentDTO;
@@ -22,16 +22,16 @@ public class ContentService {
 
     private final ContentRepository contentRepository;
     private final ContentCategoryRepository contentCategoryRepository;
-    private final ContentBookMarkRepository contentBookMarkRepository;
+    private final ContentBookmarkRepository contentBookmarkRepository;
     private final CalendarRepository calendarRepository;
 
     public ContentService(final ContentRepository contentRepository,
             final ContentCategoryRepository contentCategoryRepository,
-            final ContentBookMarkRepository contentBookMarkRepository,
+            final ContentBookmarkRepository contentBookmarkRepository,
             final CalendarRepository calendarRepository) {
         this.contentRepository = contentRepository;
         this.contentCategoryRepository = contentCategoryRepository;
-        this.contentBookMarkRepository = contentBookMarkRepository;
+        this.contentBookmarkRepository = contentBookmarkRepository;
         this.calendarRepository = calendarRepository;
     }
 
@@ -104,10 +104,10 @@ public class ContentService {
         final ReferencedWarning referencedWarning = new ReferencedWarning();
         final Content content = contentRepository.findById(id)
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        final ContentBookMark contentContentBookMark = contentBookMarkRepository.findFirstByContent(content);
-        if (contentContentBookMark != null) {
-            referencedWarning.setKey("content.contentBookMark.content.referenced");
-            referencedWarning.addParam(contentContentBookMark.getId());
+        final ContentBookmark contentContentBookmark = contentBookmarkRepository.findFirstByContent(content);
+        if (contentContentBookmark != null) {
+            referencedWarning.setKey("content.contentBookmark.content.referenced");
+            referencedWarning.addParam(contentContentBookmark.getId());
             return referencedWarning;
         }
         final Calendar contentCalendar = calendarRepository.findFirstByContent(content);

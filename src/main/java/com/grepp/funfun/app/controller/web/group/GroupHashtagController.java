@@ -2,8 +2,8 @@ package com.grepp.funfun.app.controller.web.group;
 
 import com.grepp.funfun.app.model.group.entity.Group;
 import com.grepp.funfun.app.model.group.repository.GroupRepository;
-import com.grepp.funfun.app.model.group.dto.GroupHashTagDTO;
-import com.grepp.funfun.app.model.group.service.GroupHashTagService;
+import com.grepp.funfun.app.model.group.dto.GroupHashtagDTO;
+import com.grepp.funfun.app.model.group.service.GroupHashtagService;
 import com.grepp.funfun.util.CustomCollectors;
 import com.grepp.funfun.util.WebUtils;
 import jakarta.validation.Valid;
@@ -20,15 +20,15 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 
 @Controller
-@RequestMapping("/groupHashTags")
-public class GroupHashTagController {
+@RequestMapping("/groupHashtags")
+public class GroupHashtagController {
 
-    private final GroupHashTagService groupHashTagService;
+    private final GroupHashtagService groupHashtagService;
     private final GroupRepository groupRepository;
 
-    public GroupHashTagController(final GroupHashTagService groupHashTagService,
+    public GroupHashtagController(final GroupHashtagService groupHashtagService,
             final GroupRepository groupRepository) {
-        this.groupHashTagService = groupHashTagService;
+        this.groupHashtagService = groupHashtagService;
         this.groupRepository = groupRepository;
     }
 
@@ -41,50 +41,50 @@ public class GroupHashTagController {
 
     @GetMapping
     public String list(final Model model) {
-        model.addAttribute("groupHashTags", groupHashTagService.findAll());
-        return "groupHashTag/list";
+        model.addAttribute("groupHashtags", groupHashtagService.findAll());
+        return "groupHashtag/list";
     }
 
     @GetMapping("/add")
-    public String add(@ModelAttribute("groupHashTag") final GroupHashTagDTO groupHashTagDTO) {
-        return "groupHashTag/add";
+    public String add(@ModelAttribute("groupHashtag") final GroupHashtagDTO groupHashtagDTO) {
+        return "groupHashtag/add";
     }
 
     @PostMapping("/add")
-    public String add(@ModelAttribute("groupHashTag") @Valid final GroupHashTagDTO groupHashTagDTO,
+    public String add(@ModelAttribute("groupHashtag") @Valid final GroupHashtagDTO groupHashtagDTO,
             final BindingResult bindingResult, final RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
-            return "groupHashTag/add";
+            return "groupHashtag/add";
         }
-        groupHashTagService.create(groupHashTagDTO);
-        redirectAttributes.addFlashAttribute(WebUtils.MSG_SUCCESS, WebUtils.getMessage("groupHashTag.create.success"));
-        return "redirect:/groupHashTags";
+        groupHashtagService.create(groupHashtagDTO);
+        redirectAttributes.addFlashAttribute(WebUtils.MSG_SUCCESS, WebUtils.getMessage("groupHashtag.create.success"));
+        return "redirect:/groupHashtags";
     }
 
     @GetMapping("/edit/{id}")
     public String edit(@PathVariable(name = "id") final Long id, final Model model) {
-        model.addAttribute("groupHashTag", groupHashTagService.get(id));
-        return "groupHashTag/edit";
+        model.addAttribute("groupHashtag", groupHashtagService.get(id));
+        return "groupHashtag/edit";
     }
 
     @PostMapping("/edit/{id}")
     public String edit(@PathVariable(name = "id") final Long id,
-            @ModelAttribute("groupHashTag") @Valid final GroupHashTagDTO groupHashTagDTO,
+            @ModelAttribute("groupHashtag") @Valid final GroupHashtagDTO groupHashtagDTO,
             final BindingResult bindingResult, final RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
-            return "groupHashTag/edit";
+            return "groupHashtag/edit";
         }
-        groupHashTagService.update(id, groupHashTagDTO);
-        redirectAttributes.addFlashAttribute(WebUtils.MSG_SUCCESS, WebUtils.getMessage("groupHashTag.update.success"));
-        return "redirect:/groupHashTags";
+        groupHashtagService.update(id, groupHashtagDTO);
+        redirectAttributes.addFlashAttribute(WebUtils.MSG_SUCCESS, WebUtils.getMessage("groupHashtag.update.success"));
+        return "redirect:/groupHashtags";
     }
 
     @PostMapping("/delete/{id}")
     public String delete(@PathVariable(name = "id") final Long id,
             final RedirectAttributes redirectAttributes) {
-        groupHashTagService.delete(id);
-        redirectAttributes.addFlashAttribute(WebUtils.MSG_INFO, WebUtils.getMessage("groupHashTag.delete.success"));
-        return "redirect:/groupHashTags";
+        groupHashtagService.delete(id);
+        redirectAttributes.addFlashAttribute(WebUtils.MSG_INFO, WebUtils.getMessage("groupHashtag.delete.success"));
+        return "redirect:/groupHashtags";
     }
 
 }

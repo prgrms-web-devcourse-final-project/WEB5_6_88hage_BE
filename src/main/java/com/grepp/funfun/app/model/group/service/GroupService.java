@@ -8,8 +8,8 @@ import com.grepp.funfun.app.model.chat.entity.ChatRoom;
 import com.grepp.funfun.app.model.chat.repository.ChatRoomRepository;
 import com.grepp.funfun.app.model.group.dto.GroupDTO;
 import com.grepp.funfun.app.model.group.entity.Group;
-import com.grepp.funfun.app.model.group.entity.GroupHashTag;
-import com.grepp.funfun.app.model.group.repository.GroupHashTagRepository;
+import com.grepp.funfun.app.model.group.entity.GroupHashtag;
+import com.grepp.funfun.app.model.group.repository.GroupHashtagRepository;
 import com.grepp.funfun.app.model.group.repository.GroupRepository;
 import com.grepp.funfun.app.model.participant.entity.Participant;
 import com.grepp.funfun.app.model.participant.repository.ParticipantRepository;
@@ -32,21 +32,21 @@ public class GroupService {
     private final ParticipantRepository participantRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final CalendarRepository calendarRepository;
-    private final GroupHashTagRepository groupHashTagRepository;
+    private final GroupHashtagRepository groupHashtagRepository;
 
     public GroupService(final GroupRepository groupRepository, final UserRepository userRepository,
             final GroupBookmarkRepository groupBookmarkRepository,
             final ParticipantRepository participantRepository,
             final ChatRoomRepository chatRoomRepository,
             final CalendarRepository calendarRepository,
-            final GroupHashTagRepository groupHashTagRepository) {
+            final GroupHashtagRepository groupHashtagRepository) {
         this.groupRepository = groupRepository;
         this.userRepository = userRepository;
         this.groupBookmarkRepository = groupBookmarkRepository;
         this.participantRepository = participantRepository;
         this.chatRoomRepository = chatRoomRepository;
         this.calendarRepository = calendarRepository;
-        this.groupHashTagRepository = groupHashTagRepository;
+        this.groupHashtagRepository = groupHashtagRepository;
     }
 
     public List<GroupDTO> findAll() {
@@ -146,10 +146,10 @@ public class GroupService {
             referencedWarning.addParam(groupCalendar.getId());
             return referencedWarning;
         }
-        final GroupHashTag groupGroupHashTag = groupHashTagRepository.findFirstByGroup(group);
-        if (groupGroupHashTag != null) {
-            referencedWarning.setKey("group.groupHashTag.group.referenced");
-            referencedWarning.addParam(groupGroupHashTag.getId());
+        final GroupHashtag groupGroupHashtag = groupHashtagRepository.findFirstByGroup(group);
+        if (groupGroupHashtag != null) {
+            referencedWarning.setKey("group.groupHashtag.group.referenced");
+            referencedWarning.addParam(groupGroupHashtag.getId());
             return referencedWarning;
         }
         return null;
