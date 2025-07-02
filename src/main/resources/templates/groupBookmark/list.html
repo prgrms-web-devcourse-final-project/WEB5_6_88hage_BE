@@ -1,0 +1,46 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{layout}">
+    <head>
+        <title>[[#{groupBookmark.list.headline}]]</title>
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <div class="d-flex flex-wrap mb-4">
+                <h1 class="flex-grow-1">[[#{groupBookmark.list.headline}]]</h1>
+                <div>
+                    <a th:href="@{/groupBookmarks/add}" class="btn btn-primary ms-2">[[#{groupBookmark.list.createNew}]]</a>
+                </div>
+            </div>
+            <div th:if="${groupBookmarks.empty}">[[#{groupBookmark.list.empty}]]</div>
+            <div th:if="${!groupBookmarks.empty}" class="table-responsive">
+                <table class="table table-striped table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th scope="col">[[#{groupBookmark.id.label}]]</th>
+                            <th scope="col">[[#{groupBookmark.email.label}]]</th>
+                            <th scope="col">[[#{groupBookmark.group.label}]]</th>
+                            <th><!-- --></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="groupBookmark : ${groupBookmarks}">
+                            <td>[[${groupBookmark.id}]]</td>
+                            <td>[[${groupBookmark.email}]]</td>
+                            <td>[[${groupBookmark.group}]]</td>
+                            <td>
+                                <div class="float-end text-nowrap">
+                                    <a th:href="@{/groupBookmarks/edit/{id}(id=${groupBookmark.id})}" class="btn btn-sm btn-secondary">[[#{groupBookmark.list.edit}]]</a>
+                                    <form th:action="@{/groupBookmarks/delete/{id}(id=${groupBookmark.id})}"
+                                            th:data-confirm-message="#{delete.confirm}" method="post" class="js-submit-confirm d-inline">
+                                        <button type="submit" class="btn btn-sm btn-secondary">[[#{groupBookmark.list.delete}]]</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </body>
+</html>

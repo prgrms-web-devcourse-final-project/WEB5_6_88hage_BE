@@ -1,0 +1,25 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{layout}">
+    <head>
+        <title>[[#{chatBot.add.headline}]]</title>
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <div class="d-flex flex-wrap mb-4">
+                <h1 class="flex-grow-1">[[#{chatBot.add.headline}]]</h1>
+                <div>
+                    <a th:href="@{/chatBots}" class="btn btn-secondary">[[#{chatBot.add.back}]]</a>
+                </div>
+            </div>
+            <div th:replace="~{fragments/forms::globalErrors('chatBot')}" />
+            <form th:action="${requestUri}" method="post" novalidate="">
+                <div th:replace="~{fragments/forms::inputRow(object='chatBot', field='email')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='chatBot', field='groupSummary')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='chatBot', field='contentSummary')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='chatBot', field='type', type='radio')}" />
+                <input type="submit" th:value="#{chatBot.add.headline}" class="btn btn-primary mt-4" />
+            </form>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{layout}">
+    <head>
+        <title>[[#{contentBookMark.list.headline}]]</title>
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <div class="d-flex flex-wrap mb-4">
+                <h1 class="flex-grow-1">[[#{contentBookMark.list.headline}]]</h1>
+                <div>
+                    <a th:href="@{/contentBookMarks/add}" class="btn btn-primary ms-2">[[#{contentBookMark.list.createNew}]]</a>
+                </div>
+            </div>
+            <div th:if="${contentBookMarks.empty}">[[#{contentBookMark.list.empty}]]</div>
+            <div th:if="${!contentBookMarks.empty}" class="table-responsive">
+                <table class="table table-striped table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th scope="col">[[#{contentBookMark.id.label}]]</th>
+                            <th scope="col">[[#{contentBookMark.email.label}]]</th>
+                            <th scope="col">[[#{contentBookMark.content.label}]]</th>
+                            <th><!-- --></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="contentBookMark : ${contentBookMarks}">
+                            <td>[[${contentBookMark.id}]]</td>
+                            <td>[[${contentBookMark.email}]]</td>
+                            <td>[[${contentBookMark.content}]]</td>
+                            <td>
+                                <div class="float-end text-nowrap">
+                                    <a th:href="@{/contentBookMarks/edit/{id}(id=${contentBookMark.id})}" class="btn btn-sm btn-secondary">[[#{contentBookMark.list.edit}]]</a>
+                                    <form th:action="@{/contentBookMarks/delete/{id}(id=${contentBookMark.id})}"
+                                            th:data-confirm-message="#{delete.confirm}" method="post" class="js-submit-confirm d-inline">
+                                        <button type="submit" class="btn btn-sm btn-secondary">[[#{contentBookMark.list.delete}]]</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </body>
+</html>

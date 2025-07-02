@@ -1,0 +1,24 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{layout}">
+    <head>
+        <title>[[#{follow.edit.headline}]]</title>
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <div class="d-flex flex-wrap mb-4">
+                <h1 class="flex-grow-1">[[#{follow.edit.headline}]]</h1>
+                <div>
+                    <a th:href="@{/follows}" class="btn btn-secondary">[[#{follow.edit.back}]]</a>
+                </div>
+            </div>
+            <div th:replace="~{fragments/forms::globalErrors('follow')}" />
+            <form th:action="${requestUri}" method="post" novalidate="">
+                <div th:replace="~{fragments/forms::inputRow(object='follow', field='id', disabled=true, type='number')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='follow', field='follower', required=true, type='select')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='follow', field='followee', required=true, type='select')}" />
+                <input type="submit" th:value="#{follow.edit.headline}" class="btn btn-primary mt-4" />
+            </form>
+        </div>
+    </body>
+</html>

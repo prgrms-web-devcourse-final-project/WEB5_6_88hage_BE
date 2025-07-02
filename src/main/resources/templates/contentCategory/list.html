@@ -1,0 +1,46 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{layout}">
+    <head>
+        <title>[[#{contentCategory.list.headline}]]</title>
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <div class="d-flex flex-wrap mb-4">
+                <h1 class="flex-grow-1">[[#{contentCategory.list.headline}]]</h1>
+                <div>
+                    <a th:href="@{/contentCategories/add}" class="btn btn-primary ms-2">[[#{contentCategory.list.createNew}]]</a>
+                </div>
+            </div>
+            <div th:if="${contentCategories.empty}">[[#{contentCategory.list.empty}]]</div>
+            <div th:if="${!contentCategories.empty}" class="table-responsive">
+                <table class="table table-striped table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th scope="col">[[#{contentCategory.id.label}]]</th>
+                            <th scope="col">[[#{contentCategory.category.label}]]</th>
+                            <th scope="col">[[#{contentCategory.during.label}]]</th>
+                            <th><!-- --></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="contentCategory : ${contentCategories}">
+                            <td>[[${contentCategory.id}]]</td>
+                            <td>[[${contentCategory.category}]]</td>
+                            <td>[[${contentCategory.during}]]</td>
+                            <td>
+                                <div class="float-end text-nowrap">
+                                    <a th:href="@{/contentCategories/edit/{id}(id=${contentCategory.id})}" class="btn btn-sm btn-secondary">[[#{contentCategory.list.edit}]]</a>
+                                    <form th:action="@{/contentCategories/delete/{id}(id=${contentCategory.id})}"
+                                            th:data-confirm-message="#{delete.confirm}" method="post" class="js-submit-confirm d-inline">
+                                        <button type="submit" class="btn btn-sm btn-secondary">[[#{contentCategory.list.delete}]]</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </body>
+</html>

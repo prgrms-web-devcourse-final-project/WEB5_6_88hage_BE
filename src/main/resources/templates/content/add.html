@@ -1,0 +1,33 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{layout}">
+    <head>
+        <title>[[#{content.add.headline}]]</title>
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <div class="d-flex flex-wrap mb-4">
+                <h1 class="flex-grow-1">[[#{content.add.headline}]]</h1>
+                <div>
+                    <a th:href="@{/contents}" class="btn btn-secondary">[[#{content.add.back}]]</a>
+                </div>
+            </div>
+            <div th:replace="~{fragments/forms::globalErrors('content')}" />
+            <form th:action="${requestUri}" method="post" novalidate="">
+                <div th:replace="~{fragments/forms::inputRow(object='content', field='contentTitle')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='content', field='description')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='content', field='startDate', inputClass='js-datetimepicker')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='content', field='endDate', inputClass='js-datetimepicker')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='content', field='address')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='content', field='latitude')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='content', field='longitude')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='content', field='url')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='content', field='imageUrl')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='content', field='isFree', type='checkbox')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='content', field='guName')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='content', field='category', required=true, type='select')}" />
+                <input type="submit" th:value="#{content.add.headline}" class="btn btn-primary mt-4" />
+            </form>
+        </div>
+    </body>
+</html>

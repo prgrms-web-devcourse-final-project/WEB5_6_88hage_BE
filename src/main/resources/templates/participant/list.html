@@ -1,0 +1,50 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{layout}">
+    <head>
+        <title>[[#{participant.list.headline}]]</title>
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <div class="d-flex flex-wrap mb-4">
+                <h1 class="flex-grow-1">[[#{participant.list.headline}]]</h1>
+                <div>
+                    <a th:href="@{/participants/add}" class="btn btn-primary ms-2">[[#{participant.list.createNew}]]</a>
+                </div>
+            </div>
+            <div th:if="${participants.empty}">[[#{participant.list.empty}]]</div>
+            <div th:if="${!participants.empty}" class="table-responsive">
+                <table class="table table-striped table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th scope="col">[[#{participant.id.label}]]</th>
+                            <th scope="col">[[#{participant.role.label}]]</th>
+                            <th scope="col">[[#{participant.status.label}]]</th>
+                            <th scope="col">[[#{participant.member.label}]]</th>
+                            <th scope="col">[[#{participant.group.label}]]</th>
+                            <th><!-- --></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="participant : ${participants}">
+                            <td>[[${participant.id}]]</td>
+                            <td>[[${participant.role}]]</td>
+                            <td>[[${participant.status}]]</td>
+                            <td>[[${participant.member}]]</td>
+                            <td>[[${participant.group}]]</td>
+                            <td>
+                                <div class="float-end text-nowrap">
+                                    <a th:href="@{/participants/edit/{id}(id=${participant.id})}" class="btn btn-sm btn-secondary">[[#{participant.list.edit}]]</a>
+                                    <form th:action="@{/participants/delete/{id}(id=${participant.id})}"
+                                            th:data-confirm-message="#{delete.confirm}" method="post" class="js-submit-confirm d-inline">
+                                        <button type="submit" class="btn btn-sm btn-secondary">[[#{participant.list.delete}]]</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </body>
+</html>

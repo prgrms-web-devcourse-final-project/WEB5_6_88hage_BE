@@ -1,0 +1,50 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{layout}">
+    <head>
+        <title>[[#{notification.list.headline}]]</title>
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <div class="d-flex flex-wrap mb-4">
+                <h1 class="flex-grow-1">[[#{notification.list.headline}]]</h1>
+                <div>
+                    <a th:href="@{/notifications/add}" class="btn btn-primary ms-2">[[#{notification.list.createNew}]]</a>
+                </div>
+            </div>
+            <div th:if="${notifications.empty}">[[#{notification.list.empty}]]</div>
+            <div th:if="${!notifications.empty}" class="table-responsive">
+                <table class="table table-striped table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th scope="col">[[#{notification.id.label}]]</th>
+                            <th scope="col">[[#{notification.email.label}]]</th>
+                            <th scope="col">[[#{notification.message.label}]]</th>
+                            <th scope="col">[[#{notification.link.label}]]</th>
+                            <th scope="col">[[#{notification.isRead.label}]]</th>
+                            <th><!-- --></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="notification : ${notifications}">
+                            <td>[[${notification.id}]]</td>
+                            <td>[[${notification.email}]]</td>
+                            <td>[[${notification.message}]]</td>
+                            <td>[[${notification.link}]]</td>
+                            <td>[[${notification.isRead}]]</td>
+                            <td>
+                                <div class="float-end text-nowrap">
+                                    <a th:href="@{/notifications/edit/{id}(id=${notification.id})}" class="btn btn-sm btn-secondary">[[#{notification.list.edit}]]</a>
+                                    <form th:action="@{/notifications/delete/{id}(id=${notification.id})}"
+                                            th:data-confirm-message="#{delete.confirm}" method="post" class="js-submit-confirm d-inline">
+                                        <button type="submit" class="btn btn-sm btn-secondary">[[#{notification.list.delete}]]</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </body>
+</html>

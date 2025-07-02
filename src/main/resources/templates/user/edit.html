@@ -1,0 +1,37 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{layout}">
+    <head>
+        <title>[[#{member.edit.headline}]]</title>
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <div class="d-flex flex-wrap mb-4">
+                <h1 class="flex-grow-1">[[#{member.edit.headline}]]</h1>
+                <div>
+                    <a th:href="@{/members}" class="btn btn-secondary">[[#{member.edit.back}]]</a>
+                </div>
+            </div>
+            <div th:replace="~{fragments/forms::globalErrors('member')}" />
+            <form th:action="${requestUri}" method="post" novalidate="">
+                <input type="submit" th:value="#{member.edit.headline}" class="btn btn-primary mt-4 mb-4" />
+                <div th:replace="~{fragments/forms::inputRow(object='member', field='email', disabled=true)}" />
+                <div th:replace="~{fragments/forms::inputRow(object='member', field='password', required=true)}" />
+                <div th:replace="~{fragments/forms::inputRow(object='member', field='nickname', required=true)}" />
+                <div th:replace="~{fragments/forms::inputRow(object='member', field='age', type='number')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='member', field='gender', type='radio')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='member', field='tel')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='member', field='address')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='member', field='role', type='radio')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='member', field='status', type='radio')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='member', field='dueDate', inputClass='js-datepicker')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='member', field='suspendDuration', type='number')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='member', field='dueReason')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='member', field='isVerified', type='checkbox')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='member', field='isMarketingAgreed', type='checkbox')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='member', field='info', type='select')}" />
+                <input type="submit" th:value="#{member.edit.headline}" class="btn btn-primary mt-4" />
+            </form>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{layout}">
+    <head>
+        <title>[[#{group.list.headline}]]</title>
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <div class="d-flex flex-wrap mb-4">
+                <h1 class="flex-grow-1">[[#{group.list.headline}]]</h1>
+                <div>
+                    <a th:href="@{/groups/add}" class="btn btn-primary ms-2">[[#{group.list.createNew}]]</a>
+                </div>
+            </div>
+            <div th:if="${groups.empty}">[[#{group.list.empty}]]</div>
+            <div th:if="${!groups.empty}" class="table-responsive">
+                <table class="table table-striped table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th scope="col">[[#{group.id.label}]]</th>
+                            <th scope="col">[[#{group.title.label}]]</th>
+                            <th scope="col">[[#{group.explain.label}]]</th>
+                            <th scope="col">[[#{group.placeName.label}]]</th>
+                            <th scope="col">[[#{group.address.label}]]</th>
+                            <th scope="col">[[#{group.groupDate.label}]]</th>
+                            <th scope="col">[[#{group.maxPeople.label}]]</th>
+                            <th scope="col">[[#{group.nowPeople.label}]]</th>
+                            <th><!-- --></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="group : ${groups}">
+                            <td>[[${group.id}]]</td>
+                            <td>[[${group.title}]]</td>
+                            <td>[[${group.explain}]]</td>
+                            <td>[[${group.placeName}]]</td>
+                            <td>[[${group.address}]]</td>
+                            <td>[[${group.groupDate}]]</td>
+                            <td>[[${group.maxPeople}]]</td>
+                            <td>[[${group.nowPeople}]]</td>
+                            <td>
+                                <div class="float-end text-nowrap">
+                                    <a th:href="@{/groups/edit/{id}(id=${group.id})}" class="btn btn-sm btn-secondary">[[#{group.list.edit}]]</a>
+                                    <form th:action="@{/groups/delete/{id}(id=${group.id})}"
+                                            th:data-confirm-message="#{delete.confirm}" method="post" class="js-submit-confirm d-inline">
+                                        <button type="submit" class="btn btn-sm btn-secondary">[[#{group.list.delete}]]</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </body>
+</html>

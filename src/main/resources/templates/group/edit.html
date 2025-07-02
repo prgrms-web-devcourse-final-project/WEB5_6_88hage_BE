@@ -1,0 +1,37 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{layout}">
+    <head>
+        <title>[[#{group.edit.headline}]]</title>
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <div class="d-flex flex-wrap mb-4">
+                <h1 class="flex-grow-1">[[#{group.edit.headline}]]</h1>
+                <div>
+                    <a th:href="@{/groups}" class="btn btn-secondary">[[#{group.edit.back}]]</a>
+                </div>
+            </div>
+            <div th:replace="~{fragments/forms::globalErrors('group')}" />
+            <form th:action="${requestUri}" method="post" novalidate="">
+                <input type="submit" th:value="#{group.edit.headline}" class="btn btn-primary mt-4 mb-4" />
+                <div th:replace="~{fragments/forms::inputRow(object='group', field='id', disabled=true, type='number')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='group', field='title')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='group', field='explain')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='group', field='placeName')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='group', field='address')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='group', field='groupDate', inputClass='js-datetimepicker')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='group', field='maxPeople', type='number')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='group', field='nowPeople', type='number')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='group', field='status', type='select')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='group', field='imageUrl')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='group', field='latitude')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='group', field='longitude')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='group', field='during', type='number')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='group', field='category', type='select')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='group', field='leader', required=true, type='select')}" />
+                <input type="submit" th:value="#{group.edit.headline}" class="btn btn-primary mt-4" />
+            </form>
+        </div>
+    </body>
+</html>

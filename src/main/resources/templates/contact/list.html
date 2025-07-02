@@ -1,0 +1,54 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{layout}">
+    <head>
+        <title>[[#{contact.list.headline}]]</title>
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <div class="d-flex flex-wrap mb-4">
+                <h1 class="flex-grow-1">[[#{contact.list.headline}]]</h1>
+                <div>
+                    <a th:href="@{/contacts/add}" class="btn btn-primary ms-2">[[#{contact.list.createNew}]]</a>
+                </div>
+            </div>
+            <div th:if="${contacts.empty}">[[#{contact.list.empty}]]</div>
+            <div th:if="${!contacts.empty}" class="table-responsive">
+                <table class="table table-striped table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th scope="col">[[#{contact.id.label}]]</th>
+                            <th scope="col">[[#{contact.title.label}]]</th>
+                            <th scope="col">[[#{contact.content.label}]]</th>
+                            <th scope="col">[[#{contact.status.label}]]</th>
+                            <th scope="col">[[#{contact.answer.label}]]</th>
+                            <th scope="col">[[#{contact.answeredAt.label}]]</th>
+                            <th scope="col">[[#{contact.member.label}]]</th>
+                            <th><!-- --></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="contact : ${contacts}">
+                            <td>[[${contact.id}]]</td>
+                            <td>[[${contact.title}]]</td>
+                            <td>[[${contact.content}]]</td>
+                            <td>[[${contact.status}]]</td>
+                            <td>[[${contact.answer}]]</td>
+                            <td>[[${contact.answeredAt}]]</td>
+                            <td>[[${contact.member}]]</td>
+                            <td>
+                                <div class="float-end text-nowrap">
+                                    <a th:href="@{/contacts/edit/{id}(id=${contact.id})}" class="btn btn-sm btn-secondary">[[#{contact.list.edit}]]</a>
+                                    <form th:action="@{/contacts/delete/{id}(id=${contact.id})}"
+                                            th:data-confirm-message="#{delete.confirm}" method="post" class="js-submit-confirm d-inline">
+                                        <button type="submit" class="btn btn-sm btn-secondary">[[#{contact.list.delete}]]</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </body>
+</html>
