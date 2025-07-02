@@ -8,6 +8,7 @@ import com.grepp.funfun.app.model.auth.dto.TokenDto;
 import com.grepp.funfun.infra.auth.jwt.TokenCookieFactory;
 import com.grepp.funfun.infra.response.ApiResponse;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseCookie;
@@ -27,7 +28,7 @@ public class AuthApiController {
     
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<TokenResponse>> login(
-        @RequestBody LoginRequest loginRequest,
+        @RequestBody @Valid LoginRequest loginRequest,
         HttpServletResponse response
     ) {
         TokenDto tokenDto = authService.signin(loginRequest);
