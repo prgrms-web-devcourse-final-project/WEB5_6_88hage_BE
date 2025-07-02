@@ -1,10 +1,11 @@
 package com.grepp.funfun.app.controller.api.user;
 
+import com.grepp.funfun.app.controller.api.user.payload.SignupRequest;
 import com.grepp.funfun.app.model.user.dto.UserDTO;
 import com.grepp.funfun.app.model.user.service.UserService;
+import com.grepp.funfun.infra.response.ApiResponse;
 import com.grepp.funfun.util.ReferencedException;
 import com.grepp.funfun.util.ReferencedWarning;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -41,10 +42,9 @@ public class UserApiController {
     }
 
     @PostMapping
-    @ApiResponse(responseCode = "201")
-    public ResponseEntity<String> createUser(@RequestBody @Valid final UserDTO userDTO) {
-        final String createdEmail = userService.create(userDTO);
-        return new ResponseEntity<>('"' + createdEmail + '"', HttpStatus.CREATED);
+    public ResponseEntity<ApiResponse<String>> createUser(@RequestBody @Valid SignupRequest request) {
+        String createdEmail = userService.create(request);
+        return ResponseEntity.ok(ApiResponse.success(createdEmail));
     }
 
     @PutMapping("/{email}")
@@ -55,7 +55,6 @@ public class UserApiController {
     }
 
     @DeleteMapping("/{email}")
-    @ApiResponse(responseCode = "204")
     public ResponseEntity<Void> deleteUser(@PathVariable(name = "email") final String email) {
         final ReferencedWarning referencedWarning = userService.getReferencedWarning(email);
         if (referencedWarning != null) {

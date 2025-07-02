@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.model.user.service;
 
+import com.grepp.funfun.app.controller.api.user.payload.SignupRequest;
 import com.grepp.funfun.app.model.contact.entity.Contact;
 import com.grepp.funfun.app.model.contact.repository.ContactRepository;
 import com.grepp.funfun.app.model.group.entity.Group;
@@ -25,11 +26,15 @@ import com.grepp.funfun.infra.error.exceptions.CommonException;
 import com.grepp.funfun.infra.response.ResponseCode;
 import com.grepp.funfun.util.ReferencedWarning;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
@@ -42,49 +47,50 @@ public class UserService {
     private final ParticipantRepository participantRepository;
     private final GroupPreferenceRepository groupPreferenceRepository;
     private final ContentPreferenceRepository contentPreferenceRepository;
-
-    public UserService(final UserRepository userRepository,
-            final UserInfoRepository userInfoRepository, final FollowRepository followRepository,
-            final MessageRepository messageRepository, final ContactRepository contactRepository,
-            final ReportRepository reportRepository, final GroupRepository groupRepository,
-            final ParticipantRepository participantRepository,
-            final GroupPreferenceRepository groupPreferenceRepository,
-            final ContentPreferenceRepository contentPreferenceRepository) {
-        this.userRepository = userRepository;
-        this.userInfoRepository = userInfoRepository;
-        this.followRepository = followRepository;
-        this.messageRepository = messageRepository;
-        this.contactRepository = contactRepository;
-        this.reportRepository = reportRepository;
-        this.groupRepository = groupRepository;
-        this.participantRepository = participantRepository;
-        this.groupPreferenceRepository = groupPreferenceRepository;
-        this.contentPreferenceRepository = contentPreferenceRepository;
-    }
+    private final PasswordEncoder passwordEncoder;
 
     public List<UserDTO> findAll() {
         final List<User> users = userRepository.findAll(Sort.by("email"));
         return users.stream()
-                .map(user -> mapToDTO(user, new UserDTO()))
-                .toList();
+            .map(user -> mapToDTO(user, new UserDTO()))
+            .toList();
     }
 
     public UserDTO get(final String email) {
         return userRepository.findById(email)
-                .map(user -> mapToDTO(user, new UserDTO()))
-                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+            .map(user -> mapToDTO(user, new UserDTO()))
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
     }
 
-    public String create(final UserDTO userDTO) {
-        final User user = new User();
-        mapToEntity(userDTO, user);
-        user.setEmail(userDTO.getEmail());
+    @Transactional
+    public String create(SignupRequest request) {
+        // 이메일 중복 검사
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new CommonException(ResponseCode.USER_EMAIL_DUPLICATE);
+        }
+
+        // 닉네임 중복 검사
+        if (userRepository.existsByNickname(request.getNickname())) {
+            throw new CommonException(ResponseCode.USER_NICKNAME_DUPLICATE);
+        }
+
+        User user = request.toEntity();
+
+        // 비밀번호 암호화
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+        user.setPassword(encodedPassword);
+
+        UserInfo userInfo = new UserInfo();
+        userInfo.setEmail(request.getEmail());
+        userInfoRepository.save(userInfo);
+        user.setInfo(userInfo);
+
         return userRepository.save(user).getEmail();
     }
 
     public void update(final String email, final UserDTO userDTO) {
         final User user = userRepository.findById(email)
-                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
         mapToEntity(userDTO, user);
         userRepository.save(user);
     }
@@ -126,24 +132,17 @@ public class UserService {
         user.setDueReason(userDTO.getDueReason());
         user.setIsVerified(userDTO.getIsVerified());
         user.setIsMarketingAgreed(userDTO.getIsMarketingAgreed());
-        final UserInfo info = userDTO.getInfo() == null ? null : userInfoRepository.findById(userDTO.getInfo())
+        final UserInfo info =
+            userDTO.getInfo() == null ? null : userInfoRepository.findById(userDTO.getInfo())
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
         user.setInfo(info);
         return user;
     }
 
-    public boolean emailExists(final String email) {
-        return userRepository.existsByEmailIgnoreCase(email);
-    }
-
-    public boolean infoExists(final String email) {
-        return userRepository.existsByInfoEmailIgnoreCase(email);
-    }
-
     public ReferencedWarning getReferencedWarning(final String email) {
         final ReferencedWarning referencedWarning = new ReferencedWarning();
         final User user = userRepository.findById(email)
-                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
         final Follow followerFollow = followRepository.findFirstByFollower(user);
         if (followerFollow != null) {
             referencedWarning.setKey("user.follow.follower.referenced");
@@ -204,7 +203,8 @@ public class UserService {
             referencedWarning.addParam(userGroupPreference.getId());
             return referencedWarning;
         }
-        final ContentPreference userContentPreference = contentPreferenceRepository.findFirstByUser(user);
+        final ContentPreference userContentPreference = contentPreferenceRepository.findFirstByUser(
+            user);
         if (userContentPreference != null) {
             referencedWarning.setKey("user.contentPreference.user.referenced");
             referencedWarning.addParam(userContentPreference.getId());

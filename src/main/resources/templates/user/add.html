@@ -21,14 +21,7 @@
                 <div th:replace="~{fragments/forms::inputRow(object='user', field='gender', type='radio')}" />
                 <div th:replace="~{fragments/forms::inputRow(object='user', field='tel')}" />
                 <div th:replace="~{fragments/forms::inputRow(object='user', field='address')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='user', field='role', type='radio')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='user', field='status', type='radio')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='user', field='dueDate', inputClass='js-datepicker')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='user', field='suspendDuration', type='number')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='user', field='dueReason')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='user', field='isVerified', type='checkbox')}" />
                 <div th:replace="~{fragments/forms::inputRow(object='user', field='isMarketingAgreed', type='checkbox')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='user', field='info', type='select')}" />
                 <input type="submit" th:value="#{user.add.headline}" class="btn btn-primary mt-4" />
             </form>
         </div>
