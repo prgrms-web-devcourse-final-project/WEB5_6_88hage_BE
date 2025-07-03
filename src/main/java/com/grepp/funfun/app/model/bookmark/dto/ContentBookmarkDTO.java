@@ -8,7 +8,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class ContentBookMarkDTO {
+public class ContentBookmarkDTO {
 
     private Long id;
 

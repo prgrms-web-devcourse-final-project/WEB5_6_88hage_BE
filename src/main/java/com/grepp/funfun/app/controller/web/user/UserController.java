@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.controller.web.user;
 
+import com.grepp.funfun.app.controller.api.user.payload.SignupRequest;
 import com.grepp.funfun.app.model.auth.code.Role;
 import com.grepp.funfun.app.model.user.code.Gender;
 import com.grepp.funfun.app.model.user.dto.UserDTO;
@@ -58,12 +59,12 @@ public class UserController {
     }
 
     @PostMapping("/add")
-    public String add(@ModelAttribute("user") @Valid final UserDTO userDTO,
+    public String add(@ModelAttribute("user") @Valid final SignupRequest request,
             final BindingResult bindingResult, final RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             return "user/add";
         }
-        userService.create(userDTO);
+        userService.create(request);
         redirectAttributes.addFlashAttribute(WebUtils.MSG_SUCCESS, WebUtils.getMessage("user.create.success"));
         return "redirect:/users";
     }

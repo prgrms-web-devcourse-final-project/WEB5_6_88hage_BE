@@ -2,22 +2,22 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
         layout:decorate="~{layout}">
     <head>
-        <title>[[#{contentBookMark.edit.headline}]]</title>
+        <title>[[#{contentBookmark.edit.headline}]]</title>
     </head>
     <body>
         <div layout:fragment="content">
             <div class="d-flex flex-wrap mb-4">
-                <h1 class="flex-grow-1">[[#{contentBookMark.edit.headline}]]</h1>
+                <h1 class="flex-grow-1">[[#{contentBookmark.edit.headline}]]</h1>
                 <div>
-                    <a th:href="@{/contentBookMarks}" class="btn btn-secondary">[[#{contentBookMark.edit.back}]]</a>
+                    <a th:href="@{/contentBookmarks}" class="btn btn-secondary">[[#{contentBookmark.edit.back}]]</a>
                 </div>
             </div>
-            <div th:replace="~{fragments/forms::globalErrors('contentBookMark')}" />
+            <div th:replace="~{fragments/forms::globalErrors('contentBookmark')}" />
             <form th:action="${requestUri}" method="post" novalidate="">
-                <div th:replace="~{fragments/forms::inputRow(object='contentBookMark', field='id', disabled=true, type='number')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='contentBookMark', field='email')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='contentBookMark', field='content', required=true, type='select')}" />
-                <input type="submit" th:value="#{contentBookMark.edit.headline}" class="btn btn-primary mt-4" />
+                <div th:replace="~{fragments/forms::inputRow(object='contentBookmark', field='id', disabled=true, type='number')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='contentBookmark', field='email')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='contentBookmark', field='content', required=true, type='select')}" />
+                <input type="submit" th:value="#{contentBookmark.edit.headline}" class="btn btn-primary mt-4" />
             </form>
         </div>
     </body>

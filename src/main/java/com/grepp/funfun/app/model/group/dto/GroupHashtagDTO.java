@@ -7,7 +7,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class GroupHashTagDTO {
+public class GroupHashtagDTO {
 
     private Long id;
 

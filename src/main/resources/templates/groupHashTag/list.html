@@ -2,38 +2,38 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
         layout:decorate="~{layout}">
     <head>
-        <title>[[#{groupHashTag.list.headline}]]</title>
+        <title>[[#{groupHashtag.list.headline}]]</title>
     </head>
     <body>
         <div layout:fragment="content">
             <div class="d-flex flex-wrap mb-4">
-                <h1 class="flex-grow-1">[[#{groupHashTag.list.headline}]]</h1>
+                <h1 class="flex-grow-1">[[#{groupHashtag.list.headline}]]</h1>
                 <div>
-                    <a th:href="@{/groupHashTags/add}" class="btn btn-primary ms-2">[[#{groupHashTag.list.createNew}]]</a>
+                    <a th:href="@{/groupHashtags/add}" class="btn btn-primary ms-2">[[#{groupHashtag.list.createNew}]]</a>
                 </div>
             </div>
-            <div th:if="${groupHashTags.empty}">[[#{groupHashTag.list.empty}]]</div>
-            <div th:if="${!groupHashTags.empty}" class="table-responsive">
+            <div th:if="${groupHashtags.empty}">[[#{groupHashtag.list.empty}]]</div>
+            <div th:if="${!groupHashtags.empty}" class="table-responsive">
                 <table class="table table-striped table-hover align-middle">
                     <thead>
                         <tr>
-                            <th scope="col">[[#{groupHashTag.id.label}]]</th>
-                            <th scope="col">[[#{groupHashTag.tag.label}]]</th>
-                            <th scope="col">[[#{groupHashTag.group.label}]]</th>
+                            <th scope="col">[[#{groupHashtag.id.label}]]</th>
+                            <th scope="col">[[#{groupHashtag.tag.label}]]</th>
+                            <th scope="col">[[#{groupHashtag.group.label}]]</th>
                             <th><!-- --></th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr th:each="groupHashTag : ${groupHashTags}">
-                            <td>[[${groupHashTag.id}]]</td>
-                            <td>[[${groupHashTag.tag}]]</td>
-                            <td>[[${groupHashTag.group}]]</td>
+                        <tr th:each="groupHashtag : ${groupHashtags}">
+                            <td>[[${groupHashtag.id}]]</td>
+                            <td>[[${groupHashtag.tag}]]</td>
+                            <td>[[${groupHashtag.group}]]</td>
                             <td>
                                 <div class="float-end text-nowrap">
-                                    <a th:href="@{/groupHashTags/edit/{id}(id=${groupHashTag.id})}" class="btn btn-sm btn-secondary">[[#{groupHashTag.list.edit}]]</a>
-                                    <form th:action="@{/groupHashTags/delete/{id}(id=${groupHashTag.id})}"
+                                    <a th:href="@{/groupHashtags/edit/{id}(id=${groupHashtag.id})}" class="btn btn-sm btn-secondary">[[#{groupHashtag.list.edit}]]</a>
+                                    <form th:action="@{/groupHashtags/delete/{id}(id=${groupHashtag.id})}"
                                             th:data-confirm-message="#{delete.confirm}" method="post" class="js-submit-confirm d-inline">
-                                        <button type="submit" class="btn btn-sm btn-secondary">[[#{groupHashTag.list.delete}]]</button>
+                                        <button type="submit" class="btn btn-sm btn-secondary">[[#{groupHashtag.list.delete}]]</button>
                                     </form>
                                 </div>
                             </td>

@@ -10,6 +10,8 @@ public enum ResponseCode {
     BAD_CREDENTIAL("4011", HttpStatus.UNAUTHORIZED, "아이디나 비밀번호가 틀렸습니다."),
     NOT_FOUND("4040", HttpStatus.NOT_FOUND, "NOT FOUND"),
     NOT_EXIST_PRE_AUTH_CREDENTIAL("4012", HttpStatus.OK, "사전 인증 정보가 요청에서 발견되지 않았습니다."),
+    USER_EMAIL_DUPLICATE("4013", HttpStatus.BAD_REQUEST, "이미 존재하는 이메일입니다."),
+    USER_NICKNAME_DUPLICATE("4014", HttpStatus.BAD_REQUEST, "이미 존재하는 닉네임입니다."),
     INTERNAL_SERVER_ERROR("5000", HttpStatus.INTERNAL_SERVER_ERROR, "서버에러 입니다."),
     SECURITY_INCIDENT("6000", HttpStatus.OK, "비정상적인 로그인 시도가 감지되었습니다.");
     

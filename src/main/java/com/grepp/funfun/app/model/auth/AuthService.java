@@ -40,23 +40,25 @@ public class AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String roles = String.join(",",
             authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
-        return processTokenSignin(authentication.getName(), roles);
+        return processTokenSignin(authentication.getName(), roles, loginRequest.isRememberMe());
     }
 
-    public TokenDto processTokenSignin(String email, String roles) {
+    public TokenDto processTokenSignin(String email, String roles, boolean rememberMe) {
         // black list 에 있다면 해제
         userBlackListRepository.deleteById(email);
 
+        long refreshTokenExpiration = jwtTokenProvider.getRefreshTokenExpiration(rememberMe);
+
         // 3. 인증 정보를 기반으로 JWT 토큰 생성
         AccessTokenDto accessToken = jwtTokenProvider.generateAccessToken(email, roles);
-        RefreshToken refreshToken = refreshTokenService.saveWithAtId(accessToken.getJti());
+        RefreshToken refreshToken = refreshTokenService.saveWithAtId(accessToken.getJti(), refreshTokenExpiration);
 
         return TokenDto.builder()
             .accessToken(accessToken.getToken())
             .atId(accessToken.getJti())
             .refreshToken(refreshToken.getToken())
             .grantType("Bearer")
-            .refreshExpiresIn(jwtTokenProvider.getRefreshTokenExpiration())
+            .refreshExpiresIn(refreshTokenExpiration)
             .expiresIn(jwtTokenProvider.getAccessTokenExpiration())
             .build();
     }
