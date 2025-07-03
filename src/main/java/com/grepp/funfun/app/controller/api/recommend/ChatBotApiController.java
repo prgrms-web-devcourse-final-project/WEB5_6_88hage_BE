@@ -2,9 +2,11 @@ package com.grepp.funfun.app.controller.api.recommend;
 
 import com.grepp.funfun.app.model.recommend.dto.ChatBotDTO;
 import com.grepp.funfun.app.model.recommend.service.ChatBotService;
+import com.grepp.funfun.app.model.recommend.service.ContentsAiService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,14 +21,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping(value = "/api/chatBots", produces = MediaType.APPLICATION_JSON_VALUE)
 public class ChatBotApiController {
 
     private final ChatBotService chatBotService;
+    private final ContentsAiService contentsAiService;
 
-    public ChatBotApiController(final ChatBotService chatBotService) {
-        this.chatBotService = chatBotService;
+    @PostMapping("chat")
+    public String chat(@RequestBody String message){
+        return contentsAiService.chat(message);
     }
+
 
     @GetMapping
     public ResponseEntity<List<ChatBotDTO>> getAllChatBots() {
