@@ -12,4 +12,6 @@ public interface ParticipantRepository extends JpaRepository<Participant, Long> 
 
     Participant findFirstByGroup(Group group);
 
+    Boolean existsByUserAndGroup(User user, Group group);
+
 }
