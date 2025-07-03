@@ -14,6 +14,9 @@ public enum ResponseCode {
     USER_NICKNAME_DUPLICATE("4014", HttpStatus.BAD_REQUEST, "이미 존재하는 닉네임입니다."),
     BAD_USER_VERIFY("4015", HttpStatus.BAD_REQUEST, "인증 링크가 만료되었거나 잘못되었습니다."),
     ALREADY_VERIFIED("4016", HttpStatus.BAD_REQUEST, "이미 인증된 사용자입니다."),
+    USER_NOT_VERIFY("4017", HttpStatus.BAD_REQUEST, "이메일 인증이 되지 않은 사용자입니다"),
+    USER_SUSPENDED("4018", HttpStatus.BAD_REQUEST, "정지된 사용자입니다."),
+    USER_INACTIVE("4019", HttpStatus.BAD_REQUEST, "비활성화된 사용자입니다."),
     INTERNAL_SERVER_ERROR("5000", HttpStatus.INTERNAL_SERVER_ERROR, "서버에러 입니다."),
     SECURITY_INCIDENT("6000", HttpStatus.OK, "비정상적인 로그인 시도가 감지되었습니다.");
     
