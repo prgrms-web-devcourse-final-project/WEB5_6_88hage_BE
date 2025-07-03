@@ -23,11 +23,18 @@ import com.grepp.funfun.app.model.user.entity.UserInfo;
 import com.grepp.funfun.app.model.user.repository.UserInfoRepository;
 import com.grepp.funfun.app.model.user.repository.UserRepository;
 import com.grepp.funfun.infra.error.exceptions.CommonException;
+import com.grepp.funfun.infra.mail.MailTemplate;
+import com.grepp.funfun.infra.mail.SmtpDto;
 import com.grepp.funfun.infra.response.ResponseCode;
 import com.grepp.funfun.util.ReferencedWarning;
+import java.time.Duration;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,6 +55,12 @@ public class UserService {
     private final GroupPreferenceRepository groupPreferenceRepository;
     private final ContentPreferenceRepository contentPreferenceRepository;
     private final PasswordEncoder passwordEncoder;
+    private final MailTemplate mailTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    @Value("${front-server.domain}")
+    private String domain;
+
 
     public List<UserDTO> findAll() {
         final List<User> users = userRepository.findAll(Sort.by("email"));
@@ -85,7 +98,56 @@ public class UserService {
         userInfoRepository.save(userInfo);
         user.setInfo(userInfo);
 
-        return userRepository.save(user).getEmail();
+        String email = userRepository.save(user).getEmail();
+
+        sendSignupVerificationMail(user);
+
+        return email;
+    }
+
+    @Transactional
+    public void resendVerificationSignupEmail(String email) {
+        // 1. 유저 존재 여부 확인
+        User user = userRepository.findById(email)
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+
+        if (user.getIsVerified()) {
+            throw new CommonException(ResponseCode.ALREADY_VERIFIED);
+        }
+
+        sendSignupVerificationMail(user);
+    }
+
+    private void sendSignupVerificationMail(User user) {
+        // 메일 인증 코드 생성
+        String code = UUID.randomUUID().toString();
+        String key = "signup:" + code;
+        redisTemplate.opsForValue().set(key, user.getEmail(), Duration.ofMinutes(5));
+
+        SmtpDto smtpDto = new SmtpDto();
+        smtpDto.setTo(user.getEmail());
+        smtpDto.setTemplatePath("/mail/signup-verification");
+        smtpDto.setSubject("회원가입을 환영합니다!");
+        smtpDto.setProperties(Map.of("domain", domain, "code", code, "nickname", user.getNickname()));
+
+        mailTemplate.send(smtpDto);
+    }
+
+    @Transactional
+    public String verifySignupCode(String code) {
+        String key = "signup:" + code;
+        String email = (String) redisTemplate.opsForValue().get(key);
+
+        if (email == null) {
+            throw new CommonException(ResponseCode.BAD_USER_VERIFY);
+        }
+
+        User user = userRepository.findById(email).orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+        user.setIsVerified(true);
+        userRepository.save(user);
+        redisTemplate.delete(key);
+
+        return email;
     }
 
     public void update(final String email, final UserDTO userDTO) {

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 
@@ -64,4 +65,15 @@ public class UserApiController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/verify")
+    public ResponseEntity<ApiResponse<String>> verifySignup(@RequestParam("code") String code) {
+        String email = userService.verifySignupCode(code);
+        return ResponseEntity.ok(ApiResponse.success(email));
+    }
+
+    @PostMapping("/verify/{email}")
+    public ResponseEntity<ApiResponse<String>> resendVerificationSignupMail(@PathVariable("email") String email) {
+        userService.resendVerificationSignupEmail(email);
+        return ResponseEntity.ok(ApiResponse.success(email));
+    }
 }

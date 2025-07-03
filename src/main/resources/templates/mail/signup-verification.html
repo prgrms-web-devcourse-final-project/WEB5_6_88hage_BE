@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>맛남 이메일 인증</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4;">
+
+<!-- 이메일 미리보기 텍스트 -->
+<div style="display: none; font-size: 1px; color: #fefefe; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden;">
+  FunFun에 오신 것을 환영합니다! 이메일 인증을 완료하고 모든 기능을 이용해보세요. 🎉
+</div>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px 0;">
+
+  <!-- 메인 컨테이너 -->
+  <tr>
+    <td align="center">
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
+
+        <!-- 헤더 섹션 -->
+        <tr>
+          <td style="background: linear-gradient(45deg, #FFA73B, #ff9500); padding: 40px 20px; text-align: center; border-radius: 20px 20px 0 0;">
+
+            <!-- 아이콘 -->
+            <div style="width: 100px; height: 100px; background: rgba(255, 255, 255, 0.2); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px; border: 3px solid rgba(255, 255, 255, 0.3);">
+              <img src="https://img.icons8.com/fluency-systems-filled/96/ffffff/user.png" width="50" height="50" style="display: block;" alt="환영합니다" />
+            </div>
+
+            <!-- 환영 메시지 -->
+            <h1 style="color: white; font-size: 28px; font-weight: 600; margin: 0; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+              🎉 환영합니다, <span th:text="${nickname}">닉네임</span>님!
+            </h1>
+          </td>
+        </tr>
+
+        <!-- 메인 콘텐츠 -->
+        <tr>
+          <td style="background: white; padding: 40px 30px; text-align: center;">
+
+            <!-- 환영 메시지 -->
+            <p style="font-size: 18px; color: #333; line-height: 1.6; margin: 0 0 30px 0;">
+              <strong style="color: #FFA73B; font-weight: 600;">FunFun</strong>에 가입해주셔서 감사합니다!<br>
+              모든 기능을 이용하시려면 먼저 이메일 인증을 완료해주세요.<br>
+              아래 버튼을 클릭하시면 인증이 완료됩니다.
+            </p>
+
+            <!-- 인증 버튼 -->
+            <table border="0" cellspacing="0" cellpadding="0" style="margin: 30px auto;">
+              <tr>
+                <td style="background: linear-gradient(45deg, #FFA73B, #ff9500); border-radius: 50px; box-shadow: 0 8px 25px rgba(255, 167, 59, 0.4);">
+                  <a th:href="|${domain}/user/verify?code=${code}|"
+                     target="_blank"
+                     style="display: inline-block; padding: 16px 40px; color: white; text-decoration: none; font-size: 18px; font-weight: 600; border-radius: 50px;">
+                    ✉️ 이메일 인증하기
+                  </a>
+                </td>
+              </tr>
+            </table>
+
+            <p>이 링크는 5분간 유효합니다.</p>
+          </td>
+        </tr>
+
+        <!-- 팀 서명 -->
+        <tr>
+          <td style="background: white; padding: 30px; text-align: center; border-radius: 0 0 20px 20px;">
+            <p style="color: #333; font-weight: 600; margin: 0;">
+              감사합니다,<br>
+              <strong style="color: #FFA73B;">FunFun 팀</strong> 💜
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>
