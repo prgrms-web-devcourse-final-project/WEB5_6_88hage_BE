@@ -32,6 +32,7 @@ import com.grepp.funfun.util.ReferencedWarning;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -118,6 +119,8 @@ public class UserService {
             throw new CommonException(ResponseCode.ALREADY_VERIFIED);
         }
 
+        // 회원가입 인증 메일 쿨타임 검증
+        validateEmailLimit(email, "signup");
         sendSignupVerificationMail(user);
     }
 
@@ -151,6 +154,53 @@ public class UserService {
         redisTemplate.delete(key);
 
         return authService.processTokenSignin(user.getEmail(), user.getRole().name(), false);
+    }
+
+    public void sendCode(String email) {
+        // 1. 유저 존재 여부 확인
+        User user = userRepository.findById(email)
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+
+        // 2. 인증 코드 메일 쿨타임 검증
+        validateEmailLimit(email, "code");
+        // 3. 인증 코드 생성 및 저장 (5분)
+        String code = String.format("%06d", new Random().nextInt(999_999));
+        redisTemplate.opsForValue().set("auth-code:" + email, code, Duration.ofMinutes(5));
+
+        SmtpDto smtpDto = new SmtpDto();
+        smtpDto.setTo(user.getEmail());
+        smtpDto.setTemplatePath("/mail/code-verification");
+        smtpDto.setSubject("FunFun 인증 코드");
+        smtpDto.setProperties(Map.of("code", code));
+
+        mailTemplate.send(smtpDto);
+    }
+
+    public void verifyCode(String email, String code) {
+        String codeKey = "auth-code:" + email;
+        String storedCode = (String) redisTemplate.opsForValue().get(codeKey);
+
+        // 인증 코드 검증
+        if (storedCode == null || !storedCode.equals(code)) {
+            throw new CommonException(ResponseCode.INVALID_AUTH_CODE);
+        }
+        // 인증 코드 삭제
+        redisTemplate.delete(codeKey);
+
+        // 인증 코드 검증 성공한 이메일 저장 (10분)
+        redisTemplate.opsForValue().set("auth-code:verified:" + email, "true", Duration.ofMinutes(10));
+    }
+
+    private void validateEmailLimit(String email, String type) {
+        String cooldownKey = "auth-cooldown:" + type + ":" + email;
+
+        // 쿨타임 체크
+        if (redisTemplate.hasKey(cooldownKey)) {
+            throw new CommonException(ResponseCode.TOO_FAST_VERIFY_REQUEST);
+        }
+
+        // 쿨타임 3분 설정
+        redisTemplate.opsForValue().set(cooldownKey, "true", Duration.ofMinutes(3));
     }
 
     public void update(final String email, final UserDTO userDTO) {

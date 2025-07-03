@@ -2,6 +2,7 @@ package com.grepp.funfun.app.controller.api.user;
 
 import com.grepp.funfun.app.controller.api.auth.payload.TokenResponse;
 import com.grepp.funfun.app.controller.api.user.payload.SignupRequest;
+import com.grepp.funfun.app.controller.api.user.payload.VerifyCodeRequest;
 import com.grepp.funfun.app.model.auth.code.AuthToken;
 import com.grepp.funfun.app.model.auth.dto.TokenDto;
 import com.grepp.funfun.app.model.user.dto.UserDTO;
@@ -17,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -71,7 +73,7 @@ public class UserApiController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/verify")
+    @PostMapping("/verify/signup")
     public ResponseEntity<ApiResponse<TokenResponse>> verifySignup(@RequestParam("code") String code,  HttpServletResponse response) {
         TokenDto tokenDto = userService.verifySignupCode(code);
 
@@ -90,9 +92,24 @@ public class UserApiController {
             .build()));
     }
 
-    @PostMapping("/verify/{email}")
+    @PostMapping("/send/signup/{email}")
     public ResponseEntity<ApiResponse<String>> resendVerificationSignupMail(@PathVariable("email") String email) {
         userService.resendVerificationSignupEmail(email);
         return ResponseEntity.ok(ApiResponse.success(email));
     }
+
+    @PostMapping("/send/code")
+    public ResponseEntity<ApiResponse<String>> sendCode(Authentication authentication) {
+        String email = authentication.getName();
+        userService.sendCode(email);
+        return ResponseEntity.ok(ApiResponse.success("인증 메일을 발송했습니다."));
+    }
+
+    @PostMapping("/verify/code")
+    public ResponseEntity<ApiResponse<String>> verifyCode(@RequestBody @Valid VerifyCodeRequest request, Authentication authentication) {
+        String email = authentication.getName();
+        userService.verifyCode(email, request.getCode());
+        return ResponseEntity.ok(ApiResponse.success("인증이 완료되었습니다."));
+    }
+
 }
