@@ -12,6 +12,8 @@ import com.grepp.funfun.app.model.group.entity.Group;
 import com.grepp.funfun.app.model.group.entity.GroupHashtag;
 import com.grepp.funfun.app.model.group.repository.GroupHashtagRepository;
 import com.grepp.funfun.app.model.group.repository.GroupRepository;
+import com.grepp.funfun.app.model.participant.code.ParticipantRole;
+import com.grepp.funfun.app.model.participant.code.ParticipantStatus;
 import com.grepp.funfun.app.model.participant.entity.Participant;
 import com.grepp.funfun.app.model.participant.repository.ParticipantRepository;
 import com.grepp.funfun.app.model.user.entity.User;
@@ -19,7 +21,9 @@ import com.grepp.funfun.app.model.user.repository.UserRepository;
 import com.grepp.funfun.infra.error.exceptions.CommonException;
 import com.grepp.funfun.infra.response.ResponseCode;
 import com.grepp.funfun.util.ReferencedWarning;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -64,6 +68,7 @@ public class GroupService {
                 .map(group -> mapToDTO(group, new GroupDTO()))
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
     }
+    // 모임 생성
     @Transactional
     public void create(String leaderEmail,GroupRequest request) {
 
@@ -87,12 +92,71 @@ public class GroupService {
 
             groupHashtagRepository.saveAll(hashTags);
         }
-        // 채팅방 자동생성
+        // 모임 생성 시 자동으로 참여자에 리더로 넣기
+        Participant leaderParticipant = Participant.builder()
+            .user(leader)
+            .group(savedGroup)
+            .role(ParticipantRole.LEADER)
+            .status(ParticipantStatus.APPROVED)
+            .build();
+        participantRepository.save(leaderParticipant);
+
+        // 모임 생성 시 자동으로 팀 채팅방 생성하기
         ChatRoom chatRoom = new ChatRoom();
         chatRoom.setGroup(savedGroup);
         chatRoom.setName(savedGroup.getId()+"번 채팅방");
         chatRoomRepository.save(chatRoom);
     }
+    //모임 참여 신청
+    @Transactional
+    public void apply(Long groupId, String userEmail){
+        // 모임[모집중, True]
+        Group group = groupRepository.findActiveRecruitingGroup(groupId)
+            .orElseThrow(()-> new CommonException(ResponseCode.NOT_FOUND));
+
+        // 사용자 검증
+        User user = userRepository.findByEmail(userEmail);
+        if(user == null){
+            throw new CommonException(ResponseCode.NOT_FOUND);
+        }
+
+        // 리더는 신청 불가하도록 검증
+        if(group.getLeader().getEmail().equals(user.getEmail())){
+            throw new CommonException(ResponseCode.BAD_REQUEST);
+        }
+
+        // 중복 신청
+        boolean alreadyApplied = participantRepository.existsByUserAndGroup(user,group);
+        if(alreadyApplied){
+            throw new CommonException(ResponseCode.BAD_REQUEST);
+        }
+
+//        // 모임 시간 체크
+//        if(group.getGroupDate().isBefore(LocalDateTime.now())){
+//            throw new CommonException(ResponseCode.BAD_REQUEST);
+//        }
+
+        // 참여자 생성
+        Participant participant = Participant.builder()
+            .user(user)
+            .group(group)
+            .role(ParticipantRole.MEMBER)
+            .status(ParticipantStatus.PENDING)
+            .build();
+
+        participantRepository.save(participant);
+
+    }
+
+    // 모임 승인
+
+    // 모임 강퇴(특정 사용자 값 삭제)
+
+    // 모임 취소
+
+    // 모임 삭제
+
+    // 모임 나가기(특정 사용자 값 삭제)
 
     public void update(final Long id, final GroupDTO groupDTO) {
         final Group group = groupRepository.findById(id)

@@ -10,6 +10,7 @@ import com.grepp.funfun.util.ReferencedWarning;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping(value = "/api/groups", produces = MediaType.APPLICATION_JSON_VALUE)
+@Slf4j
 public class GroupApiController {
 
     private final GroupService groupService;
@@ -43,8 +45,27 @@ public class GroupApiController {
         return ResponseEntity.ok(groupService.get(id));
     }
 
+    // 모임 신청
+    @PostMapping("/apply/{groupId}")
+    @Operation(summary = "모임 신청", description = "그룹 ID 와 사용자 Email 을 통해 모임 신청.")
+    public ResponseEntity<ApiResponse<String>> applyGroup(
+        @PathVariable Long groupId,
+        Authentication authentication) {
+
+        log.info("모임 신청 요청 - groupId: {}, user: {}", groupId, authentication.getName());
+
+        try{
+            String userEmail = authentication.getName();
+            groupService.apply(groupId, userEmail);
+            return ResponseEntity.ok(ApiResponse.success("모임 신청 완료되었습니다."));
+        }catch(Exception e){
+            log.error("모임 신청 실패: ", e);
+            return ResponseEntity.badRequest().body(ApiResponse.error(ResponseCode.BAD_REQUEST, e.getMessage()));
+        }
+    }
+
     // 모임 생성
-    @PostMapping
+    @PostMapping("/create")
     @Operation(summary = "모임 생성", description = "모임을 생성합니다.")
     public ResponseEntity<ApiResponse<String>> createGroup(@RequestBody @Valid GroupRequest request,
         Authentication authentication){
