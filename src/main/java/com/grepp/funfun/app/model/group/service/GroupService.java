@@ -69,20 +69,23 @@ public class GroupService {
 
         User leader = userRepository.findByEmail(leaderEmail);
 
+        if(leader == null){
+            throw new CommonException(ResponseCode.NOT_FOUND);
+        }
         Group savedGroup = groupRepository.save(request.toEntity(leader));
 
         // HashTag 저장
         if (request.getHashTags() != null && !request.getHashTags().isEmpty()) {
-            List<GroupHashTag> hashTags = request.getHashTags().stream()
+            List<GroupHashtag> hashTags = request.getHashTags().stream()
                 .map(tagName -> {
-                    GroupHashTag hashTag = new GroupHashTag();
+                    GroupHashtag hashTag = new GroupHashtag();
                     hashTag.setTag(tagName);
                     hashTag.setGroup(savedGroup);
                     return hashTag;
                 })
                 .collect(Collectors.toList());
 
-            groupHashTagRepository.saveAll(hashTags);
+            groupHashtagRepository.saveAll(hashTags);
         }
         // 채팅방 자동생성
         ChatRoom chatRoom = new ChatRoom();

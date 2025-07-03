@@ -80,6 +80,6 @@ public class Group extends BaseEntity {
     private ChatRoom chatRoom;
 
     @OneToMany(mappedBy = "group")
-    private List<GroupHashTag> hashTags;
+    private List<GroupHashtag> hashtags;
 
 }

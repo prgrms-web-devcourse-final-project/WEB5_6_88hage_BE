@@ -46,7 +46,7 @@ public class GroupRequest {
     @NotNull(message = "위도는 필수입니다.")
     private Double latitude;
     //경도
-    @NotNull(message = "위도는 필수입니다.")
+    @NotNull(message = "경도는 필수입니다.")
     private Double longitude;
 
     @NotEmpty(message="해시태그는 1개 이상 선택해야합니다.")
