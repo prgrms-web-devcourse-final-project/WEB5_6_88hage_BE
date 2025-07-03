@@ -2,9 +2,11 @@ package com.grepp.funfun.app.controller.api.content;
 
 import com.grepp.funfun.app.model.content.dto.ContentDTO;
 import com.grepp.funfun.app.model.content.service.ContentService;
+import com.grepp.funfun.infra.response.ApiResponse;
+import com.grepp.funfun.infra.response.ResponseCode;
 import com.grepp.funfun.util.ReferencedException;
 import com.grepp.funfun.util.ReferencedWarning;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import com.grepp.funfun.util.WebUtils;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -26,43 +28,58 @@ public class ContentApiController {
 
     private final ContentService contentService;
 
-    public ContentApiController(final ContentService contentService) {
+    public ContentApiController(
+            final ContentService contentService) {
         this.contentService = contentService;
     }
 
+    // 컨텐츠 조회
     @GetMapping
-    public ResponseEntity<List<ContentDTO>> getAllContents() {
-        return ResponseEntity.ok(contentService.findAll());
+    public ResponseEntity<ApiResponse<List<ContentDTO>>> getAllContents() {
+        try{
+            // 필터링 필요
+            List<ContentDTO> contents = contentService.findAll();
+            return ResponseEntity.ok(ApiResponse.success(contents));
+        }catch (Exception e) {
+            return ResponseEntity
+                    .status(ResponseCode.INTERNAL_SERVER_ERROR.status())
+                    .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR));
+        }
     }
 
+    // 컨텐츠 상세 조회
     @GetMapping("/{id}")
-    public ResponseEntity<ContentDTO> getContent(@PathVariable(name = "id") final Long id) {
-        return ResponseEntity.ok(contentService.get(id));
+    public ResponseEntity<ApiResponse<ContentDTO>> getContent(
+            @PathVariable(name = "id") final Long id
+    ) {
+        ContentDTO content = contentService.get(id);
+        return ResponseEntity.ok(ApiResponse.success(content));
     }
 
+    // create, update, delete 필요없지 않나 생각
     @PostMapping
-    @ApiResponse(responseCode = "201")
-    public ResponseEntity<Long> createContent(@RequestBody @Valid final ContentDTO contentDTO) {
+    public ResponseEntity<ApiResponse<Long>> createContent(
+            @RequestBody @Valid final ContentDTO contentDTO
+    ) {
         final Long createdId = contentService.create(contentDTO);
-        return new ResponseEntity<>(createdId, HttpStatus.CREATED);
+        return new ResponseEntity<>(ApiResponse.success(createdId), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Long> updateContent(@PathVariable(name = "id") final Long id,
+    public ResponseEntity<ApiResponse<Long>> updateContent(@PathVariable(name = "id") final Long id,
             @RequestBody @Valid final ContentDTO contentDTO) {
         contentService.update(id, contentDTO);
-        return ResponseEntity.ok(id);
+        return ResponseEntity.ok(ApiResponse.success(id));
     }
 
     @DeleteMapping("/{id}")
-    @ApiResponse(responseCode = "204")
-    public ResponseEntity<Void> deleteContent(@PathVariable(name = "id") final Long id) {
+    public ResponseEntity<ApiResponse<Void>> deleteContent(@PathVariable(name = "id") final Long id) {
         final ReferencedWarning referencedWarning = contentService.getReferencedWarning(id);
         if (referencedWarning != null) {
             throw new ReferencedException(referencedWarning);
         }
         contentService.delete(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 
 }
