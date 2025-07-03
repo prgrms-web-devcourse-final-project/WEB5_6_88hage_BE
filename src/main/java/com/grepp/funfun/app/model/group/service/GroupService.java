@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.model.group.service;
 
+import com.grepp.funfun.app.controller.api.group.payload.GroupRequest;
 import com.grepp.funfun.app.model.bookmark.entity.GroupBookmark;
 import com.grepp.funfun.app.model.bookmark.repository.GroupBookmarkRepository;
 import com.grepp.funfun.app.model.calendar.entity.Calendar;
@@ -19,8 +20,10 @@ import com.grepp.funfun.infra.error.exceptions.CommonException;
 import com.grepp.funfun.infra.response.ResponseCode;
 import com.grepp.funfun.util.ReferencedWarning;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
@@ -61,11 +64,31 @@ public class GroupService {
                 .map(group -> mapToDTO(group, new GroupDTO()))
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
     }
+    @Transactional
+    public void create(String leaderEmail,GroupRequest request) {
 
-    public Long create(final GroupDTO groupDTO) {
-        final Group group = new Group();
-        mapToEntity(groupDTO, group);
-        return groupRepository.save(group).getId();
+        User leader = userRepository.findByEmail(leaderEmail);
+
+        Group savedGroup = groupRepository.save(request.toEntity(leader));
+
+        // HashTag 저장
+        if (request.getHashTags() != null && !request.getHashTags().isEmpty()) {
+            List<GroupHashTag> hashTags = request.getHashTags().stream()
+                .map(tagName -> {
+                    GroupHashTag hashTag = new GroupHashTag();
+                    hashTag.setTag(tagName);
+                    hashTag.setGroup(savedGroup);
+                    return hashTag;
+                })
+                .collect(Collectors.toList());
+
+            groupHashTagRepository.saveAll(hashTags);
+        }
+        // 채팅방 자동생성
+        ChatRoom chatRoom = new ChatRoom();
+        chatRoom.setGroup(savedGroup);
+        chatRoom.setName(savedGroup.getId()+"번 채팅방");
+        chatRoomRepository.save(chatRoom);
     }
 
     public void update(final Long id, final GroupDTO groupDTO) {
@@ -89,7 +112,6 @@ public class GroupService {
         groupDTO.setMaxPeople(group.getMaxPeople());
         groupDTO.setNowPeople(group.getNowPeople());
         groupDTO.setStatus(group.getStatus());
-        groupDTO.setImageUrl(group.getImageUrl());
         groupDTO.setLatitude(group.getLatitude());
         groupDTO.setLongitude(group.getLongitude());
         groupDTO.setDuring(group.getDuring());
@@ -107,7 +129,6 @@ public class GroupService {
         group.setMaxPeople(groupDTO.getMaxPeople());
         group.setNowPeople(groupDTO.getNowPeople());
         group.setStatus(groupDTO.getStatus());
-        group.setImageUrl(groupDTO.getImageUrl());
         group.setLatitude(groupDTO.getLatitude());
         group.setLongitude(groupDTO.getLongitude());
         group.setDuring(groupDTO.getDuring());

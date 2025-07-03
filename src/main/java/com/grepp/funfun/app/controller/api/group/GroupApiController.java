@@ -1,15 +1,18 @@
 package com.grepp.funfun.app.controller.api.group;
 
+import com.grepp.funfun.app.controller.api.group.payload.GroupRequest;
 import com.grepp.funfun.app.model.group.dto.GroupDTO;
 import com.grepp.funfun.app.model.group.service.GroupService;
+import com.grepp.funfun.infra.response.ApiResponse;
+import com.grepp.funfun.infra.response.ResponseCode;
 import com.grepp.funfun.util.ReferencedException;
 import com.grepp.funfun.util.ReferencedWarning;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import java.util.List;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,11 +43,20 @@ public class GroupApiController {
         return ResponseEntity.ok(groupService.get(id));
     }
 
+    // 모임 생성
     @PostMapping
-    @ApiResponse(responseCode = "201")
-    public ResponseEntity<Long> createGroup(@RequestBody @Valid final GroupDTO groupDTO) {
-        final Long createdId = groupService.create(groupDTO);
-        return new ResponseEntity<>(createdId, HttpStatus.CREATED);
+    @Operation(summary = "모임 생성", description = "모임을 생성합니다.")
+    public ResponseEntity<ApiResponse<String>> createGroup(@RequestBody @Valid GroupRequest request,
+        Authentication authentication){
+        try{
+            String leaderEmail = authentication.getName();
+            groupService.create(leaderEmail,request);
+
+            return ResponseEntity.ok(ApiResponse.success("모임이 성공적으로 생성되었습니다."));
+        }catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, e.getMessage()));
+        }
     }
 
     @PutMapping("/{id}")
@@ -55,7 +67,6 @@ public class GroupApiController {
     }
 
     @DeleteMapping("/{id}")
-    @ApiResponse(responseCode = "204")
     public ResponseEntity<Void> deleteGroup(@PathVariable(name = "id") final Long id) {
         final ReferencedWarning referencedWarning = groupService.getReferencedWarning(id);
         if (referencedWarning != null) {
