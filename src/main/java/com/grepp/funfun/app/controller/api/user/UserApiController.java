@@ -1,15 +1,21 @@
 package com.grepp.funfun.app.controller.api.user;
 
+import com.grepp.funfun.app.controller.api.auth.payload.TokenResponse;
 import com.grepp.funfun.app.controller.api.user.payload.SignupRequest;
+import com.grepp.funfun.app.model.auth.code.AuthToken;
+import com.grepp.funfun.app.model.auth.dto.TokenDto;
 import com.grepp.funfun.app.model.user.dto.UserDTO;
 import com.grepp.funfun.app.model.user.service.UserService;
+import com.grepp.funfun.infra.auth.jwt.TokenCookieFactory;
 import com.grepp.funfun.infra.response.ApiResponse;
 import com.grepp.funfun.util.ReferencedException;
 import com.grepp.funfun.util.ReferencedWarning;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -66,9 +72,22 @@ public class UserApiController {
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<ApiResponse<String>> verifySignup(@RequestParam("code") String code) {
-        String email = userService.verifySignupCode(code);
-        return ResponseEntity.ok(ApiResponse.success(email));
+    public ResponseEntity<ApiResponse<TokenResponse>> verifySignup(@RequestParam("code") String code,  HttpServletResponse response) {
+        TokenDto tokenDto = userService.verifySignupCode(code);
+
+        ResponseCookie accessToken = TokenCookieFactory.create(AuthToken.ACCESS_TOKEN.name(),
+            tokenDto.getAccessToken(), tokenDto.getRefreshExpiresIn());
+        ResponseCookie refreshToken = TokenCookieFactory.create(AuthToken.REFRESH_TOKEN.name(),
+            tokenDto.getRefreshToken(), tokenDto.getRefreshExpiresIn());
+
+        response.addHeader("Set-Cookie", accessToken.toString());
+        response.addHeader("Set-Cookie", refreshToken.toString());
+
+        return ResponseEntity.ok(ApiResponse.success(TokenResponse.builder().
+            accessToken(tokenDto.getAccessToken())
+            .grantType(tokenDto.getGrantType())
+            .expiresIn(tokenDto.getExpiresIn())
+            .build()));
     }
 
     @PostMapping("/verify/{email}")

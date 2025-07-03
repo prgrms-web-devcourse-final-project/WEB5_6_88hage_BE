@@ -1,6 +1,8 @@
 package com.grepp.funfun.app.model.user.service;
 
 import com.grepp.funfun.app.controller.api.user.payload.SignupRequest;
+import com.grepp.funfun.app.model.auth.AuthService;
+import com.grepp.funfun.app.model.auth.dto.TokenDto;
 import com.grepp.funfun.app.model.contact.entity.Contact;
 import com.grepp.funfun.app.model.contact.repository.ContactRepository;
 import com.grepp.funfun.app.model.group.entity.Group;
@@ -57,6 +59,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final MailTemplate mailTemplate;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final AuthService authService;
 
     @Value("${front-server.domain}")
     private String domain;
@@ -134,7 +137,7 @@ public class UserService {
     }
 
     @Transactional
-    public String verifySignupCode(String code) {
+    public TokenDto verifySignupCode(String code) {
         String key = "signup:" + code;
         String email = (String) redisTemplate.opsForValue().get(key);
 
@@ -147,7 +150,7 @@ public class UserService {
         userRepository.save(user);
         redisTemplate.delete(key);
 
-        return email;
+        return authService.processTokenSignin(user.getEmail(), user.getRole().name(), false);
     }
 
     public void update(final String email, final UserDTO userDTO) {
