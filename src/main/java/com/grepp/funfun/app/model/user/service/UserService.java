@@ -203,6 +203,27 @@ public class UserService {
         redisTemplate.opsForValue().set(cooldownKey, "true", Duration.ofMinutes(3));
     }
 
+    @Transactional
+    public void changePassword(String email, String password) {
+        String verifiedKey = "auth-code:verified:" +  email;
+        String coolDownKey = "auth-cooldown:code:" +  email;
+        User user = userRepository.findById(email).orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+
+        if (!redisTemplate.hasKey(verifiedKey)) {
+            throw new CommonException(ResponseCode.BAD_REQUEST);
+        }
+
+        // 비밀번호 암호화
+        String encodedPassword = passwordEncoder.encode(password);
+        user.setPassword(encodedPassword);
+        userRepository.save(user);
+
+        // 레디스 인증 키 삭제
+        redisTemplate.delete(verifiedKey);
+        // 레디스 메일 쿨타임 키 삭제
+        redisTemplate.delete(coolDownKey);
+    }
+
     public void update(final String email, final UserDTO userDTO) {
         final User user = userRepository.findById(email)
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));

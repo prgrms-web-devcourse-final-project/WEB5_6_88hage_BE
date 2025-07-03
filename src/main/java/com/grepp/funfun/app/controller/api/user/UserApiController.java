@@ -1,6 +1,7 @@
 package com.grepp.funfun.app.controller.api.user;
 
 import com.grepp.funfun.app.controller.api.auth.payload.TokenResponse;
+import com.grepp.funfun.app.controller.api.user.payload.ChangePasswordRequest;
 import com.grepp.funfun.app.controller.api.user.payload.SignupRequest;
 import com.grepp.funfun.app.controller.api.user.payload.VerifyCodeRequest;
 import com.grepp.funfun.app.model.auth.code.AuthToken;
@@ -14,13 +15,13 @@ import com.grepp.funfun.util.ReferencedWarning;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.List;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -112,4 +113,12 @@ public class UserApiController {
         return ResponseEntity.ok(ApiResponse.success("인증이 완료되었습니다."));
     }
 
+    @PatchMapping("/change/password")
+    public ResponseEntity<ApiResponse<String>> changePassword(@RequestBody @Valid
+        ChangePasswordRequest request, Authentication authentication) {
+        String email = authentication.getName();
+        userService.changePassword(email, request.getPassword());
+
+        return ResponseEntity.ok(ApiResponse.success("비밀번호 변경이 완료되었습니다."));
+    }
 }
