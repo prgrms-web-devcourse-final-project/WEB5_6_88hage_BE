@@ -62,7 +62,7 @@ public class GroupService {
 
         User leader = userRepository.findByEmail(leaderEmail);
 
-        if(leader == null){
+        if(leader == null || !leader.getActivated()){
             throw new CommonException(ResponseCode.NOT_FOUND);
         }
         Group savedGroup = groupRepository.save(request.toEntity(leader));
