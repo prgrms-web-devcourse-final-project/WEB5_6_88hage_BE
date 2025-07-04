@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.model.user.service;
 
+import com.grepp.funfun.app.controller.api.user.payload.OAuth2SignupRequest;
 import com.grepp.funfun.app.controller.api.user.payload.SignupRequest;
 import com.grepp.funfun.app.model.auth.AuthService;
 import com.grepp.funfun.app.model.auth.dto.TokenDto;
@@ -222,6 +223,17 @@ public class UserService {
         redisTemplate.delete(verifiedKey);
         // 레디스 메일 쿨타임 키 삭제
         redisTemplate.delete(coolDownKey);
+    }
+
+    @Transactional
+    public void updateOAuth2User(String email, OAuth2SignupRequest request) {
+        User user = userRepository.findById(email).orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+        // 닉네임 중복 검사
+        if (userRepository.existsByNickname(request.getNickname())) {
+            throw new CommonException(ResponseCode.USER_NICKNAME_DUPLICATE);
+        }
+        request.toEntity(user);
+        userRepository.save(user);
     }
 
     public void update(final String email, final UserDTO userDTO) {

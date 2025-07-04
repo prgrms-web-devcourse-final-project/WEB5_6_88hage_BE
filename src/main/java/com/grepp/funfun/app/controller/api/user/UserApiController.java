@@ -2,6 +2,7 @@ package com.grepp.funfun.app.controller.api.user;
 
 import com.grepp.funfun.app.controller.api.auth.payload.TokenResponse;
 import com.grepp.funfun.app.controller.api.user.payload.ChangePasswordRequest;
+import com.grepp.funfun.app.controller.api.user.payload.OAuth2SignupRequest;
 import com.grepp.funfun.app.controller.api.user.payload.SignupRequest;
 import com.grepp.funfun.app.controller.api.user.payload.VerifyCodeRequest;
 import com.grepp.funfun.app.model.auth.code.AuthToken;
@@ -55,6 +56,13 @@ public class UserApiController {
     public ResponseEntity<ApiResponse<String>> createUser(@RequestBody @Valid SignupRequest request) {
         String createdEmail = userService.create(request);
         return ResponseEntity.ok(ApiResponse.success(createdEmail));
+    }
+
+    @PatchMapping("/oauth2")
+    public ResponseEntity<ApiResponse<String>> updateOAuth2User(@RequestBody @Valid OAuth2SignupRequest request, Authentication authentication) {
+        String email = authentication.getName();
+        userService.updateOAuth2User(email, request);
+        return ResponseEntity.ok(ApiResponse.success(email));
     }
 
     @PutMapping("/{email}")
