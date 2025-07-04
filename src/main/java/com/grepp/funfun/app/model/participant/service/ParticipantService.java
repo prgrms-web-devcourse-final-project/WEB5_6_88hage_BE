@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.model.participant.service;
 
+import com.grepp.funfun.app.model.group.code.GroupStatus;
 import com.grepp.funfun.app.model.group.entity.Group;
 import com.grepp.funfun.app.model.group.repository.GroupRepository;
 import com.grepp.funfun.app.model.participant.code.ParticipantStatus;
@@ -52,6 +53,11 @@ public class ParticipantService {
         }
         // 인원 수 변경
         group.setNowPeople(group.getNowPeople() + userEmails.size());
+
+        // 인원 >= 최대 인원 -> 모임 상태[모집중 -> 모집완료로 변경]
+        if(group.getNowPeople() >= group.getMaxPeople()){
+            group.setStatus(GroupStatus.FULL);
+        }
     }
 
     // 모임 신청한 사용자 조회
