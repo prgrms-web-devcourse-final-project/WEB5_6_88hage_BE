@@ -4,7 +4,10 @@ import com.grepp.funfun.app.model.group.code.GroupClassification;
 import com.grepp.funfun.app.model.group.code.GroupStatus;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -49,5 +52,7 @@ public class GroupDTO {
     @NotNull
     @Size(max = 255)
     private String leader;
+
+    private List<String> hashTags;
 
 }

@@ -1,6 +1,9 @@
 package com.grepp.funfun.app.model.participant.code;
 
+import javax.annotation.processing.Generated;
+import lombok.Getter;
 
+@Getter
 public enum ParticipantRole {
 
     LEADER("주최자"),
@@ -12,7 +15,4 @@ public enum ParticipantRole {
         this.koreanName = koreanName;
     }
 
-    public String getKoreanName() {
-        return koreanName;
-    }
 }

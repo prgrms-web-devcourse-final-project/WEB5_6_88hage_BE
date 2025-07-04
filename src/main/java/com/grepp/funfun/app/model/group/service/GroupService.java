@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.model.group.service;
 
+import com.grepp.funfun.app.controller.api.group.payload.GroupRequest;
 import com.grepp.funfun.app.model.bookmark.entity.GroupBookmark;
 import com.grepp.funfun.app.model.bookmark.repository.GroupBookmarkRepository;
 import com.grepp.funfun.app.model.calendar.entity.Calendar;
@@ -11,6 +12,8 @@ import com.grepp.funfun.app.model.group.entity.Group;
 import com.grepp.funfun.app.model.group.entity.GroupHashtag;
 import com.grepp.funfun.app.model.group.repository.GroupHashtagRepository;
 import com.grepp.funfun.app.model.group.repository.GroupRepository;
+import com.grepp.funfun.app.model.participant.code.ParticipantRole;
+import com.grepp.funfun.app.model.participant.code.ParticipantStatus;
 import com.grepp.funfun.app.model.participant.entity.Participant;
 import com.grepp.funfun.app.model.participant.repository.ParticipantRepository;
 import com.grepp.funfun.app.model.user.entity.User;
@@ -19,11 +22,17 @@ import com.grepp.funfun.infra.error.exceptions.CommonException;
 import com.grepp.funfun.infra.response.ResponseCode;
 import com.grepp.funfun.util.ReferencedWarning;
 import java.util.List;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class GroupService {
 
     private final GroupRepository groupRepository;
@@ -34,20 +43,6 @@ public class GroupService {
     private final CalendarRepository calendarRepository;
     private final GroupHashtagRepository groupHashtagRepository;
 
-    public GroupService(final GroupRepository groupRepository, final UserRepository userRepository,
-            final GroupBookmarkRepository groupBookmarkRepository,
-            final ParticipantRepository participantRepository,
-            final ChatRoomRepository chatRoomRepository,
-            final CalendarRepository calendarRepository,
-            final GroupHashtagRepository groupHashtagRepository) {
-        this.groupRepository = groupRepository;
-        this.userRepository = userRepository;
-        this.groupBookmarkRepository = groupBookmarkRepository;
-        this.participantRepository = participantRepository;
-        this.chatRoomRepository = chatRoomRepository;
-        this.calendarRepository = calendarRepository;
-        this.groupHashtagRepository = groupHashtagRepository;
-    }
 
     public List<GroupDTO> findAll() {
         final List<Group> groups = groupRepository.findAll(Sort.by("id"));
@@ -61,11 +56,84 @@ public class GroupService {
                 .map(group -> mapToDTO(group, new GroupDTO()))
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
     }
+    // 모임 생성
+    @Transactional
+    public void create(String leaderEmail,GroupRequest request) {
 
-    public Long create(final GroupDTO groupDTO) {
-        final Group group = new Group();
-        mapToEntity(groupDTO, group);
-        return groupRepository.save(group).getId();
+        User leader = userRepository.findByEmail(leaderEmail);
+
+        if(leader == null || !leader.getActivated()){
+            throw new CommonException(ResponseCode.NOT_FOUND);
+        }
+        Group savedGroup = groupRepository.save(request.toEntity(leader));
+
+        // HashTag 저장
+        if (request.getHashTags() != null && !request.getHashTags().isEmpty()) {
+            List<GroupHashtag> hashTags = request.getHashTags().stream()
+                .map(tagName -> {
+                    GroupHashtag hashTag = new GroupHashtag();
+                    hashTag.setTag(tagName);
+                    hashTag.setGroup(savedGroup);
+                    return hashTag;
+                })
+                .collect(Collectors.toList());
+
+            groupHashtagRepository.saveAll(hashTags);
+        }
+        // 모임 생성 시 자동으로 참여자에 리더로 넣기
+        Participant leaderParticipant = Participant.builder()
+            .user(leader)
+            .group(savedGroup)
+            .role(ParticipantRole.LEADER)
+            .status(ParticipantStatus.APPROVED)
+            .build();
+        participantRepository.save(leaderParticipant);
+
+        // 모임 생성 시 자동으로 팀 채팅방 생성하기
+        ChatRoom chatRoom = new ChatRoom();
+        chatRoom.setGroup(savedGroup);
+        chatRoom.setName(savedGroup.getId()+"번 채팅방");
+        chatRoomRepository.save(chatRoom);
+    }
+    //모임 참여 신청
+    @Transactional
+    public void apply(Long groupId, String userEmail){
+        // 모임[모집중, True]
+        Group group = groupRepository.findActiveRecruitingGroup(groupId)
+            .orElseThrow(()-> new CommonException(ResponseCode.NOT_FOUND));
+
+        // 사용자 검증
+        User user = userRepository.findByEmail(userEmail);
+        if(user == null){
+            throw new CommonException(ResponseCode.NOT_FOUND);
+        }
+
+        // 리더는 신청 불가하도록 검증
+        if(group.getLeader().getEmail().equals(user.getEmail())){
+            throw new CommonException(ResponseCode.BAD_REQUEST);
+        }
+
+        // 중복 신청
+        boolean alreadyApplied = participantRepository.existsByUserAndGroup(user,group);
+        if(alreadyApplied){
+            throw new CommonException(ResponseCode.BAD_REQUEST);
+        }
+
+//        // 모임 시간 체크
+//        if(group.getGroupDate().isBefore(LocalDateTime.now())){
+//            throw new CommonException(ResponseCode.BAD_REQUEST);
+//        }
+
+        // 참여자 생성
+        Participant participant = Participant.builder()
+            .user(user)
+            .group(group)
+            .role(ParticipantRole.MEMBER)
+            .status(ParticipantStatus.PENDING)
+            .build();
+
+        participantRepository.save(participant);
+
     }
 
     public void update(final Long id, final GroupDTO groupDTO) {
@@ -89,7 +157,6 @@ public class GroupService {
         groupDTO.setMaxPeople(group.getMaxPeople());
         groupDTO.setNowPeople(group.getNowPeople());
         groupDTO.setStatus(group.getStatus());
-        groupDTO.setImageUrl(group.getImageUrl());
         groupDTO.setLatitude(group.getLatitude());
         groupDTO.setLongitude(group.getLongitude());
         groupDTO.setDuring(group.getDuring());
@@ -107,7 +174,6 @@ public class GroupService {
         group.setMaxPeople(groupDTO.getMaxPeople());
         group.setNowPeople(groupDTO.getNowPeople());
         group.setStatus(groupDTO.getStatus());
-        group.setImageUrl(groupDTO.getImageUrl());
         group.setLatitude(groupDTO.getLatitude());
         group.setLongitude(groupDTO.getLongitude());
         group.setDuring(groupDTO.getDuring());

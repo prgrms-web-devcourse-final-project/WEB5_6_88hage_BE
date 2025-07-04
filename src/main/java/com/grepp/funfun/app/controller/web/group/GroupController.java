@@ -1,8 +1,9 @@
 package com.grepp.funfun.app.controller.web.group;
 
+import com.grepp.funfun.app.controller.api.group.payload.GroupRequest;
 import com.grepp.funfun.app.model.group.code.GroupClassification;
-import com.grepp.funfun.app.model.group.dto.GroupDTO;
 import com.grepp.funfun.app.model.group.code.GroupStatus;
+import com.grepp.funfun.app.model.group.dto.GroupDTO;
 import com.grepp.funfun.app.model.group.service.GroupService;
 import com.grepp.funfun.app.model.user.entity.User;
 import com.grepp.funfun.app.model.user.repository.UserRepository;
@@ -39,8 +40,8 @@ public class GroupController {
         model.addAttribute("statusValues", GroupStatus.values());
         model.addAttribute("categoryValues", GroupClassification.values());
         model.addAttribute("leaderValues", userRepository.findAll(Sort.by("email"))
-                .stream()
-                .collect(CustomCollectors.toSortedMap(User::getEmail, User::getPassword)));
+            .stream()
+            .collect(CustomCollectors.toSortedMap(User::getEmail, User::getPassword)));
     }
 
     @GetMapping
@@ -50,17 +51,18 @@ public class GroupController {
     }
 
     @GetMapping("/add")
-    public String add(@ModelAttribute("group") final GroupDTO groupDTO) {
+    public String add(@ModelAttribute("group") final GroupRequest groupRequest) {
         return "group/add";
     }
 
     @PostMapping("/add")
-    public String add(@ModelAttribute("group") @Valid final GroupDTO groupDTO,
-            final BindingResult bindingResult, final RedirectAttributes redirectAttributes) {
+    public String add(@ModelAttribute("group") @Valid GroupRequest request,
+        final BindingResult bindingResult, final RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             return "group/add";
         }
-        groupService.create(groupDTO);
+        String leaderEmail = "test@aaa.aaa";
+        groupService.create(leaderEmail,request);
         redirectAttributes.addFlashAttribute(WebUtils.MSG_SUCCESS, WebUtils.getMessage("group.create.success"));
         return "redirect:/groups";
     }
@@ -73,8 +75,8 @@ public class GroupController {
 
     @PostMapping("/edit/{id}")
     public String edit(@PathVariable(name = "id") final Long id,
-            @ModelAttribute("group") @Valid final GroupDTO groupDTO,
-            final BindingResult bindingResult, final RedirectAttributes redirectAttributes) {
+        @ModelAttribute("group") @Valid final GroupDTO groupDTO,
+        final BindingResult bindingResult, final RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
             return "group/edit";
         }
@@ -85,11 +87,11 @@ public class GroupController {
 
     @PostMapping("/delete/{id}")
     public String delete(@PathVariable(name = "id") final Long id,
-            final RedirectAttributes redirectAttributes) {
+        final RedirectAttributes redirectAttributes) {
         final ReferencedWarning referencedWarning = groupService.getReferencedWarning(id);
         if (referencedWarning != null) {
             redirectAttributes.addFlashAttribute(WebUtils.MSG_ERROR,
-                    WebUtils.getMessage(referencedWarning.getKey(), referencedWarning.getParams().toArray()));
+                WebUtils.getMessage(referencedWarning.getKey(), referencedWarning.getParams().toArray()));
         } else {
             groupService.delete(id);
             redirectAttributes.addFlashAttribute(WebUtils.MSG_INFO, WebUtils.getMessage("group.delete.success"));
@@ -98,3 +100,4 @@ public class GroupController {
     }
 
 }
+

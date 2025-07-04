@@ -1,10 +1,13 @@
 package com.grepp.funfun.app.model.group.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.grepp.funfun.app.model.chat.entity.ChatRoom;
 import com.grepp.funfun.app.model.group.code.GroupClassification;
 import com.grepp.funfun.app.model.group.code.GroupStatus;
 import com.grepp.funfun.app.model.participant.entity.Participant;
 import com.grepp.funfun.app.model.user.entity.User;
 import com.grepp.funfun.infra.entity.BaseEntity;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -15,17 +18,22 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 
 @Entity
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "\"group\"")
 public class Group extends BaseEntity {
 
@@ -41,6 +49,7 @@ public class Group extends BaseEntity {
 
     private String address;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime groupDate;
 
     private Integer maxPeople;
@@ -50,12 +59,11 @@ public class Group extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private GroupStatus status;
 
-    private String imageUrl;
-
     private Double latitude;
 
     private Double longitude;
 
+    //소요 시간
     private Integer during;
 
     @Enumerated(EnumType.STRING)
@@ -66,9 +74,12 @@ public class Group extends BaseEntity {
     private User leader;
 
     @OneToMany(mappedBy = "group")
-    private Set<Participant> participants = new HashSet<>();
+    private List<Participant> participants;
+
+    @OneToOne(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
+    private ChatRoom chatRoom;
 
     @OneToMany(mappedBy = "group")
-    private Set<GroupHashtag> hashtags = new HashSet<>();
+    private List<GroupHashtag> hashtags;
 
 }
