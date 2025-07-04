@@ -1,6 +1,7 @@
 package com.grepp.funfun.app.controller.web.content;
 
 import com.grepp.funfun.app.model.content.dto.ContentDTO;
+import com.grepp.funfun.app.model.content.entity.Content;
 import com.grepp.funfun.app.model.content.service.ContentService;
 import com.grepp.funfun.app.model.content.entity.ContentCategory;
 import com.grepp.funfun.app.model.content.repository.ContentCategoryRepository;
@@ -41,9 +42,16 @@ public class ContentController {
     }
 
     @GetMapping
-    public String list(final Model model) {
+    public String getContentList(final Model model) {
         model.addAttribute("contents", contentService.findAll());
         return "content/list";
+    }
+
+    @GetMapping("{id}")
+    public String getContent(@PathVariable final Long id, Model model) {
+        ContentDTO content = contentService.get(id);
+        model.addAttribute("content", content);
+        return "content/detail";
     }
 
     @GetMapping("/add")

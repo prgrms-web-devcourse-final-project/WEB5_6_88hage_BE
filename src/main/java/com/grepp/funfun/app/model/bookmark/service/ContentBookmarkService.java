@@ -37,21 +37,28 @@ public class ContentBookmarkService {
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
     }
 
-    public Long create(final ContentBookmarkDTO contentBookmarkDTO) {
+    public Long add(final ContentBookmarkDTO contentBookmarkDTO) {
+        if (contentBookmarkRepository.existsByIdAndEmail(contentBookmarkDTO.getId(), contentBookmarkDTO.getEmail())) {
+            throw new CommonException(ResponseCode.NOT_FOUND);
+        }
         final ContentBookmark contentBookmark = new ContentBookmark();
         mapToEntity(contentBookmarkDTO, contentBookmark);
         return contentBookmarkRepository.save(contentBookmark).getId();
     }
 
-    public void update(final Long id, final ContentBookmarkDTO contentBookmarkDTO) {
-        final ContentBookmark contentBookmark = contentBookmarkRepository.findById(id)
-                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        mapToEntity(contentBookmarkDTO, contentBookmark);
-        contentBookmarkRepository.save(contentBookmark);
-    }
+//    public void update(final Long id, final ContentBookmarkDTO contentBookmarkDTO) {
+//        final ContentBookmark contentBookmark = contentBookmarkRepository.findById(id)
+//                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+//        mapToEntity(contentBookmarkDTO, contentBookmark);
+//        contentBookmarkRepository.save(contentBookmark);
+//    }
 
-    public void delete(final Long id) {
-        contentBookmarkRepository.deleteById(id);
+    public void delete(Long id, String email) {
+        ContentBookmark bookmark = contentBookmarkRepository
+                .findByIdAndEmail(id, email)
+                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+
+        contentBookmarkRepository.delete(bookmark);
     }
 
     private ContentBookmarkDTO mapToDTO(final ContentBookmark contentBookmark,
