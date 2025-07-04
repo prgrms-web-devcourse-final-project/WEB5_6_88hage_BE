@@ -34,7 +34,7 @@ public class AuthApiController {
         TokenDto tokenDto = authService.signin(loginRequest);
         
         ResponseCookie accessToken = TokenCookieFactory.create(AuthToken.ACCESS_TOKEN.name(),
-            tokenDto.getAccessToken(), tokenDto.getExpiresIn());
+            tokenDto.getAccessToken(), tokenDto.getRefreshExpiresIn());
         ResponseCookie refreshToken = TokenCookieFactory.create(AuthToken.REFRESH_TOKEN.name(),
             tokenDto.getRefreshToken(), tokenDto.getRefreshExpiresIn());
         

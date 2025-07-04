@@ -1,6 +1,9 @@
 package com.grepp.funfun.app.model.user.service;
 
+import com.grepp.funfun.app.controller.api.user.payload.OAuth2SignupRequest;
 import com.grepp.funfun.app.controller.api.user.payload.SignupRequest;
+import com.grepp.funfun.app.model.auth.AuthService;
+import com.grepp.funfun.app.model.auth.dto.TokenDto;
 import com.grepp.funfun.app.model.contact.entity.Contact;
 import com.grepp.funfun.app.model.contact.repository.ContactRepository;
 import com.grepp.funfun.app.model.group.entity.Group;
@@ -23,11 +26,19 @@ import com.grepp.funfun.app.model.user.entity.UserInfo;
 import com.grepp.funfun.app.model.user.repository.UserInfoRepository;
 import com.grepp.funfun.app.model.user.repository.UserRepository;
 import com.grepp.funfun.infra.error.exceptions.CommonException;
+import com.grepp.funfun.infra.mail.MailTemplate;
+import com.grepp.funfun.infra.mail.SmtpDto;
 import com.grepp.funfun.infra.response.ResponseCode;
 import com.grepp.funfun.util.ReferencedWarning;
+import java.time.Duration;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,6 +59,13 @@ public class UserService {
     private final GroupPreferenceRepository groupPreferenceRepository;
     private final ContentPreferenceRepository contentPreferenceRepository;
     private final PasswordEncoder passwordEncoder;
+    private final MailTemplate mailTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final AuthService authService;
+
+    @Value("${front-server.domain}")
+    private String domain;
+
 
     public List<UserDTO> findAll() {
         final List<User> users = userRepository.findAll(Sort.by("email"));
@@ -85,7 +103,137 @@ public class UserService {
         userInfoRepository.save(userInfo);
         user.setInfo(userInfo);
 
-        return userRepository.save(user).getEmail();
+        String email = userRepository.save(user).getEmail();
+
+        sendSignupVerificationMail(user);
+
+        return email;
+    }
+
+    @Transactional
+    public void resendVerificationSignupEmail(String email) {
+        // 1. 유저 존재 여부 확인
+        User user = userRepository.findById(email)
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+
+        if (user.getIsVerified()) {
+            throw new CommonException(ResponseCode.ALREADY_VERIFIED);
+        }
+
+        // 회원가입 인증 메일 쿨타임 검증
+        validateEmailLimit(email, "signup");
+        sendSignupVerificationMail(user);
+    }
+
+    private void sendSignupVerificationMail(User user) {
+        // 메일 인증 코드 생성
+        String code = UUID.randomUUID().toString();
+        String key = "signup:" + code;
+        redisTemplate.opsForValue().set(key, user.getEmail(), Duration.ofMinutes(5));
+
+        SmtpDto smtpDto = new SmtpDto();
+        smtpDto.setTo(user.getEmail());
+        smtpDto.setTemplatePath("/mail/signup-verification");
+        smtpDto.setSubject("회원가입을 환영합니다!");
+        smtpDto.setProperties(Map.of("domain", domain, "code", code, "nickname", user.getNickname()));
+
+        mailTemplate.send(smtpDto);
+    }
+
+    @Transactional
+    public TokenDto verifySignupCode(String code) {
+        String key = "signup:" + code;
+        String email = (String) redisTemplate.opsForValue().get(key);
+
+        if (email == null) {
+            throw new CommonException(ResponseCode.BAD_USER_VERIFY);
+        }
+
+        User user = userRepository.findById(email).orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+        user.setIsVerified(true);
+        userRepository.save(user);
+        redisTemplate.delete(key);
+
+        return authService.processTokenSignin(user.getEmail(), user.getRole().name(), false);
+    }
+
+    public void sendCode(String email) {
+        // 1. 유저 존재 여부 확인
+        User user = userRepository.findById(email)
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+
+        // 2. 인증 코드 메일 쿨타임 검증
+        validateEmailLimit(email, "code");
+        // 3. 인증 코드 생성 및 저장 (5분)
+        String code = String.format("%06d", new Random().nextInt(999_999));
+        redisTemplate.opsForValue().set("auth-code:" + email, code, Duration.ofMinutes(5));
+
+        SmtpDto smtpDto = new SmtpDto();
+        smtpDto.setTo(user.getEmail());
+        smtpDto.setTemplatePath("/mail/code-verification");
+        smtpDto.setSubject("FunFun 인증 코드");
+        smtpDto.setProperties(Map.of("code", code));
+
+        mailTemplate.send(smtpDto);
+    }
+
+    public void verifyCode(String email, String code) {
+        String codeKey = "auth-code:" + email;
+        String storedCode = (String) redisTemplate.opsForValue().get(codeKey);
+
+        // 인증 코드 검증
+        if (storedCode == null || !storedCode.equals(code)) {
+            throw new CommonException(ResponseCode.INVALID_AUTH_CODE);
+        }
+        // 인증 코드 삭제
+        redisTemplate.delete(codeKey);
+
+        // 인증 코드 검증 성공한 이메일 저장 (10분)
+        redisTemplate.opsForValue().set("auth-code:verified:" + email, "true", Duration.ofMinutes(10));
+    }
+
+    private void validateEmailLimit(String email, String type) {
+        String cooldownKey = "auth-cooldown:" + type + ":" + email;
+
+        // 쿨타임 체크
+        if (redisTemplate.hasKey(cooldownKey)) {
+            throw new CommonException(ResponseCode.TOO_FAST_VERIFY_REQUEST);
+        }
+
+        // 쿨타임 3분 설정
+        redisTemplate.opsForValue().set(cooldownKey, "true", Duration.ofMinutes(3));
+    }
+
+    @Transactional
+    public void changePassword(String email, String password) {
+        String verifiedKey = "auth-code:verified:" +  email;
+        String coolDownKey = "auth-cooldown:code:" +  email;
+        User user = userRepository.findById(email).orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+
+        if (!redisTemplate.hasKey(verifiedKey)) {
+            throw new CommonException(ResponseCode.BAD_REQUEST);
+        }
+
+        // 비밀번호 암호화
+        String encodedPassword = passwordEncoder.encode(password);
+        user.setPassword(encodedPassword);
+        userRepository.save(user);
+
+        // 레디스 인증 키 삭제
+        redisTemplate.delete(verifiedKey);
+        // 레디스 메일 쿨타임 키 삭제
+        redisTemplate.delete(coolDownKey);
+    }
+
+    @Transactional
+    public void updateOAuth2User(String email, OAuth2SignupRequest request) {
+        User user = userRepository.findById(email).orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+        // 닉네임 중복 검사
+        if (userRepository.existsByNickname(request.getNickname())) {
+            throw new CommonException(ResponseCode.USER_NICKNAME_DUPLICATE);
+        }
+        request.toEntity(user);
+        userRepository.save(user);
     }
 
     public void update(final String email, final UserDTO userDTO) {

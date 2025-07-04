@@ -5,8 +5,13 @@ import com.grepp.funfun.app.model.auth.dto.TokenDto;
 import com.grepp.funfun.app.model.auth.token.RefreshTokenService;
 import com.grepp.funfun.app.model.auth.token.UserBlackListRepository;
 import com.grepp.funfun.app.model.auth.token.entity.RefreshToken;
+import com.grepp.funfun.app.model.user.code.UserStatus;
+import com.grepp.funfun.app.model.user.entity.User;
+import com.grepp.funfun.app.model.user.repository.UserRepository;
 import com.grepp.funfun.infra.auth.jwt.JwtTokenProvider;
 import com.grepp.funfun.infra.auth.jwt.dto.AccessTokenDto;
+import com.grepp.funfun.infra.error.exceptions.CommonException;
+import com.grepp.funfun.infra.response.ResponseCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,6 +32,7 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenService refreshTokenService;
     private final UserBlackListRepository userBlackListRepository;
+    private final UserRepository userRepository;
 
     public TokenDto signin(LoginRequest loginRequest) {
         UsernamePasswordAuthenticationToken authenticationToken =
@@ -37,6 +43,24 @@ public class AuthService {
         // 인증 실패 시: AuthenticationException 발생
         Authentication authentication = authenticationManagerBuilder.getObject()
             .authenticate(authenticationToken);
+
+        User user = userRepository.findById(loginRequest.getEmail()).get();
+
+        // 이메일 인증이 되지 않은 사용자
+        if (!user.getIsVerified()) {
+            throw new CommonException(ResponseCode.USER_NOT_VERIFY);
+        }
+
+        // 정지 당한 사용자
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new CommonException(ResponseCode.USER_SUSPENDED);
+        }
+
+        // 비활성화한 사용자 (Soft Delete)
+        if (!user.getActivated()) {
+            throw new CommonException(ResponseCode.USER_INACTIVE);
+        }
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String roles = String.join(",",
             authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
