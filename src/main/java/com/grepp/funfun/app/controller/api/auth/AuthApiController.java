@@ -7,6 +7,7 @@ import com.grepp.funfun.app.model.auth.code.AuthToken;
 import com.grepp.funfun.app.model.auth.dto.TokenDto;
 import com.grepp.funfun.infra.auth.jwt.TokenCookieFactory;
 import com.grepp.funfun.infra.response.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ public class AuthApiController {
     private final AuthService authService;
     
     @PostMapping("/login")
+    @Operation(summary = "로그인", description = "로그인 성공 시 AccessToken 쿠키와 RefreshToken 쿠키를 발급합니다.")
     public ResponseEntity<ApiResponse<TokenResponse>> login(
         @RequestBody @Valid LoginRequest loginRequest,
         HttpServletResponse response
