@@ -58,7 +58,7 @@ public class ContentBookmarkController {
         if (bindingResult.hasErrors()) {
             return "contentBookmark/add";
         }
-        contentBookmarkService.create(contentBookmarkDTO);
+        contentBookmarkService.add(contentBookmarkDTO);
         redirectAttributes.addFlashAttribute(WebUtils.MSG_SUCCESS, WebUtils.getMessage("contentBookmark.create.success"));
         return "redirect:/contentBookmarks";
     }
@@ -69,24 +69,24 @@ public class ContentBookmarkController {
         return "contentBookmark/edit";
     }
 
-    @PostMapping("/edit/{id}")
-    public String edit(@PathVariable(name = "id") final Long id,
-            @ModelAttribute("contentBookmark") @Valid final ContentBookmarkDTO contentBookmarkDTO,
-            final BindingResult bindingResult, final RedirectAttributes redirectAttributes) {
-        if (bindingResult.hasErrors()) {
-            return "contentBookmark/edit";
-        }
-        contentBookmarkService.update(id, contentBookmarkDTO);
-        redirectAttributes.addFlashAttribute(WebUtils.MSG_SUCCESS, WebUtils.getMessage("contentBookmark.update.success"));
-        return "redirect:/contentBookmarks";
-    }
+//    @PostMapping("/edit/{id}")
+//    public String edit(@PathVariable(name = "id") final Long id,
+//            @ModelAttribute("contentBookmark") @Valid final ContentBookmarkDTO contentBookmarkDTO,
+//            final BindingResult bindingResult, final RedirectAttributes redirectAttributes) {
+//        if (bindingResult.hasErrors()) {
+//            return "contentBookmark/edit";
+//        }
+//        contentBookmarkService.update(id, contentBookmarkDTO);
+//        redirectAttributes.addFlashAttribute(WebUtils.MSG_SUCCESS, WebUtils.getMessage("contentBookmark.update.success"));
+//        return "redirect:/contentBookmarks";
+//    }
 
-    @PostMapping("/delete/{id}")
-    public String delete(@PathVariable(name = "id") final Long id,
-            final RedirectAttributes redirectAttributes) {
-        contentBookmarkService.delete(id);
-        redirectAttributes.addFlashAttribute(WebUtils.MSG_INFO, WebUtils.getMessage("contentBookmark.delete.success"));
-        return "redirect:/contentBookmarks";
-    }
+//    @PostMapping("/delete/{id}")
+//    public String delete(@PathVariable(name = "id") final Long id,
+//            final RedirectAttributes redirectAttributes) {
+//        contentBookmarkService.delete(id, email);
+//        redirectAttributes.addFlashAttribute(WebUtils.MSG_INFO, WebUtils.getMessage("contentBookmark.delete.success"));
+//        return "redirect:/contentBookmarks";
+//    }
 
 }

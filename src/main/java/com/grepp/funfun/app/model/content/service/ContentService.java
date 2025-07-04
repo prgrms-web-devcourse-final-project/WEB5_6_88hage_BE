@@ -1,9 +1,11 @@
 package com.grepp.funfun.app.model.content.service;
 
+import com.grepp.funfun.app.controller.api.content.payload.ContentFilterRequest;
 import com.grepp.funfun.app.model.bookmark.entity.ContentBookmark;
 import com.grepp.funfun.app.model.bookmark.repository.ContentBookmarkRepository;
 import com.grepp.funfun.app.model.calendar.entity.Calendar;
 import com.grepp.funfun.app.model.calendar.repository.CalendarRepository;
+import com.grepp.funfun.app.model.content.code.ContentClassification;
 import com.grepp.funfun.app.model.content.dto.ContentDTO;
 import com.grepp.funfun.app.model.content.entity.Content;
 import com.grepp.funfun.app.model.content.entity.ContentCategory;
@@ -12,7 +14,15 @@ import com.grepp.funfun.app.model.content.repository.ContentRepository;
 import com.grepp.funfun.infra.error.exceptions.CommonException;
 import com.grepp.funfun.infra.response.ResponseCode;
 import com.grepp.funfun.util.ReferencedWarning;
+
+import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -35,17 +45,14 @@ public class ContentService {
         this.calendarRepository = calendarRepository;
     }
 
-    public List<ContentDTO> findAll() {
-        final List<Content> contents = contentRepository.findAll(Sort.by("id"));
-        return contents.stream()
-                .map(content -> mapToDTO(content, new ContentDTO()))
-                .toList();
+    public List<Content> findAll() {
+        return contentRepository.findAll(Sort.by(Sort.Direction.ASC, "startDate"));
     }
 
     public ContentDTO get(final Long id) {
-        return contentRepository.findById(id)
-                .map(content -> mapToDTO(content, new ContentDTO()))
+        Content content = contentRepository.findByIdWithCategory(id)
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+        return mapToDTO(content, new ContentDTO());
     }
 
     public Long create(final ContentDTO contentDTO) {
@@ -53,7 +60,6 @@ public class ContentService {
         mapToEntity(contentDTO, content);
         return contentRepository.save(content).getId();
     }
-
     public void update(final Long id, final ContentDTO contentDTO) {
         final Content content = contentRepository.findById(id)
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
@@ -63,6 +69,58 @@ public class ContentService {
 
     public void delete(final Long id) {
         contentRepository.deleteById(id);
+    }
+
+    // 컨텐츠 필터링
+    public Page<ContentDTO> findByFilters(ContentFilterRequest request, Pageable pageable) {
+        Page<Content> contents = contentRepository.findFilteredContents(
+                request.getCategory(),
+                request.getGuName(),
+                request.getStartDate(),
+                request.getEndDate(),
+                pageable
+        );
+
+        if (contents.isEmpty()) {
+            throw new CommonException(ResponseCode.NOT_FOUND);
+        }
+        return contents.map(content -> mapToDTO(content, new ContentDTO()));
+    }
+
+    // 거리순 컨텐츠 노출
+    public List<ContentDTO> findNearbyContents(Long id, double radiusInKm, int limit){
+        Content content = contentRepository.findById(id)
+                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+        
+        double lat = content.getLatitude();
+        double lng = content.getLongitude();
+        
+        List<Content> nearby = contentRepository.findNearby(lat, lng, radiusInKm, PageRequest.of(0, limit));
+        
+        return nearby.stream()
+                .map(c -> mapToDTO(c, new ContentDTO()))
+                .toList();
+        
+    }
+    
+    // 카테고리별 컨텐츠 노출
+    public List<ContentDTO> findRandomByCategory(Long id, int limit){
+        Content content = contentRepository.findById(id)
+                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+
+        ContentClassification category = content.getCategory().getCategory();
+
+        List<Content> sameCategoryContents = contentRepository.findByCategory_Category(category);
+
+        List<Content> filtered = sameCategoryContents.stream()
+                .filter(c -> !c.getId().equals(id))
+                .collect(Collectors.toList());
+
+        Collections.shuffle(filtered);
+        return filtered.stream()
+                .limit(limit)
+                .map(c -> mapToDTO(c, new ContentDTO()))
+                .toList();
     }
 
     private ContentDTO mapToDTO(final Content content, final ContentDTO contentDTO) {
@@ -118,5 +176,6 @@ public class ContentService {
         }
         return null;
     }
+
 
 }

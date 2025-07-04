@@ -2,20 +2,13 @@ package com.grepp.funfun.app.controller.api.bookmark;
 
 import com.grepp.funfun.app.model.bookmark.dto.ContentBookmarkDTO;
 import com.grepp.funfun.app.model.bookmark.service.ContentBookmarkService;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import com.grepp.funfun.infra.response.ApiResponse;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 
 @RestController
@@ -29,36 +22,38 @@ public class ContentBookmarkApiController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ContentBookmarkDTO>> getAllContentBookmarks() {
-        return ResponseEntity.ok(contentBookmarkService.findAll());
+    public ResponseEntity<ApiResponse<List<ContentBookmarkDTO>>> getAllContentBookmarks() {
+        List<ContentBookmarkDTO> bookmarks = contentBookmarkService.findAll();
+        return ResponseEntity.ok(ApiResponse.success(bookmarks));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ContentBookmarkDTO> getContentBookmark(
-            @PathVariable(name = "id") final Long id) {
-        return ResponseEntity.ok(contentBookmarkService.get(id));
+    public ResponseEntity<ApiResponse<ContentBookmarkDTO>> getContentBookmark(
+            @PathVariable final Long id) {
+        ContentBookmarkDTO bookmark = contentBookmarkService.get(id);
+        return ResponseEntity.ok(ApiResponse.success(bookmark));
     }
 
-    @PostMapping
-    @ApiResponse(responseCode = "201")
-    public ResponseEntity<Long> createContentBookmark(
+    @PostMapping("/add")
+    public ResponseEntity<ApiResponse<Long>> addContentBookmark(
             @RequestBody @Valid final ContentBookmarkDTO contentBookmarkDTO) {
-        final Long createdId = contentBookmarkService.create(contentBookmarkDTO);
-        return new ResponseEntity<>(createdId, HttpStatus.CREATED);
+        final Long createdId = contentBookmarkService.add(contentBookmarkDTO);
+        return new ResponseEntity<>(ApiResponse.success(createdId), HttpStatus.CREATED);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Long> updateContentBookmark(@PathVariable(name = "id") final Long id,
-            @RequestBody @Valid final ContentBookmarkDTO contentBookmarkDTO) {
-        contentBookmarkService.update(id, contentBookmarkDTO);
-        return ResponseEntity.ok(id);
-    }
+//    @PutMapping("/{id}")
+//    public ResponseEntity<ApiResponse<Long>> updateContentBookmark(@PathVariable final Long id,
+//            @RequestBody @Valid final ContentBookmarkDTO contentBookmarkDTO) {
+//        contentBookmarkService.update(id, contentBookmarkDTO);
+//        return ResponseEntity.ok(ApiResponse.success(id));
+//    }
 
-    @DeleteMapping("/{id}")
-    @ApiResponse(responseCode = "204")
-    public ResponseEntity<Void> deleteContentBookmark(@PathVariable(name = "id") final Long id) {
-        contentBookmarkService.delete(id);
-        return ResponseEntity.noContent().build();
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteContentBookmark(
+            @PathVariable final Long id,
+            @RequestParam String email) {
+        contentBookmarkService.delete(id, email);
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 
 }

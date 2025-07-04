@@ -1,25 +1,22 @@
 package com.grepp.funfun.app.controller.api.content;
 
+import com.grepp.funfun.app.controller.api.content.payload.ContentDetailResponse;
+import com.grepp.funfun.app.controller.api.content.payload.ContentFilterRequest;
 import com.grepp.funfun.app.model.content.dto.ContentDTO;
 import com.grepp.funfun.app.model.content.service.ContentService;
 import com.grepp.funfun.infra.response.ApiResponse;
-import com.grepp.funfun.infra.response.ResponseCode;
-import com.grepp.funfun.util.ReferencedException;
-import com.grepp.funfun.util.ReferencedWarning;
-import com.grepp.funfun.util.WebUtils;
-import jakarta.validation.Valid;
-import java.util.List;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 
 @RestController
@@ -35,51 +32,26 @@ public class ContentApiController {
 
     // 컨텐츠 조회
     @GetMapping
-    public ResponseEntity<ApiResponse<List<ContentDTO>>> getAllContents() {
-        try{
-            // 필터링 필요
-            List<ContentDTO> contents = contentService.findAll();
-            return ResponseEntity.ok(ApiResponse.success(contents));
-        }catch (Exception e) {
-            return ResponseEntity
-                    .status(ResponseCode.INTERNAL_SERVER_ERROR.status())
-                    .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR));
-        }
+    public ResponseEntity<ApiResponse<Page<ContentDTO>>> getAllContents(
+            ContentFilterRequest request,
+            @PageableDefault(size = 10, sort = "startDate", direction = Sort.Direction.ASC) Pageable pageable) {
+
+        Page<ContentDTO> contents = contentService.findByFilters(request, pageable);
+        return ResponseEntity.ok(ApiResponse.success(contents));
     }
 
     // 컨텐츠 상세 조회
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<ContentDTO>> getContent(
+    public ResponseEntity<ApiResponse<ContentDetailResponse>> getContent(
             @PathVariable(name = "id") final Long id
     ) {
         ContentDTO content = contentService.get(id);
-        return ResponseEntity.ok(ApiResponse.success(content));
-    }
+        List<ContentDTO> related = contentService.findRandomByCategory(id, 5);
+        List<ContentDTO> nearby = contentService.findNearbyContents(id, 3.0, 5);
 
-    // create, update, delete 필요없지 않나 생각
-    @PostMapping
-    public ResponseEntity<ApiResponse<Long>> createContent(
-            @RequestBody @Valid final ContentDTO contentDTO
-    ) {
-        final Long createdId = contentService.create(contentDTO);
-        return new ResponseEntity<>(ApiResponse.success(createdId), HttpStatus.CREATED);
-    }
+        ContentDetailResponse response = new ContentDetailResponse(content, related, nearby);
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<Long>> updateContent(@PathVariable(name = "id") final Long id,
-            @RequestBody @Valid final ContentDTO contentDTO) {
-        contentService.update(id, contentDTO);
-        return ResponseEntity.ok(ApiResponse.success(id));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteContent(@PathVariable(name = "id") final Long id) {
-        final ReferencedWarning referencedWarning = contentService.getReferencedWarning(id);
-        if (referencedWarning != null) {
-            throw new ReferencedException(referencedWarning);
-        }
-        contentService.delete(id);
-        return ResponseEntity.ok(ApiResponse.success(null));
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
 }
