@@ -21,16 +21,18 @@ import com.grepp.funfun.app.model.user.repository.UserRepository;
 import com.grepp.funfun.infra.error.exceptions.CommonException;
 import com.grepp.funfun.infra.response.ResponseCode;
 import com.grepp.funfun.util.ReferencedWarning;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class GroupService {
 
     private final GroupRepository groupRepository;
@@ -41,20 +43,6 @@ public class GroupService {
     private final CalendarRepository calendarRepository;
     private final GroupHashtagRepository groupHashtagRepository;
 
-    public GroupService(final GroupRepository groupRepository, final UserRepository userRepository,
-            final GroupBookmarkRepository groupBookmarkRepository,
-            final ParticipantRepository participantRepository,
-            final ChatRoomRepository chatRoomRepository,
-            final CalendarRepository calendarRepository,
-            final GroupHashtagRepository groupHashtagRepository) {
-        this.groupRepository = groupRepository;
-        this.userRepository = userRepository;
-        this.groupBookmarkRepository = groupBookmarkRepository;
-        this.participantRepository = participantRepository;
-        this.chatRoomRepository = chatRoomRepository;
-        this.calendarRepository = calendarRepository;
-        this.groupHashtagRepository = groupHashtagRepository;
-    }
 
     public List<GroupDTO> findAll() {
         final List<Group> groups = groupRepository.findAll(Sort.by("id"));
@@ -147,16 +135,6 @@ public class GroupService {
         participantRepository.save(participant);
 
     }
-
-    // 모임 승인
-
-    // 모임 강퇴(특정 사용자 값 삭제)
-
-    // 모임 취소
-
-    // 모임 삭제
-
-    // 모임 나가기(특정 사용자 값 삭제)
 
     public void update(final Long id, final GroupDTO groupDTO) {
         final Group group = groupRepository.findById(id)
