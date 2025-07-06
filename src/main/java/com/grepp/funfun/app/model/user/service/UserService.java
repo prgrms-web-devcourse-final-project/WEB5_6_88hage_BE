@@ -133,7 +133,7 @@ public class UserService {
 
         SmtpDto smtpDto = new SmtpDto();
         smtpDto.setTo(user.getEmail());
-        smtpDto.setTemplatePath("/mail/signup-verification");
+        smtpDto.setTemplatePath("mail/signup-verification");
         smtpDto.setSubject("회원가입을 환영합니다!");
         smtpDto.setProperties(Map.of("domain", domain, "code", code, "nickname", user.getNickname()));
 
@@ -170,7 +170,7 @@ public class UserService {
 
         SmtpDto smtpDto = new SmtpDto();
         smtpDto.setTo(user.getEmail());
-        smtpDto.setTemplatePath("/mail/code-verification");
+        smtpDto.setTemplatePath("mail/code-verification");
         smtpDto.setSubject("FunFun 인증 코드");
         smtpDto.setProperties(Map.of("code", code));
 
