@@ -1,6 +1,7 @@
 package com.grepp.funfun.app.model.bookmark.entity;
 
 import com.grepp.funfun.app.model.content.entity.Content;
+import com.grepp.funfun.app.model.user.entity.User;
 import com.grepp.funfun.infra.entity.BaseEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -22,7 +23,9 @@ public class ContentBookmark extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String email;
+    @ManyToOne
+    @JoinColumn(name = "user_email", nullable = false)
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "content_id", nullable = false)

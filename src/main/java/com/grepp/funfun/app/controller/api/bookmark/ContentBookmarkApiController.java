@@ -41,18 +41,17 @@ public class ContentBookmarkApiController {
         return new ResponseEntity<>(ApiResponse.success(createdId), HttpStatus.CREATED);
     }
 
-//    @PutMapping("/{id}")
-//    public ResponseEntity<ApiResponse<Long>> updateContentBookmark(@PathVariable final Long id,
-//            @RequestBody @Valid final ContentBookmarkDTO contentBookmarkDTO) {
-//        contentBookmarkService.update(id, contentBookmarkDTO);
-//        return ResponseEntity.ok(ApiResponse.success(id));
-//    }
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<Long>> updateContentBookmark(@PathVariable final Long id,
+            @RequestBody @Valid final ContentBookmarkDTO contentBookmarkDTO) {
+        contentBookmarkService.update(id, contentBookmarkDTO);
+        return ResponseEntity.ok(ApiResponse.success(id));
+    }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteContentBookmark(
-            @PathVariable final Long id,
-            @RequestParam String email) {
-        contentBookmarkService.delete(id, email);
+            @PathVariable final Long id) {
+        contentBookmarkService.delete(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 

@@ -15,35 +15,29 @@ import com.grepp.funfun.infra.error.exceptions.CommonException;
 import com.grepp.funfun.infra.response.ResponseCode;
 import com.grepp.funfun.util.ReferencedWarning;
 
-import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class ContentService {
 
     private final ContentRepository contentRepository;
     private final ContentCategoryRepository contentCategoryRepository;
     private final ContentBookmarkRepository contentBookmarkRepository;
     private final CalendarRepository calendarRepository;
-
-    public ContentService(final ContentRepository contentRepository,
-            final ContentCategoryRepository contentCategoryRepository,
-            final ContentBookmarkRepository contentBookmarkRepository,
-            final CalendarRepository calendarRepository) {
-        this.contentRepository = contentRepository;
-        this.contentCategoryRepository = contentCategoryRepository;
-        this.contentBookmarkRepository = contentBookmarkRepository;
-        this.calendarRepository = calendarRepository;
-    }
 
     public List<Content> findAll() {
         return contentRepository.findAll(Sort.by(Sort.Direction.ASC, "startDate"));
@@ -94,8 +88,12 @@ public class ContentService {
         
         double lat = content.getLatitude();
         double lng = content.getLongitude();
+
+        if (lat == 0.0 || lng == 0.0) {
+            return Collections.emptyList();
+        }
         
-        List<Content> nearby = contentRepository.findNearby(lat, lng, radiusInKm, PageRequest.of(0, limit));
+        List<Content> nearby = contentRepository.findNearby(lat, lng, radiusInKm, id, limit);
         
         return nearby.stream()
                 .map(c -> mapToDTO(c, new ContentDTO()))
@@ -104,16 +102,17 @@ public class ContentService {
     }
     
     // 카테고리별 컨텐츠 노출
+    @Transactional(readOnly = true)
     public List<ContentDTO> findRandomByCategory(Long id, int limit){
         Content content = contentRepository.findById(id)
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
 
         ContentClassification category = content.getCategory().getCategory();
 
-        List<Content> sameCategoryContents = contentRepository.findByCategory_Category(category);
+        List<Content> sameCategoryContents = contentRepository.findByCategoryCategory(category);
 
         List<Content> filtered = sameCategoryContents.stream()
-                .filter(c -> !c.getId().equals(id))
+                .filter(c -> !c.getId().equals(id)) // 자기 자신 제외
                 .collect(Collectors.toList());
 
         Collections.shuffle(filtered);

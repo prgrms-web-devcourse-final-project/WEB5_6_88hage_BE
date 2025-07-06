@@ -11,8 +11,8 @@ public interface ContentBookmarkRepository extends JpaRepository<ContentBookmark
 
     ContentBookmark findFirstByContent(Content content);
 
-    boolean existsByIdAndEmail(Long id, String email);
+    boolean existsByIdAndUser_Email(Long id, String email);
 
-    Optional<ContentBookmark> findByIdAndEmail(Long id, String email);
+//    Optional<ContentBookmark> findByIdAndEmail(Long id, String email);
 
 }

@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.controller.api.content.payload;
 
+import com.grepp.funfun.app.model.content.code.ContentClassification;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -8,7 +9,7 @@ import java.time.LocalDate;
 @Data
 public class ContentFilterRequest {
 
-    private String category;
+    private ContentClassification category;
     private String guName;
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
