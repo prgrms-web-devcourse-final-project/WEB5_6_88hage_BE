@@ -109,7 +109,7 @@ public class UserApiController {
     }
 
     @PostMapping("/verify/signup")
-    @Operation(summary = "회원가입 이메일 인증", description = "회원가입 이메일 인증을 진행합니다.")
+    @Operation(summary = "회원가입 이메일 인증", description = "회원가입 이메일 인증을 진행합니다.<br>자동으로 로그인됩니다.")
     public ResponseEntity<ApiResponse<TokenResponse>> verifySignup(@RequestParam("code") String code,  HttpServletResponse response) {
         TokenDto tokenDto = userService.verifySignupCode(code);
 
