@@ -9,6 +9,9 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import lombok.Data;
 
 @Data
@@ -42,11 +45,18 @@ public class SignupRequest {
     @NotBlank(message = "주소는 필수입니다.")
     private String address;
 
-    @NotBlank(message = "전화번호는 필수입니다.")
-    private String tel;
+    @NotBlank(message = "생년월일은 필수입니다.")
+    private String birthDate;
 
-    @NotNull(message = "나이는 필수입니다.")
-    private int age;
+    @AssertTrue(message = "생년월일은 yyyyMMdd 형식의 유효한 날짜여야 합니다.")
+    public boolean isBirthDate() {
+        try {
+            LocalDate.parse(birthDate, DateTimeFormatter.ofPattern("yyyyMMdd"));
+            return true;
+        } catch (DateTimeParseException e) {
+            return false;
+        }
+    }
 
     @NotNull(message = "성별은 필수입니다.")
     private Gender gender;
@@ -61,8 +71,7 @@ public class SignupRequest {
         user.setEmail(email);
         user.setNickname(nickname);
         user.setAddress(address);
-        user.setTel(tel);
-        user.setAge(age);
+        user.setBirthDate(birthDate);
         user.setGender(gender);
         user.setIsMarketingAgreed(isMarketingAgreed);
         user.setRole(Role.ROLE_USER);

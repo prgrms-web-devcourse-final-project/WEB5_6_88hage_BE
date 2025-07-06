@@ -35,12 +35,10 @@ public class User extends BaseEntity {
 
     private String nickname;
 
-    private Integer age;
+    private String birthDate;
 
     @Enumerated(EnumType.STRING)
     private Gender gender;
-
-    private String tel;
 
     private String address;
 

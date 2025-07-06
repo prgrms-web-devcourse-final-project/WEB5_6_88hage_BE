@@ -293,9 +293,7 @@ public class UserService {
         userDTO.setEmail(user.getEmail());
         userDTO.setPassword(user.getPassword());
         userDTO.setNickname(user.getNickname());
-        userDTO.setAge(user.getAge());
         userDTO.setGender(user.getGender());
-        userDTO.setTel(user.getTel());
         userDTO.setAddress(user.getAddress());
         userDTO.setRole(user.getRole());
         userDTO.setStatus(user.getStatus());
@@ -311,9 +309,7 @@ public class UserService {
     private User mapToEntity(final UserDTO userDTO, final User user) {
         user.setPassword(userDTO.getPassword());
         user.setNickname(userDTO.getNickname());
-        user.setAge(userDTO.getAge());
         user.setGender(userDTO.getGender());
-        user.setTel(userDTO.getTel());
         user.setAddress(userDTO.getAddress());
         user.setRole(userDTO.getRole());
         user.setStatus(userDTO.getStatus());
