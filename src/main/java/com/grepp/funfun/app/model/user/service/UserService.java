@@ -4,6 +4,7 @@ import com.grepp.funfun.app.controller.api.user.payload.OAuth2SignupRequest;
 import com.grepp.funfun.app.controller.api.user.payload.SignupRequest;
 import com.grepp.funfun.app.model.auth.AuthService;
 import com.grepp.funfun.app.model.auth.dto.TokenDto;
+import com.grepp.funfun.app.model.auth.token.RefreshTokenService;
 import com.grepp.funfun.app.model.contact.entity.Contact;
 import com.grepp.funfun.app.model.contact.repository.ContactRepository;
 import com.grepp.funfun.app.model.group.entity.Group;
@@ -62,6 +63,7 @@ public class UserService {
     private final MailTemplate mailTemplate;
     private final RedisTemplate<String, Object> redisTemplate;
     private final AuthService authService;
+    private final RefreshTokenService refreshTokenService;
 
     @Value("${front-server.domain}")
     private String domain;
@@ -265,6 +267,15 @@ public class UserService {
         if (userRepository.existsByNickname(nickname)) {
             throw new CommonException(ResponseCode.USER_NICKNAME_DUPLICATE);
         }
+    }
+
+    @Transactional
+    public void unActive(String email, String accessTokenId) {
+        User user = userRepository.findById(email).orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+        user.unActivated();
+        userRepository.save(user);
+
+        refreshTokenService.deleteByAccessTokenId(accessTokenId);
     }
 
     public void update(final String email, final UserDTO userDTO) {

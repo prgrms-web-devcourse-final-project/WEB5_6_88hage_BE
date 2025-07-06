@@ -10,19 +10,24 @@ import com.grepp.funfun.app.model.auth.code.AuthToken;
 import com.grepp.funfun.app.model.auth.dto.TokenDto;
 import com.grepp.funfun.app.model.user.dto.UserDTO;
 import com.grepp.funfun.app.model.user.service.UserService;
+import com.grepp.funfun.infra.auth.jwt.JwtTokenProvider;
 import com.grepp.funfun.infra.auth.jwt.TokenCookieFactory;
+import com.grepp.funfun.infra.error.exceptions.CommonException;
 import com.grepp.funfun.infra.response.ApiResponse;
-import com.grepp.funfun.util.ReferencedException;
-import com.grepp.funfun.util.ReferencedWarning;
+import com.grepp.funfun.infra.response.ResponseCode;
+import io.jsonwebtoken.Claims;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,15 +39,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 
+@Slf4j
 @RestController
 @RequestMapping(value = "/api/users", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequiredArgsConstructor
 public class UserApiController {
 
     private final UserService userService;
-
-    public UserApiController(final UserService userService) {
-        this.userService = userService;
-    }
+    private final JwtTokenProvider jwtTokenProvider;
 
     @GetMapping
     public ResponseEntity<List<UserDTO>> getAllUsers() {
@@ -76,14 +80,32 @@ public class UserApiController {
         return ResponseEntity.ok('"' + email + '"');
     }
 
-    @DeleteMapping("/{email}")
-    public ResponseEntity<Void> deleteUser(@PathVariable(name = "email") final String email) {
-        final ReferencedWarning referencedWarning = userService.getReferencedWarning(email);
-        if (referencedWarning != null) {
-            throw new ReferencedException(referencedWarning);
+    @PatchMapping
+    @Operation(summary = "회원 탈퇴", description = "회원을 탈퇴(비활성화) 합니다.<br>자동으로 로그아웃됩니다.")
+    public ResponseEntity<ApiResponse<String>> unActiveUser(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+        // 1. 액세스 토큰 꺼내기
+        String accessToken = jwtTokenProvider.resolveToken(request, AuthToken.ACCESS_TOKEN);
+
+        if (accessToken == null) {
+            throw new CommonException(ResponseCode.UNAUTHORIZED);
         }
-        userService.delete(email);
-        return ResponseEntity.noContent().build();
+
+        // 2. 토큰에서 accessTokenId 파싱
+        Claims claims = jwtTokenProvider.getClaims(accessToken);
+        String accessTokenId = claims.getId();
+
+        String email = authentication.getName();
+        userService.unActive(email, accessTokenId);
+
+        SecurityContextHolder.clearContext();
+        ResponseCookie expiredAccessToken = TokenCookieFactory.createExpiredToken(AuthToken.ACCESS_TOKEN.name());
+        ResponseCookie expiredRefreshToken = TokenCookieFactory.createExpiredToken(AuthToken.REFRESH_TOKEN.name());
+        ResponseCookie expiredSessionId = TokenCookieFactory.createExpiredToken(AuthToken.AUTH_SERVER_SESSION_ID.name());
+        response.addHeader("Set-Cookie", expiredAccessToken.toString());
+        response.addHeader("Set-Cookie", expiredRefreshToken.toString());
+        response.addHeader("Set-Cookie", expiredSessionId.toString());
+
+        return ResponseEntity.ok(ApiResponse.success("회원 탈퇴되었습니다."));
     }
 
     @PostMapping("/verify/signup")
