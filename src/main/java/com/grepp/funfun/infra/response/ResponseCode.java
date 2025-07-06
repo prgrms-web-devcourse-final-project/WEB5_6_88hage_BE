@@ -11,7 +11,7 @@ public enum ResponseCode {
     NOT_FOUND("4040", HttpStatus.NOT_FOUND, "NOT FOUND"),
     NOT_EXIST_PRE_AUTH_CREDENTIAL("4012", HttpStatus.OK, "사전 인증 정보가 요청에서 발견되지 않았습니다."),
     USER_EMAIL_DUPLICATE("4013", HttpStatus.BAD_REQUEST, "이미 존재하는 이메일입니다."),
-    USER_NICKNAME_DUPLICATE("4014", HttpStatus.BAD_REQUEST, "이미 존재하는 닉네임입니다."),
+    USER_NICKNAME_DUPLICATE("4014", HttpStatus.BAD_REQUEST, "이미 사용 중인 닉네임입니다."),
     BAD_USER_VERIFY("4015", HttpStatus.BAD_REQUEST, "인증 링크가 만료되었거나 잘못되었습니다."),
     ALREADY_VERIFIED("4016", HttpStatus.BAD_REQUEST, "이미 인증된 사용자입니다."),
     USER_NOT_VERIFY("4017", HttpStatus.BAD_REQUEST, "이메일 인증이 되지 않은 사용자입니다"),

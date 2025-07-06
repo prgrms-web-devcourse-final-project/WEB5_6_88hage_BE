@@ -260,6 +260,13 @@ public class UserService {
         redisTemplate.delete(coolDownKey);
     }
 
+    public void verifyNickname(String nickname) {
+        // 닉네임 중복 검사
+        if (userRepository.existsByNickname(nickname)) {
+            throw new CommonException(ResponseCode.USER_NICKNAME_DUPLICATE);
+        }
+    }
+
     public void update(final String email, final UserDTO userDTO) {
         final User user = userRepository.findById(email)
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));

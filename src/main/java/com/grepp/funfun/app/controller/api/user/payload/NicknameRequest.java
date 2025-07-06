@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 @Data
-public class ChangeNicknameRequest {
+public class NicknameRequest {
     @NotBlank(message = "닉네임은 필수입니다.")
     @Pattern(
         regexp = "^[가-힣a-zA-Z0-9]{2,10}$",
