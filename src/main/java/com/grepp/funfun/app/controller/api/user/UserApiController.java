@@ -1,6 +1,7 @@
 package com.grepp.funfun.app.controller.api.user;
 
 import com.grepp.funfun.app.controller.api.auth.payload.TokenResponse;
+import com.grepp.funfun.app.controller.api.user.payload.ChangeNicknameRequest;
 import com.grepp.funfun.app.controller.api.user.payload.ChangePasswordRequest;
 import com.grepp.funfun.app.controller.api.user.payload.OAuth2SignupRequest;
 import com.grepp.funfun.app.controller.api.user.payload.SignupRequest;
@@ -136,5 +137,15 @@ public class UserApiController {
         userService.changePassword(email, request.getPassword());
 
         return ResponseEntity.ok(ApiResponse.success("비밀번호 변경이 완료되었습니다."));
+    }
+
+    @PatchMapping("/change/nickname")
+    @Operation(summary = "닉네임 변경", description = "인증 코드로 인증된 사용자에 한해서 닉네임 변경을 진행합니다.")
+    public ResponseEntity<ApiResponse<String>> changeNickname(@RequestBody @Valid
+    ChangeNicknameRequest request, Authentication authentication) {
+        String email = authentication.getName();
+        userService.changeNickname(email, request.getNickname());
+
+        return ResponseEntity.ok(ApiResponse.success("닉네임 변경이 완료되었습니다."));
     }
 }

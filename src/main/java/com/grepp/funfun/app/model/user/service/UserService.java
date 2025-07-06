@@ -236,6 +236,30 @@ public class UserService {
         userRepository.save(user);
     }
 
+    @Transactional
+    public void changeNickname(String email, String nickname) {
+        String verifiedKey = "auth-code:verified:" +  email;
+        String coolDownKey = "auth-cooldown:code:" +  email;
+        User user = userRepository.findById(email).orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+
+        if (!redisTemplate.hasKey(verifiedKey)) {
+            throw new CommonException(ResponseCode.BAD_REQUEST);
+        }
+
+        // 닉네임 중복 검사
+        if (userRepository.existsByNickname(nickname)) {
+            throw new CommonException(ResponseCode.USER_NICKNAME_DUPLICATE);
+        }
+
+        user.setNickname(nickname);
+        userRepository.save(user);
+
+        // 레디스 인증 키 삭제
+        redisTemplate.delete(verifiedKey);
+        // 레디스 메일 쿨타임 키 삭제
+        redisTemplate.delete(coolDownKey);
+    }
+
     public void update(final String email, final UserDTO userDTO) {
         final User user = userRepository.findById(email)
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));

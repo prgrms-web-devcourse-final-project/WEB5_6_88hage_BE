@@ -10,7 +10,7 @@ public class ChangePasswordRequest {
     @NotBlank(message = "비밀번호는 필수입니다.")
     @Pattern(
         regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?]).{8,20}$",
-        message = "비밀번호는 최소 8자리 이상에서 최대 20자리 이하의 영문자, 숫자, 특수문자 조합으로 이루어져야 합니다."
+        message = "8~20자 영문, 숫자, 특수문자 조합이어야 합니다"
     )
     private String password;
 
