@@ -10,6 +10,7 @@ import com.grepp.funfun.app.model.user.repository.UserRepository;
 import com.grepp.funfun.infra.error.exceptions.CommonException;
 import com.grepp.funfun.infra.response.ResponseCode;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,17 +34,18 @@ public class ContentBookmarkService {
                 .toList();
     }
 
-    public ContentBookmarkDTO get(final Long id) {
-        return contentBookmarkRepository.findById(id)
-                .map(contentBookmark -> mapToDTO(contentBookmark, new ContentBookmarkDTO()))
-                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+    public List<ContentBookmarkDTO> getByEmail(String email) {
+        return contentBookmarkRepository.findAllByUser_EmailOrderByCreatedAtDesc(email)
+                .stream()
+                .map(bookmark -> mapToDTO(bookmark, new ContentBookmarkDTO()))
+                .collect(Collectors.toList());
     }
 
-    public Long add(final ContentBookmarkDTO contentBookmarkDTO) {
-        if (contentBookmarkRepository.existsByIdAndUser_Email(contentBookmarkDTO.getId(), contentBookmarkDTO.getEmail())) {
-            throw new CommonException(ResponseCode.NOT_FOUND);
+    public Long addByEmail(final ContentBookmarkDTO contentBookmarkDTO, String email) {
+        if (contentBookmarkRepository.existsByUser_EmailAndContent_Id(email, contentBookmarkDTO.getContentId())) {
+            throw new CommonException(ResponseCode.USER_EMAIL_DUPLICATE);
         }
-        User user = userRepository.findById(contentBookmarkDTO.getEmail())
+        User user = userRepository.findById(email)
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
 
         Content content = contentRepository.findById(contentBookmarkDTO.getContentId())
@@ -52,6 +54,29 @@ public class ContentBookmarkService {
         final ContentBookmark contentBookmark = new ContentBookmark();
         contentBookmark.setUser(user);
         contentBookmark.setContent(content);
+        return contentBookmarkRepository.save(contentBookmark).getId();
+    }
+
+    public void deleteByEmail(Long id, String email) {
+        ContentBookmark bookmark = contentBookmarkRepository
+                .findById(id)
+                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+        if(!bookmark.getUser().getEmail().equals(email)) {
+            throw new CommonException(ResponseCode.UNAUTHORIZED);
+        }
+        contentBookmarkRepository.delete(bookmark);
+    }
+
+    // controller
+    public ContentBookmarkDTO get(final Long id) {
+        return contentBookmarkRepository.findById(id)
+                .map(contentBookmark -> mapToDTO(contentBookmark, new ContentBookmarkDTO()))
+                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+    }
+
+    public Long create(final ContentBookmarkDTO contentBookmarkDTO) {
+        final ContentBookmark contentBookmark = new ContentBookmark();
+        mapToEntity(contentBookmarkDTO, contentBookmark);
         return contentBookmarkRepository.save(contentBookmark).getId();
     }
 
@@ -66,7 +91,6 @@ public class ContentBookmarkService {
         ContentBookmark bookmark = contentBookmarkRepository
                 .findById(id)
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-
         contentBookmarkRepository.delete(bookmark);
     }
 

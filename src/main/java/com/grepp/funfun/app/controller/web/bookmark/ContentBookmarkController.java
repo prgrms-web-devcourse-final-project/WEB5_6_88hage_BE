@@ -58,7 +58,7 @@ public class ContentBookmarkController {
         if (bindingResult.hasErrors()) {
             return "ContentBookmark/add";
         }
-        ContentBookmarkService.add(ContentBookmarkDTO);
+        ContentBookmarkService.create(ContentBookmarkDTO);
         redirectAttributes.addFlashAttribute(WebUtils.MSG_SUCCESS, WebUtils.getMessage("ContentBookmark.create.success"));
         return "redirect:/ContentBookmarks";
     }

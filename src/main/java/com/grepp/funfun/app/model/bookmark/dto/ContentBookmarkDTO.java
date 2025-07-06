@@ -13,7 +13,7 @@ public class ContentBookmarkDTO {
     private Long id;
 
     @Size(max = 255)
-    @NotNull
+//    @NotNull
     private String email;
 
     @NotNull

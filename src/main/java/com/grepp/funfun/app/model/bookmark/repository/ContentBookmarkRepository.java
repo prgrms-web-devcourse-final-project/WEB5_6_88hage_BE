@@ -4,15 +4,15 @@ import com.grepp.funfun.app.model.bookmark.entity.ContentBookmark;
 import com.grepp.funfun.app.model.content.entity.Content;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.Optional;
+import java.util.List;
 
 
 public interface ContentBookmarkRepository extends JpaRepository<ContentBookmark, Long> {
 
     ContentBookmark findFirstByContent(Content content);
 
-    boolean existsByIdAndUser_Email(Long id, String email);
+    boolean existsByUser_EmailAndContent_Id(String email, Long contentId);
 
-//    Optional<ContentBookmark> findByIdAndEmail(Long id, String email);
+    List<ContentBookmark> findAllByUser_EmailOrderByCreatedAtDesc(String email);
 
 }
