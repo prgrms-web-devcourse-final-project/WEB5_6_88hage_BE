@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 
@@ -72,6 +73,12 @@ public class FollowApiController {
         return ResponseEntity.ok(ApiResponse.success(followService.countFollowings(email)));
     }
 
+    @GetMapping("/status")
+    @Operation(summary = "팔로우 여부 확인", description = "특정 사용자의 팔로우 여부를 확인합니다.")
+    public ResponseEntity<ApiResponse<Boolean>> isFollowing(@RequestParam String target, Authentication authentication) {
+        String email = authentication.getName();
+        return ResponseEntity.ok(ApiResponse.success(followService.isFollowing(email, target)));
+    }
 
     @GetMapping
     public ResponseEntity<List<FollowDTO>> getAllFollows() {

@@ -72,6 +72,10 @@ public class FollowService {
         return followRepository.countByFollowerEmail(email);
     }
 
+    public boolean isFollowing(String followerEmail, String followeeEmail) {
+        return followRepository.existsByFollowerEmailAndFolloweeEmail(followerEmail, followeeEmail);
+    }
+
     public List<FollowDTO> findAll() {
         final List<Follow> follows = followRepository.findAll(Sort.by("id"));
         return follows.stream()
