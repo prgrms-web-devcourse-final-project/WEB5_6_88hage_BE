@@ -15,4 +15,5 @@ public interface FollowRepository extends JpaRepository<Follow, Long>, FollowRep
 
     void deleteByFollowerEmailAndFolloweeEmail(String followerEmail, String followeeEmail);
 
+    Long countByFolloweeEmail(String followeeEmail);
 }
