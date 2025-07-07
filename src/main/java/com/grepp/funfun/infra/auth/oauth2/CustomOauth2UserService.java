@@ -6,7 +6,9 @@ import com.grepp.funfun.app.model.user.entity.User;
 import com.grepp.funfun.app.model.user.repository.UserRepository;
 import com.grepp.funfun.infra.auth.oauth2.user.CustomOAuth2User;
 import com.grepp.funfun.infra.auth.oauth2.user.GoogleOAuth2UserInfo;
+import com.grepp.funfun.infra.auth.oauth2.user.NaverOAuth2UserInfo;
 import com.grepp.funfun.infra.auth.oauth2.user.OAuth2UserInfo;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,8 +41,8 @@ public class CustomOauth2UserService extends DefaultOAuth2UserService {
 
         if (registrationId.equals("google")) {
             oAuth2UserInfo = new GoogleOAuth2UserInfo(oAuth2User.getAttributes());
-        } else {
-            return null;
+        } else if (registrationId.equals("naver")){
+            oAuth2UserInfo = new NaverOAuth2UserInfo((Map)oAuth2User.getAttributes().get("response"));
         }
 
         String provider = oAuth2UserInfo.getProvider();
@@ -53,9 +55,9 @@ public class CustomOauth2UserService extends DefaultOAuth2UserService {
         if (existing.isPresent()) {
             User user = existing.get();
             if (!passwordEncoder.matches(providerId, user.getPassword())) {
-                log.warn("이미 일반 회원가입으로 존재하는 이메일입니다: {}", email);
+                log.warn("이미 존재하는 이메일입니다: {}", email);
                 throw new OAuth2AuthenticationException(
-                    new OAuth2Error("existing_email", "이미 일반 회원가입된 이메일입니다.", null)
+                    new OAuth2Error("existing_email", "이미 회원가입된 이메일입니다.", null)
                 );
             }
         }
