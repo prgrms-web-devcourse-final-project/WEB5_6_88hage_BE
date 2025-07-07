@@ -4,6 +4,7 @@ import com.grepp.funfun.app.controller.api.user.payload.OAuth2SignupRequest;
 import com.grepp.funfun.app.controller.api.user.payload.SignupRequest;
 import com.grepp.funfun.app.model.auth.AuthService;
 import com.grepp.funfun.app.model.auth.dto.TokenDto;
+import com.grepp.funfun.app.model.auth.token.RefreshTokenService;
 import com.grepp.funfun.app.model.contact.entity.Contact;
 import com.grepp.funfun.app.model.contact.repository.ContactRepository;
 import com.grepp.funfun.app.model.group.entity.Group;
@@ -62,6 +63,7 @@ public class UserService {
     private final MailTemplate mailTemplate;
     private final RedisTemplate<String, Object> redisTemplate;
     private final AuthService authService;
+    private final RefreshTokenService refreshTokenService;
 
     @Value("${front-server.domain}")
     private String domain;
@@ -133,7 +135,7 @@ public class UserService {
 
         SmtpDto smtpDto = new SmtpDto();
         smtpDto.setTo(user.getEmail());
-        smtpDto.setTemplatePath("/mail/signup-verification");
+        smtpDto.setTemplatePath("mail/signup-verification");
         smtpDto.setSubject("회원가입을 환영합니다!");
         smtpDto.setProperties(Map.of("domain", domain, "code", code, "nickname", user.getNickname()));
 
@@ -170,7 +172,7 @@ public class UserService {
 
         SmtpDto smtpDto = new SmtpDto();
         smtpDto.setTo(user.getEmail());
-        smtpDto.setTemplatePath("/mail/code-verification");
+        smtpDto.setTemplatePath("mail/code-verification");
         smtpDto.setSubject("FunFun 인증 코드");
         smtpDto.setProperties(Map.of("code", code));
 
@@ -236,6 +238,46 @@ public class UserService {
         userRepository.save(user);
     }
 
+    @Transactional
+    public void changeNickname(String email, String nickname) {
+        String verifiedKey = "auth-code:verified:" +  email;
+        String coolDownKey = "auth-cooldown:code:" +  email;
+        User user = userRepository.findById(email).orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+
+        if (!redisTemplate.hasKey(verifiedKey)) {
+            throw new CommonException(ResponseCode.BAD_REQUEST);
+        }
+
+        // 닉네임 중복 검사
+        if (userRepository.existsByNickname(nickname)) {
+            throw new CommonException(ResponseCode.USER_NICKNAME_DUPLICATE);
+        }
+
+        user.setNickname(nickname);
+        userRepository.save(user);
+
+        // 레디스 인증 키 삭제
+        redisTemplate.delete(verifiedKey);
+        // 레디스 메일 쿨타임 키 삭제
+        redisTemplate.delete(coolDownKey);
+    }
+
+    public void verifyNickname(String nickname) {
+        // 닉네임 중복 검사
+        if (userRepository.existsByNickname(nickname)) {
+            throw new CommonException(ResponseCode.USER_NICKNAME_DUPLICATE);
+        }
+    }
+
+    @Transactional
+    public void unActive(String email, String accessTokenId) {
+        User user = userRepository.findById(email).orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+        user.unActivated();
+        userRepository.save(user);
+
+        refreshTokenService.deleteByAccessTokenId(accessTokenId);
+    }
+
     public void update(final String email, final UserDTO userDTO) {
         final User user = userRepository.findById(email)
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
@@ -251,9 +293,7 @@ public class UserService {
         userDTO.setEmail(user.getEmail());
         userDTO.setPassword(user.getPassword());
         userDTO.setNickname(user.getNickname());
-        userDTO.setAge(user.getAge());
         userDTO.setGender(user.getGender());
-        userDTO.setTel(user.getTel());
         userDTO.setAddress(user.getAddress());
         userDTO.setRole(user.getRole());
         userDTO.setStatus(user.getStatus());
@@ -269,9 +309,7 @@ public class UserService {
     private User mapToEntity(final UserDTO userDTO, final User user) {
         user.setPassword(userDTO.getPassword());
         user.setNickname(userDTO.getNickname());
-        user.setAge(userDTO.getAge());
         user.setGender(userDTO.getGender());
-        user.setTel(userDTO.getTel());
         user.setAddress(userDTO.getAddress());
         user.setRole(userDTO.getRole());
         user.setStatus(userDTO.getStatus());
