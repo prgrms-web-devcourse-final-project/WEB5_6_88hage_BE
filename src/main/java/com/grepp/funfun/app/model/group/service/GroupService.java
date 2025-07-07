@@ -67,14 +67,6 @@ public class GroupService {
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
     }
 
-    // 내가 속한 모임 모든 모임을 조회(for 채팅)
-    @Transactional(readOnly = true)
-    public List<GroupResponse> getMyGroups(String userEmail){
-        return groupRepository.findByEmailAndActivatedTrue(userEmail).stream()
-            .map(this::mapToResponse)
-            .collect(Collectors.toList());
-    }
-
     // 모임 생성
     @Transactional
     public void create(String leaderEmail, GroupRequest request) {

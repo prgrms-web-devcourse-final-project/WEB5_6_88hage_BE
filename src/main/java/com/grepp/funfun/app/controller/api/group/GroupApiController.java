@@ -45,14 +45,6 @@ public class GroupApiController {
         return ResponseEntity.ok(groupService.get(id));
     }
 
-    // 내가 속한 모임 조회 - for 채팅
-    @GetMapping("/myGroup")
-    @Operation(summary = "내가 속한 모임 조회", description = "모든 모임을 조회합니다.")
-    public ResponseEntity<List<GroupResponse>> getMyGroups(Authentication authentication) {
-        String userEmail = authentication.getName();
-        return ResponseEntity.ok(groupService.getMyGroups(userEmail));
-    }
-
     // 모임 생성
     @PostMapping("/create")
     @Operation(summary = "모임 생성", description = "모임을 생성합니다.")

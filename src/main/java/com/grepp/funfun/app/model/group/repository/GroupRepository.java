@@ -12,7 +12,5 @@ public interface GroupRepository extends JpaRepository<Group, Long>, GroupReposi
 
     List<Group> findByActivatedTrue();
 
-    List<Group> findByEmailAndActivatedTrue(String email);
-
 
 }
