@@ -1,5 +1,7 @@
 package com.grepp.funfun.app.model.calendar.service;
 
+import com.grepp.funfun.app.controller.api.calendar.payload.CalendarContentRequest;
+import com.grepp.funfun.app.model.calendar.code.ActivityType;
 import com.grepp.funfun.app.model.calendar.dto.CalendarDTO;
 import com.grepp.funfun.app.model.calendar.entity.Calendar;
 import com.grepp.funfun.app.model.calendar.repository.CalendarRepository;
@@ -10,22 +12,39 @@ import com.grepp.funfun.app.model.group.repository.GroupRepository;
 import com.grepp.funfun.infra.error.exceptions.CommonException;
 import com.grepp.funfun.infra.response.ResponseCode;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
+@RequiredArgsConstructor
 public class CalendarService {
 
     private final CalendarRepository calendarRepository;
     private final ContentRepository contentRepository;
     private final GroupRepository groupRepository;
 
-    public CalendarService(final CalendarRepository calendarRepository,
-            final ContentRepository contentRepository, final GroupRepository groupRepository) {
-        this.calendarRepository = calendarRepository;
-        this.contentRepository = contentRepository;
-        this.groupRepository = groupRepository;
+    @Transactional
+    public void addCalendar(String email, CalendarContentRequest request) {
+        Calendar calendar = new Calendar();
+        calendar.setEmail(email);
+        calendar.setType(request.getType());
+
+        if (request.getType() == ActivityType.CONTENT) {
+            Content content = contentRepository.findById(request.getActivityId())
+                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+            calendar.setContent(content);
+            calendar.setSelectedDate(request.getSelectedDate());
+        } else {
+            Group group = groupRepository.findById(request.getActivityId())
+                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+            calendar.setGroup(group);
+            // 모임일 경우 selectedDate 사용 X
+        }
+
+        calendarRepository.save(calendar);
     }
 
     public List<CalendarDTO> findAll() {
