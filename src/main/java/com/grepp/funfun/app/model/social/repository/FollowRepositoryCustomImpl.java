@@ -32,4 +32,20 @@ public class FollowRepositoryCustomImpl implements FollowRepositoryCustom {
             .where(follow.followee.email.eq(followeeEmail))
             .fetch();
     }
+
+    @Override
+    public List<FollowsResponse> findFollowingsByFollowerEmail(String followerEmail) {
+        return queryFactory
+            .select(Projections.constructor(
+                FollowsResponse.class,
+                user.email,
+                user.nickname,
+                userInfo.imageUrl
+            ))
+            .from(follow)
+            .join(follow.followee, user)
+            .join(user.info, userInfo)
+            .where(follow.follower.email.eq(followerEmail))
+            .fetch();
+    }
 }

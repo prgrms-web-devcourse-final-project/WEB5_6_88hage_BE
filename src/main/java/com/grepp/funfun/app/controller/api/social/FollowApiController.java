@@ -51,6 +51,13 @@ public class FollowApiController {
         return ResponseEntity.ok(ApiResponse.success(followService.getFollowers(email)));
     }
 
+    @GetMapping("/followings")
+    @Operation(summary = "팔로잉 조회", description = "팔로잉 목록을 조회합니다.")
+    public ResponseEntity<ApiResponse<List<FollowsResponse>>> getFollowings(Authentication authentication) {
+        String email = authentication.getName();
+        return ResponseEntity.ok(ApiResponse.success(followService.getFollowings(email)));
+    }
+
     @GetMapping
     public ResponseEntity<List<FollowDTO>> getAllFollows() {
         return ResponseEntity.ok(followService.findAll());

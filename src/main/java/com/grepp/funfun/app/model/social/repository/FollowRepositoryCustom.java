@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface FollowRepositoryCustom {
     List<FollowsResponse> findFollowersByFolloweeEmail(String followeeEmail);
+    List<FollowsResponse> findFollowingsByFollowerEmail(String followerEmail);
 }
