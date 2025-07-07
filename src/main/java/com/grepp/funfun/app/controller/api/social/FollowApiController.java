@@ -1,11 +1,9 @@
 package com.grepp.funfun.app.controller.api.social;
 
 import com.grepp.funfun.app.controller.api.social.payload.FollowsResponse;
-import com.grepp.funfun.app.model.social.dto.FollowDTO;
 import com.grepp.funfun.app.model.social.service.FollowService;
 import com.grepp.funfun.infra.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
-import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -15,8 +13,6 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -78,23 +74,6 @@ public class FollowApiController {
     public ResponseEntity<ApiResponse<Boolean>> isFollowing(@RequestParam String target, Authentication authentication) {
         String email = authentication.getName();
         return ResponseEntity.ok(ApiResponse.success(followService.isFollowing(email, target)));
-    }
-
-    @GetMapping
-    public ResponseEntity<List<FollowDTO>> getAllFollows() {
-        return ResponseEntity.ok(followService.findAll());
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<FollowDTO> getFollow(@PathVariable(name = "id") final Long id) {
-        return ResponseEntity.ok(followService.get(id));
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Long> updateFollow(@PathVariable(name = "id") final Long id,
-            @RequestBody @Valid final FollowDTO followDTO) {
-        followService.update(id, followDTO);
-        return ResponseEntity.ok(id);
     }
 
 }
