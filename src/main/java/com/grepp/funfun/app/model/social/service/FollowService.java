@@ -8,20 +8,41 @@ import com.grepp.funfun.app.model.user.repository.UserRepository;
 import com.grepp.funfun.infra.error.exceptions.CommonException;
 import com.grepp.funfun.infra.response.ResponseCode;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
+@RequiredArgsConstructor
 public class FollowService {
 
     private final FollowRepository followRepository;
     private final UserRepository userRepository;
 
-    public FollowService(final FollowRepository followRepository,
-            final UserRepository userRepository) {
-        this.followRepository = followRepository;
-        this.userRepository = userRepository;
+    private User getUser(String email) {
+        return userRepository.findById(email)
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+    }
+
+    @Transactional
+    public void follow(String followerEmail, String followeeEmail) {
+        if (followerEmail.equals(followeeEmail)) {
+            // 자기 자신은 팔로우할 수 없습니다.
+            throw new CommonException(ResponseCode.BAD_REQUEST);
+        }
+
+        boolean exists = followRepository.existsByFollowerEmailAndFolloweeEmail(followerEmail, followeeEmail);
+        if (!exists) {
+            Follow follow = new Follow();
+            follow.setFollower(getUser(followerEmail));
+            follow.setFollowee(getUser(followeeEmail));
+            followRepository.save(follow);
+        } else {
+            // 이미 팔로우한 사용자입니다.
+            throw new CommonException(ResponseCode.BAD_REQUEST);
+        }
     }
 
     public List<FollowDTO> findAll() {
