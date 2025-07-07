@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.model.chat.service;
 
+import com.grepp.funfun.app.controller.api.chat.payload.ChatResponse;
 import com.grepp.funfun.app.model.chat.dto.ChatDTO;
 import com.grepp.funfun.app.model.chat.entity.Chat;
 import com.grepp.funfun.app.model.chat.entity.ChatRoom;
@@ -8,20 +9,50 @@ import com.grepp.funfun.app.model.chat.repository.ChatRoomRepository;
 import com.grepp.funfun.infra.error.exceptions.CommonException;
 import com.grepp.funfun.infra.response.ResponseCode;
 import java.util.List;
+import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class ChatService {
 
     private final ChatRepository chatRepository;
     private final ChatRoomRepository chatRoomRepository;
 
-    public ChatService(final ChatRepository chatRepository,
-            final ChatRoomRepository chatRoomRepository) {
-        this.chatRepository = chatRepository;
-        this.chatRoomRepository = chatRoomRepository;
+    @Transactional
+    public Chat saveChatMessage(ChatResponse chatResponse) {
+        log.info("Saving message for teamId: {}", chatResponse.getGroupId());
+
+        ChatRoom chatRoom = chatRoomRepository.findByGroup_Id(chatResponse.getGroupId())
+            .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
+
+        Chat chat = Chat.builder()
+            .room(chatRoom)
+            .senderNickname(chatResponse.getSenderNickname())
+            .senderEmail(chatResponse.getSenderEmail())
+            .message(chatResponse.getMessage())
+            .build();
+
+        Chat savedChat = chatRepository.save(chat);
+        log.info("메시지 저장 완료, chatId: {}", savedChat.getId());
+
+        return savedChat;
+    }
+    @Transactional(readOnly = true)
+    public List<ChatResponse> getChatHistory(Long groupId) {
+        log.debug("Getting chat history for teamId: {}", groupId);
+        List<Chat> chatList = chatRepository.findByGroupIdOrderByCreatedAt(groupId);
+
+        return chatList.stream()
+            .map(chat -> new ChatResponse(chat, groupId))
+            .collect(Collectors.toList());
     }
 
     public List<ChatDTO> findAll() {
