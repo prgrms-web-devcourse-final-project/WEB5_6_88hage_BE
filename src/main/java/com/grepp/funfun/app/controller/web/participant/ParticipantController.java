@@ -1,5 +1,8 @@
 package com.grepp.funfun.app.controller.web.participant;
 
+import com.grepp.funfun.app.controller.api.chat.payload.ChatResponse;
+import com.grepp.funfun.app.model.chat.entity.Chat;
+import com.grepp.funfun.app.model.chat.service.ChatService;
 import com.grepp.funfun.app.model.group.entity.Group;
 import com.grepp.funfun.app.model.group.repository.GroupRepository;
 import com.grepp.funfun.app.model.participant.dto.ParticipantDTO;
@@ -11,7 +14,12 @@ import com.grepp.funfun.app.model.user.repository.UserRepository;
 import com.grepp.funfun.util.CustomCollectors;
 import com.grepp.funfun.util.WebUtils;
 import jakarta.validation.Valid;
+import java.time.format.DateTimeFormatter;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -24,6 +32,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 
 @Controller
+@RequiredArgsConstructor
+@Slf4j
 @RequestMapping("/participants")
 public class ParticipantController {
 
@@ -31,12 +41,6 @@ public class ParticipantController {
     private final UserRepository userRepository;
     private final GroupRepository groupRepository;
 
-    public ParticipantController(final ParticipantService participantService,
-            final UserRepository userRepository, final GroupRepository groupRepository) {
-        this.participantService = participantService;
-        this.userRepository = userRepository;
-        this.groupRepository = groupRepository;
-    }
 
     @ModelAttribute
     public void prepareContext(final Model model) {

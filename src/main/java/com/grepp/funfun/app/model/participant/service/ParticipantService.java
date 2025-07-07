@@ -1,8 +1,10 @@
 package com.grepp.funfun.app.model.participant.service;
 
+import com.grepp.funfun.app.controller.api.participant.payload.ParticipantResponse;
 import com.grepp.funfun.app.model.group.code.GroupStatus;
 import com.grepp.funfun.app.model.group.entity.Group;
 import com.grepp.funfun.app.model.group.repository.GroupRepository;
+import com.grepp.funfun.app.model.participant.code.ParticipantRole;
 import com.grepp.funfun.app.model.participant.code.ParticipantStatus;
 import com.grepp.funfun.app.model.participant.dto.ParticipantDTO;
 import com.grepp.funfun.app.model.participant.entity.Participant;
@@ -29,13 +31,63 @@ public class ParticipantService {
     private final UserRepository userRepository;
     private final GroupRepository groupRepository;
 
-    //모임 승인
+    //모임 참여 신청
+    @Transactional
+    public void apply(Long groupId, String userEmail){
+        // 모임[모집중, True]
+        Group group = groupRepository.findActiveRecruitingGroup(groupId)
+            .orElseThrow(()-> new CommonException(ResponseCode.NOT_FOUND));
+
+        // 사용자 검증
+        User user = userRepository.findByEmail(userEmail);
+        if(user == null || !user.getActivated()){
+            throw new CommonException(ResponseCode.NOT_FOUND);
+        }
+
+        // 리더는 신청 불가하도록 검증
+        if(group.getLeader().getEmail().equals(user.getEmail())){
+            throw new CommonException(ResponseCode.BAD_REQUEST);
+        }
+
+        // 중복 신청
+        boolean alreadyApplied = participantRepository.existsByUserAndGroup(user,group);
+        if(alreadyApplied){
+            throw new CommonException(ResponseCode.BAD_REQUEST);
+        }
+
+//        // 모임 시간 체크
+//        if(group.getGroupDate().isBefore(LocalDateTime.now())){
+//            throw new CommonException(ResponseCode.BAD_REQUEST);
+//        }
+
+        // 참여자 생성
+        Participant participant = Participant.builder()
+            .user(user)
+            .group(group)
+            .role(ParticipantRole.MEMBER)
+            .status(ParticipantStatus.PENDING)
+            .build();
+
+        participantRepository.save(participant);
+
+    }
+
+    //참여 승인
     @Transactional
     public void approveParticipant(Long groupId, List<String> userEmails, String leaderEmail){
+        // 모임 검증
         Group group = groupRepository.findById(groupId)
             .orElseThrow(()-> new CommonException(ResponseCode.NOT_FOUND));
 
-        if(!group.getLeader().getEmail().equals(leaderEmail)){
+        // 2. 활성화 상태 확인
+        if (!group.getActivated()) {
+            throw new CommonException(ResponseCode.USER_SUSPENDED); // 또는 적절한 에러코드
+        }
+
+        // 리더 검증
+        User leader = group.getLeader();
+
+        if (!leader.getEmail().equals(leaderEmail) || !leader.getActivated()) {
             throw new CommonException(ResponseCode.UNAUTHORIZED);
         }
 
@@ -47,7 +99,7 @@ public class ParticipantService {
 
         // 승인
         for(String userEmail : userEmails) {
-            Participant participant = participantRepository.findByGroupIdAndUserEmail(groupId,userEmail);
+            Participant participant = participantRepository.findByGroupIdAndUserEmail(groupId,userEmail).orElseThrow(()-> new CommonException(ResponseCode.NOT_FOUND));
             log.info(participant.toString());
             participant.setStatus(ParticipantStatus.APPROVED);
         }
@@ -58,20 +110,128 @@ public class ParticipantService {
         if(group.getNowPeople() >= group.getMaxPeople()){
             group.setStatus(GroupStatus.FULL);
         }
+
+        groupRepository.save(group);
+    }
+
+    //참여 거절
+    @Transactional
+    public void rejectParticipant(Long groupId, List<String> userEmails, String leaderEmail) {
+        // 1. 그룹 존재 확인
+        Group group = groupRepository.findById(groupId)
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+
+        // 2. 활성화 상태 확인
+        if (!group.getActivated()) {
+            throw new CommonException(ResponseCode.USER_SUSPENDED); // 또는 적절한 에러코드
+        }
+
+        // 3. 리더 검증
+        User leader = group.getLeader();
+
+        if (!leader.getEmail().equals(leaderEmail) || !leader.getActivated()) {
+            throw new CommonException(ResponseCode.UNAUTHORIZED);
+        }
+
+        // 4. 거절
+        for(String userEmail : userEmails) {
+            Participant participant = participantRepository.findByGroupIdAndUserEmail(groupId,userEmail)
+                .orElseThrow(()-> new CommonException(ResponseCode.NOT_FOUND));
+
+            log.info(participant.toString());
+            participant.setStatus(ParticipantStatus.REJECTED);
+            participantRepository.save(participant);
+        }
+    }
+    //모임 강퇴
+    @Transactional
+    public void kickOut(Long groupId, String targetEmail, String leaderEmail) {
+        // 1. 그룹 존재 확인
+        Group group = groupRepository.findById(groupId)
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+
+        // 2. 활성화 상태 확인
+        if (!group.getActivated()) {
+            throw new CommonException(ResponseCode.USER_SUSPENDED); // 또는 적절한 에러코드
+        }
+
+        // 3. 리더 검증
+        User leader = group.getLeader();
+
+        if (!leader.getEmail().equals(leaderEmail) || !leader.getActivated()) {
+            throw new CommonException(ResponseCode.UNAUTHORIZED);
+        }
+
+        // 4. 강퇴 할 사용자
+        Participant participant = participantRepository.findKickoutMember(groupId, targetEmail)
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND, "참가자를 찾을 수 없습니다."));
+
+        // 5. 강제 퇴장 : status -GROUP_KICKOUT + 비활성화 처리
+        participant.setStatus(ParticipantStatus.GROUP_KICKOUT);
+        participant.unActivated();
+
+        group.setNowPeople(group.getNowPeople() - 1);
+
+        participantRepository.save(participant);
+    }
+
+    // 모임 나가기
+    @Transactional
+    public void leave(Long groupId, String userEmail) {
+        // 1. 모임 존재 확인
+        Group group = groupRepository.findById(groupId)
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+
+        // 2. 검증(그룹에 속해있는 사용자가 맞는지)
+        Participant participant = participantRepository.findTrueMember(groupId,userEmail)
+            .orElseThrow(()-> new CommonException(ResponseCode.NOT_FOUND));
+
+        // 3. 모임 나가기 : 비활성화 처리 + LEAVE 처리
+        participant.unActivated();
+        participant.setStatus(ParticipantStatus.LEAVE);
+
+        group.setNowPeople(group.getNowPeople() - 1);
+
+        participantRepository.save(participant);
     }
 
     // 모임 신청한 사용자 조회
     @Transactional(readOnly = true)
-    public List<ParticipantDTO> getPendingParticipants(Long groupId) {
-        if(!groupRepository.existsById(groupId)) {
-            throw new CommonException(ResponseCode.NOT_FOUND);
+    public List<ParticipantResponse> getPendingParticipants(Long groupId) {
+        // 1. 모임 존재 확인
+        Group group = groupRepository.findById(groupId)
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+
+        // 2. 활성화 상태 확인
+        if (!group.getActivated()) {
+            throw new CommonException(ResponseCode.USER_SUSPENDED); // 또는 적절한 에러코드
         }
-        List<Participant> participants = participantRepository.findPendingMembers(groupId);
+        List<Participant> participants = participantRepository.findTruePendingMembers(groupId);
 
         return participants.stream()
-            .map(participant -> mapToDTO(participant, new ParticipantDTO()))
+            .map(ParticipantResponse::from)
             .collect(Collectors.toList());
     }
+
+    // 모임 신청한 승인 조회
+    @Transactional(readOnly = true)
+    public List<ParticipantResponse> getApproveParticipants(Long groupId) {
+        // 1. 모임 존재 확인
+        Group group = groupRepository.findById(groupId)
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+
+        // 2. 활성화 상태 확인
+        if (!group.getActivated()) {
+            throw new CommonException(ResponseCode.USER_SUSPENDED); // 또는 적절한 에러코드
+        }
+
+        List<Participant> participants = participantRepository.findTrueApproveMembers(groupId);
+
+        return participants.stream()
+            .map(ParticipantResponse::from)
+            .collect(Collectors.toList());
+    }
+    // ------------------------------여기 까지 ------------------------------------
 
     public List<ParticipantDTO> findAll() {
         final List<Participant> participants = participantRepository.findAll(Sort.by("id"));
