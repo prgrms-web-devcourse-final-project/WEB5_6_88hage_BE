@@ -36,6 +36,14 @@ public class FollowApiController {
         return ResponseEntity.ok(ApiResponse.success("팔로우에 성공했습니다."));
     }
 
+    @DeleteMapping("/{targetEmail}")
+    @Operation(summary = "언팔로우", description = "팔로우를 취소합니다.")
+    public ResponseEntity<ApiResponse<String>> unfollow(@PathVariable String targetEmail, Authentication authentication) {
+        String email = authentication.getName();
+        followService.unfollow(email, targetEmail);
+        return ResponseEntity.ok(ApiResponse.success("언팔로우에 성공했습니다."));
+    }
+
     @GetMapping
     public ResponseEntity<List<FollowDTO>> getAllFollows() {
         return ResponseEntity.ok(followService.findAll());
@@ -46,23 +54,11 @@ public class FollowApiController {
         return ResponseEntity.ok(followService.get(id));
     }
 
-    @PostMapping
-    public ResponseEntity<Long> createFollow(@RequestBody @Valid final FollowDTO followDTO) {
-        final Long createdId = followService.create(followDTO);
-        return new ResponseEntity<>(createdId, HttpStatus.CREATED);
-    }
-
     @PutMapping("/{id}")
     public ResponseEntity<Long> updateFollow(@PathVariable(name = "id") final Long id,
             @RequestBody @Valid final FollowDTO followDTO) {
         followService.update(id, followDTO);
         return ResponseEntity.ok(id);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteFollow(@PathVariable(name = "id") final Long id) {
-        followService.delete(id);
-        return ResponseEntity.noContent().build();
     }
 
 }

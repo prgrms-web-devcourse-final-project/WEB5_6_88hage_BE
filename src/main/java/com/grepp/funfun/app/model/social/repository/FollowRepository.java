@@ -12,4 +12,6 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
     Follow findFirstByFollowee(User user);
 
     boolean existsByFollowerEmailAndFolloweeEmail(String followerEmail, String followeeEmail);
+
+    void deleteByFollowerEmailAndFolloweeEmail(String followerEmail, String followeeEmail);
 }

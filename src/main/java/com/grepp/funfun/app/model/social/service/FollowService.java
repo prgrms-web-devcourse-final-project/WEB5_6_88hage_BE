@@ -45,6 +45,16 @@ public class FollowService {
         }
     }
 
+    @Transactional
+    public void unfollow(String followerEmail, String followeeEmail) {
+        boolean exists = followRepository.existsByFollowerEmailAndFolloweeEmail(followerEmail, followeeEmail);
+        if (!exists) {
+            // 팔로우 관계가 아닙니다.
+         throw new CommonException(ResponseCode.BAD_REQUEST);
+        }
+        followRepository.deleteByFollowerEmailAndFolloweeEmail(followerEmail, followeeEmail);
+    }
+
     public List<FollowDTO> findAll() {
         final List<Follow> follows = followRepository.findAll(Sort.by("id"));
         return follows.stream()
