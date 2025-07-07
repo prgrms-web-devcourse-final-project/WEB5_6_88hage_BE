@@ -10,7 +10,7 @@ import lombok.Setter;
 public class ContentCategoryDTO {
 
     private Long id;
+
     private ContentClassification category;
-    private Integer during;
 
 }

@@ -6,6 +6,9 @@ import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
+
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -17,36 +20,31 @@ public class ContentDTO {
 
     private Long id;
 
-    @Size(max = 255)
     private String contentTitle;
 
-    @Size(max = 255)
-    private String description;
+    private String status;
+
+    private String fee;
 
     private LocalDate startDate;
 
     private LocalDate endDate;
 
-    @Size(max = 255)
     private String address;
 
-    private Double latitude;
+    private String reservationUrl;
 
-    private Double longitude;
-
-    @Size(max = 255)
-    private String url;
-
-    @Size(max = 255)
-    private String imageUrl;
-
-    @JsonProperty("isFree")
-    private Boolean isFree;
-
-    @Size(max = 255)
     private String guName;
+
+    private Integer runTime;
+
+    private LocalTime startTime;
+
+    private LocalTime endTime;
 
     @NotNull
     private Long category;
+
+    private List<ContentImageDTO> images;
 
 }

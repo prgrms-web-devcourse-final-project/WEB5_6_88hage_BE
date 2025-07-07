@@ -31,8 +31,9 @@ public class ContentBookmarkApiController {
 
     @GetMapping("/user")
     public ResponseEntity<ApiResponse<List<ContentBookmarkDTO>>> getContentBookmark(
-            @RequestParam String email) {
-        List<ContentBookmarkDTO> bookmarks = contentBookmarkService.getByEmail(email);
+            Authentication authentication) {
+        String currentUserEmail = authentication.getName();
+        List<ContentBookmarkDTO> bookmarks = contentBookmarkService.getByEmail(currentUserEmail);
         return ResponseEntity.ok(ApiResponse.success(bookmarks));
     }
 

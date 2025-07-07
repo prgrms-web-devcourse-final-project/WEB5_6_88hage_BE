@@ -19,7 +19,6 @@
                         <tr>
                             <th scope="col">[[#{contentCategory.id.label}]]</th>
                             <th scope="col">[[#{contentCategory.category.label}]]</th>
-                            <th scope="col">[[#{contentCategory.during.label}]]</th>
                             <th><!-- --></th>
                         </tr>
                     </thead>
@@ -27,7 +26,6 @@
                         <tr th:each="contentCategory : ${contentCategories}">
                             <td>[[${contentCategory.id}]]</td>
                             <td>[[${contentCategory.category}]]</td>
-                            <td>[[${contentCategory.during}]]</td>
                             <td>
                                 <div class="float-end text-nowrap">
                                     <a th:href="@{/contentCategories/edit/{id}(id=${contentCategory.id})}" class="btn btn-sm btn-secondary">[[#{contentCategory.list.edit}]]</a>
