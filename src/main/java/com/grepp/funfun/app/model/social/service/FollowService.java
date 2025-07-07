@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.model.social.service;
 
+import com.grepp.funfun.app.controller.api.social.payload.FollowsResponse;
 import com.grepp.funfun.app.model.social.dto.FollowDTO;
 import com.grepp.funfun.app.model.social.entity.Follow;
 import com.grepp.funfun.app.model.social.repository.FollowRepository;
@@ -53,6 +54,10 @@ public class FollowService {
          throw new CommonException(ResponseCode.BAD_REQUEST);
         }
         followRepository.deleteByFollowerEmailAndFolloweeEmail(followerEmail, followeeEmail);
+    }
+
+    public List<FollowsResponse> getFollowers(String email) {
+        return followRepository.findFollowersByFolloweeEmail(email);
     }
 
     public List<FollowDTO> findAll() {

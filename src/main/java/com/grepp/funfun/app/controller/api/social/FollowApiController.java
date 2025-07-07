@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.controller.api.social;
 
+import com.grepp.funfun.app.controller.api.social.payload.FollowsResponse;
 import com.grepp.funfun.app.model.social.dto.FollowDTO;
 import com.grepp.funfun.app.model.social.service.FollowService;
 import com.grepp.funfun.infra.response.ApiResponse;
@@ -7,7 +8,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -42,6 +42,13 @@ public class FollowApiController {
         String email = authentication.getName();
         followService.unfollow(email, targetEmail);
         return ResponseEntity.ok(ApiResponse.success("언팔로우에 성공했습니다."));
+    }
+
+    @GetMapping("/followers")
+    @Operation(summary = "팔로워 조회", description = "팔로워 목록을 조회합니다.")
+    public ResponseEntity<ApiResponse<List<FollowsResponse>>> getFollowers(Authentication authentication) {
+        String email = authentication.getName();
+        return ResponseEntity.ok(ApiResponse.success(followService.getFollowers(email)));
     }
 
     @GetMapping
