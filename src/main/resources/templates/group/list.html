@@ -25,6 +25,15 @@
                             <th scope="col">[[#{group.groupDate.label}]]</th>
                             <th scope="col">[[#{group.maxPeople.label}]]</th>
                             <th scope="col">[[#{group.nowPeople.label}]]</th>
+                            <th scope="col">[[#{group.status.label}]]</th>
+                            <th scope="col">[[#{group.latitude.label}]]</th>
+                            <th scope="col">[[#{group.longitude.label}]]</th>
+                            <th scope="col">[[#{group.during.label}]]</th>
+                            <th scope="col">[[#{group.category.label}]]</th>
+                            <th scope="col">[[#{group.leader.label}]]</th>
+                            <th scope="col">[[#{group.hashTags.label}]]</th>
+                            <th scope="col">[[#{group.activated.label}]]</th>
+
                             <th><!-- --></th>
                         </tr>
                     </thead>
@@ -38,6 +47,14 @@
                             <td>[[${group.groupDate}]]</td>
                             <td>[[${group.maxPeople}]]</td>
                             <td>[[${group.nowPeople}]]</td>
+                            <td>[[${group.status}]]</td>
+                            <td>[[${group.latitude}]]</td>
+                            <td>[[${group.longitude}]]</td>
+                            <td>[[${group.during}]]</td>
+                            <td>[[${group.category}]]</td>
+                            <td>[[${group.leader}]]</td>
+                            <td>[[${group.hashTags}]]</td>
+                            <td>[[${group.activated}]]</td>
                             <td>
                                 <div class="float-end text-nowrap">
                                     <a th:href="@{/groups/edit/{id}(id=${group.id})}" class="btn btn-sm btn-secondary">[[#{group.list.edit}]]</a>
