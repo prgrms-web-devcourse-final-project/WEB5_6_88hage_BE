@@ -6,6 +6,7 @@ import com.grepp.funfun.app.model.participant.code.ParticipantStatus;
 import com.grepp.funfun.app.model.participant.entity.Participant;
 import com.grepp.funfun.app.model.user.entity.User;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 
@@ -17,10 +18,7 @@ public interface ParticipantRepository extends JpaRepository<Participant, Long>,
 
     Boolean existsByUserAndGroup(User user, Group group);
 
-    Participant findByUserEmail(String email);
+    Optional<Participant> findByGroupIdAndUserEmail(Long groupId,String userEmail);
 
-    Participant findLeaderEmailByGroupId(Long groupId);
-
-    List<Participant> findByGroupIdAndStatusAndActivated(Long groupId, ParticipantStatus status, Boolean activated);
-    Participant findByGroupIdAndUserEmail(Long groupId,String userEmail);
+    String user(User user);
 }
