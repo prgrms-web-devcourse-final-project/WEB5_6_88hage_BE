@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.controller.api.group;
 
+import com.grepp.funfun.app.controller.api.group.payload.GroupMyResponse;
 import com.grepp.funfun.app.controller.api.group.payload.GroupRequest;
 import com.grepp.funfun.app.controller.api.group.payload.GroupResponse;
 import com.grepp.funfun.app.model.group.dto.GroupDTO;
@@ -32,6 +33,12 @@ public class GroupApiController {
 
     private final GroupService groupService;
 
+    @GetMapping("/{id}")
+    @Operation(summary = "특정 모임 조회", description = "특정 모임을 조회합니다.")
+    public ResponseEntity<GroupDTO> getGroup(@PathVariable(name = "id") final Long id) {
+        return ResponseEntity.ok(groupService.get(id));
+    }
+
     // 모든 모임 조회
     @GetMapping
     @Operation(summary = "모든 모임 조회", description = "모든 모임을 조회합니다.")
@@ -39,10 +46,14 @@ public class GroupApiController {
         return ResponseEntity.ok(groupService.findByActivatedTrue());
     }
 
-    @GetMapping("/{id}")
-    @Operation(summary = "특정 모임 조회", description = "특정 모임을 조회합니다.")
-    public ResponseEntity<GroupDTO> getGroup(@PathVariable(name = "id") final Long id) {
-        return ResponseEntity.ok(groupService.get(id));
+    // 내가 속한 모임 조회
+    @GetMapping("/my")
+    @Operation(summary = "내가 속한 모임 조회", description = "내가 속한 모임을 조회합니다.")
+    public ResponseEntity<List<GroupMyResponse>> getMyGroups(
+        Authentication authentication
+    ) {
+        String userEmail = authentication.getName();
+        return ResponseEntity.ok(groupService.findMyGroups(userEmail));
     }
 
     // 모임 생성
