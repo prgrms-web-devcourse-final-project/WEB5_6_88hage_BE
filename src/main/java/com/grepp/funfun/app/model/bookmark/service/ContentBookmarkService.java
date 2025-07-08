@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 
@@ -50,6 +51,8 @@ public class ContentBookmarkService {
 
         Content content = contentRepository.findById(contentBookmarkDTO.getContentId())
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+        content.setBookmarkCount(content.getBookmarkCount() + 1);
+        contentRepository.save(content);
 
         final ContentBookmark contentBookmark = new ContentBookmark();
         contentBookmark.setUser(user);
@@ -64,7 +67,22 @@ public class ContentBookmarkService {
         if(!bookmark.getUser().getEmail().equals(email)) {
             throw new CommonException(ResponseCode.UNAUTHORIZED);
         }
+
+        Content content = bookmark.getContent();
+        content.setBookmarkCount(Math.max(0, content.getBookmarkCount() - 1));
+        contentRepository.save(content);
+
         contentBookmarkRepository.delete(bookmark);
+    }
+
+    @Scheduled(cron = "0 0 * * * *")
+    public void syncBookmarkCounts() {
+        List<Content> contents = contentRepository.findAll();
+        for (Content content : contents) {
+            int actual = (int) contentBookmarkRepository.countByContent_Id(content.getId());
+            content.setBookmarkCount(actual);
+        }
+        contentRepository.saveAll(contents);
     }
 
     // controller

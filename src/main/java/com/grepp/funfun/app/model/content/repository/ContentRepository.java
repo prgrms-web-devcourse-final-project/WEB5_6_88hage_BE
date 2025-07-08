@@ -63,4 +63,6 @@ public interface ContentRepository extends JpaRepository<Content, Long> {
 
     @Query("SELECT c FROM Content c JOIN FETCH c.category WHERE c.category.category = :category")
     List<Content> findByCategoryCategory(@Param("category") ContentClassification category);
+
+//    List<Content> findAllByOrderByBookmarkCountDesc();
 }

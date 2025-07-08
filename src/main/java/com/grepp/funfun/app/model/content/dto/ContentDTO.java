@@ -47,4 +47,6 @@ public class ContentDTO {
 
     private List<ContentImageDTO> images;
 
+    private Integer bookmarkCount;
+
 }

@@ -15,4 +15,6 @@ public interface ContentBookmarkRepository extends JpaRepository<ContentBookmark
 
     List<ContentBookmark> findAllByUser_EmailOrderByCreatedAtDesc(String email);
 
+    long countByContent_Id(Long contentId);
+
 }

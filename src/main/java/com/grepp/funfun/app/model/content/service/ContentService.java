@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -40,8 +41,8 @@ public class ContentService {
     private final ContentCategoryRepository contentCategoryRepository;
     private final ContentBookmarkRepository contentBookmarkRepository;
     private final CalendarRepository calendarRepository;
+    private final ModelMapper modelMapper;
 
-    @Transactional(readOnly = true)
     public ContentDTO get(final Long id) {
         Content content = contentRepository.findByIdWithCategory(id)
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
@@ -107,20 +108,30 @@ public class ContentService {
                 .toList();
     }
 
+    // 즐겨찾기순 정렬
+//    public Page<ContentDTO> sortedByBookmarkCount(Pageable pageable) {
+//        Page<Content> contents = contentRepository.findAll(pageable);
+//        return contents.map(content -> mapToDTO(content, new ContentDTO()));
+//    }
+
     // view
+    @Transactional(readOnly = true)
     public List<Content> findAll() {
         return contentRepository.findAll(Sort.by(Sort.Direction.ASC, "startDate"));
     }
 
+    @Transactional
     public void delete(final Long id) {
         contentRepository.deleteById(id);
     }
 
+    @Transactional
     public Long create(final ContentDTO contentDTO) {
         final Content content = new Content();
         mapToEntity(contentDTO, content);
         return contentRepository.save(content).getId();
     }
+    @Transactional
     public void update(final Long id, final ContentDTO contentDTO) {
         final Content content = contentRepository.findById(id)
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
@@ -141,6 +152,7 @@ public class ContentService {
         contentDTO.setRunTime(content.getRunTime());
         contentDTO.setStartTime(content.getStartTime());
         contentDTO.setEndTime(content.getEndTime());
+        contentDTO.setBookmarkCount(content.getBookmarkCount());
         contentDTO.setCategory(content.getCategory() == null ? null : content.getCategory().getId());
 
         if (content.getImages() != null) {
@@ -170,6 +182,7 @@ public class ContentService {
         content.setRunTime(contentDTO.getRunTime());
         content.setStartTime(contentDTO.getStartTime());
         content.setEndTime(contentDTO.getEndTime());
+        content.setBookmarkCount(contentDTO.getBookmarkCount() != null ? contentDTO.getBookmarkCount() : 0);
         final ContentCategory category = contentDTO.getCategory() == null ? null : contentCategoryRepository.findById(contentDTO.getCategory())
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
         content.setCategory(category);

@@ -57,4 +57,7 @@ public class Content extends BaseEntity {
     @JoinColumn(name = "category_id", nullable = false)
     private ContentCategory category;
 
+    @Column(nullable = false)
+    private Integer bookmarkCount = 0;
+
 }
