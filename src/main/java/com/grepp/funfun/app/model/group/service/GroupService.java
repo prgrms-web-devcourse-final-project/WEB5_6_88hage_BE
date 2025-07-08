@@ -7,6 +7,7 @@ import com.grepp.funfun.app.model.bookmark.entity.GroupBookmark;
 import com.grepp.funfun.app.model.bookmark.repository.GroupBookmarkRepository;
 import com.grepp.funfun.app.model.calendar.entity.Calendar;
 import com.grepp.funfun.app.model.calendar.repository.CalendarRepository;
+import com.grepp.funfun.app.model.calendar.service.CalendarService;
 import com.grepp.funfun.app.model.chat.entity.ChatRoom;
 import com.grepp.funfun.app.model.chat.repository.ChatRoomRepository;
 import com.grepp.funfun.app.model.group.code.GroupStatus;
@@ -46,7 +47,7 @@ public class GroupService {
     private final ChatRoomRepository chatRoomRepository;
     private final CalendarRepository calendarRepository;
     private final GroupHashtagRepository groupHashtagRepository;
-
+    private final CalendarService calendarService;
 
     public List<GroupDTO> findAll() {
         final List<Group> groups = groupRepository.findAll(Sort.by("id"));
@@ -113,6 +114,9 @@ public class GroupService {
         chatRoom.setGroup(savedGroup);
         chatRoom.setName(savedGroup.getId() + "번 채팅방");
         chatRoomRepository.save(chatRoom);
+
+        // 모임 생성 시 리더의 캘린더에 자동으로 일정 추가하기
+        calendarService.addGroupCalendar(leaderEmail, savedGroup);
     }
 
 
@@ -158,8 +162,10 @@ public class GroupService {
         for (Participant participant : group.getParticipants()) {
             participant.unActivated();
             participant.setStatus(ParticipantStatus.GROUP_DELETED);
-
         }
+
+        // 해당 모임 id 의 일정들 삭제
+        calendarService.deleteGroupCalendar(groupId);
     }
 
     //모임 취소
@@ -175,8 +181,10 @@ public class GroupService {
         for (Participant participant : group.getParticipants()) {
             participant.unActivated();
             participant.setStatus(ParticipantStatus.GROUP_CANCELED);
-
         }
+
+        // 해당 모임 id 의 일정들 삭제
+        calendarService.deleteGroupCalendar(groupId);
     }
 
     // 모임 완료
