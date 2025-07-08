@@ -1,6 +1,7 @@
 package com.grepp.funfun.app.model.calendar.service;
 
 import com.grepp.funfun.app.controller.api.calendar.payload.CalendarContentRequest;
+import com.grepp.funfun.app.controller.api.calendar.payload.CalendarMonthlyResponse;
 import com.grepp.funfun.app.model.calendar.code.ActivityType;
 import com.grepp.funfun.app.model.calendar.dto.CalendarDTO;
 import com.grepp.funfun.app.model.calendar.entity.Calendar;
@@ -12,6 +13,9 @@ import com.grepp.funfun.app.model.group.repository.GroupRepository;
 import com.grepp.funfun.infra.error.exceptions.CommonException;
 import com.grepp.funfun.infra.response.ResponseCode;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.YearMonth;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
@@ -70,6 +74,20 @@ public class CalendarService {
         }
 
         calendar.setSelectedDate(selectedDate);
+    }
+
+    public List<CalendarMonthlyResponse> getMonthly(String email, YearMonth month) {
+        LocalDateTime start = month.atDay(1).atStartOfDay();
+        LocalDateTime end = month.atEndOfMonth().atTime(LocalTime.MAX);
+
+        List<CalendarMonthlyResponse> contentList = calendarRepository.findMonthlyContentCalendars(email, start, end);
+        List<CalendarMonthlyResponse> groupList = calendarRepository.findMonthlyGroupCalendars(email, start, end);
+
+        List<CalendarMonthlyResponse> result = new ArrayList<>();
+        result.addAll(contentList);
+        result.addAll(groupList);
+
+        return result;
     }
 
     public List<CalendarDTO> findAll() {
