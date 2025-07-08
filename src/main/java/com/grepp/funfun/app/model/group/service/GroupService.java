@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.model.group.service;
 
+import com.grepp.funfun.app.controller.api.group.payload.GroupMyResponse;
 import com.grepp.funfun.app.controller.api.group.payload.GroupRequest;
 import com.grepp.funfun.app.controller.api.group.payload.GroupResponse;
 import com.grepp.funfun.app.model.bookmark.entity.GroupBookmark;
@@ -53,6 +54,12 @@ public class GroupService {
             .map(group -> mapToDTO(group, new GroupDTO()))
             .toList();
     }
+
+    public GroupDTO get(final Long id) {
+        return groupRepository.findById(id)
+            .map(group -> mapToDTO(group, new GroupDTO()))
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+    }
     // 모든 모임 조회
     @Transactional(readOnly = true)
     public List<GroupResponse> findByActivatedTrue(){
@@ -60,11 +67,12 @@ public class GroupService {
             .map(this::mapToResponse)
             .collect(Collectors.toList());
     }
-
-    public GroupDTO get(final Long id) {
-        return groupRepository.findById(id)
-            .map(group -> mapToDTO(group, new GroupDTO()))
-            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+    // 내가 속한 모임 조회
+    @Transactional(readOnly = true)
+    public List<GroupMyResponse> findMyGroups(String userEmail) {
+        return groupRepository.findMyGroups(userEmail).stream()
+            .map(group -> convertToGroupMyResponse(group, userEmail))
+            .collect(Collectors.toList());
     }
 
     // 모임 생성
@@ -205,6 +213,34 @@ public class GroupService {
             throw new CommonException(ResponseCode.UNAUTHORIZED);
         }
         return group;
+    }
+
+    private GroupMyResponse convertToGroupMyResponse(Group group, String userEmail) {
+        // 내 상태 찾기
+        ParticipantStatus myStatus = group.getParticipants().stream()
+            .filter(p -> p.getUser().getEmail().equals(userEmail))
+            .findFirst()
+            .map(Participant::getStatus)
+            .orElse(null);
+
+        // 참여자 이메일들 추출
+        List<String> participantEmails = group.getParticipants().stream()
+            .map(p -> p.getUser().getEmail())
+            .collect(Collectors.toList());
+
+        // 참여자 닉네임들 추출
+        List<String> participantNicknames = group.getParticipants().stream()
+            .map(p -> p.getUser().getNickname())
+            .collect(Collectors.toList());
+
+        return GroupMyResponse.builder()
+            .groupId(group.getId())
+            .groupTitle(group.getTitle())
+            .userEmail(userEmail)
+            .status(myStatus)
+            .participantEmails(participantEmails)
+            .participantNicknames(participantNicknames)
+            .build();
     }
 
     private GroupResponse mapToResponse(final Group group) {
