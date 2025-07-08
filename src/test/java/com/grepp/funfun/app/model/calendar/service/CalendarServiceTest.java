@@ -200,8 +200,8 @@ class CalendarServiceTest {
         LocalDateTime start = month.atDay(1).atStartOfDay();
         LocalDateTime end = month.atEndOfMonth().atTime(LocalTime.MAX);
 
-        CalendarMonthlyResponse content1 = new CalendarMonthlyResponse(1L, ActivityType.CONTENT,"축제", LocalDateTime.of(2025, 7, 5, 10, 0));
-        CalendarMonthlyResponse group1 = new CalendarMonthlyResponse(2L, ActivityType.GROUP, "모임", LocalDateTime.of(2025, 7, 12, 15, 0));
+        CalendarMonthlyResponse content1 = new CalendarMonthlyResponse(1L, ActivityType.CONTENT,1L, "축제", LocalDateTime.of(2025, 7, 5, 10, 0));
+        CalendarMonthlyResponse group1 = new CalendarMonthlyResponse(2L, ActivityType.GROUP, 1L, "모임", LocalDateTime.of(2025, 7, 12, 15, 0));
 
         // when
         when(calendarRepository.findMonthlyContentCalendars(email, start, end))
@@ -226,8 +226,8 @@ class CalendarServiceTest {
         LocalDateTime start = date.atStartOfDay();
         LocalDateTime end = start.plusDays(1).minusNanos(1);
 
-        CalendarDailyResponse contentList = new CalendarDailyResponse(1L, ActivityType.CONTENT, "축제", date1, "축제 주소");
-        CalendarDailyResponse groupList = new CalendarDailyResponse(2L, ActivityType.GROUP, "모임", date2, "모임 주소");
+        CalendarDailyResponse contentList = new CalendarDailyResponse(1L, ActivityType.CONTENT, 1L, "축제", date1, "축제 주소");
+        CalendarDailyResponse groupList = new CalendarDailyResponse(2L, ActivityType.GROUP, 1L, "모임", date2, "모임 주소");
 
         // when
         when(calendarRepository.findDailyContentCalendars(email, start, end))
@@ -251,7 +251,7 @@ class CalendarServiceTest {
         LocalDateTime start = localDate.atStartOfDay();
         LocalDateTime end = start.plusDays(1).minusNanos(1);
 
-        CalendarDailyResponse contentList = new CalendarDailyResponse(1L, ActivityType.CONTENT, "축제", localDateTime, "축제 주소");
+        CalendarDailyResponse contentList = new CalendarDailyResponse(1L, ActivityType.CONTENT, 1L, "축제", localDateTime, "축제 주소");
 
         // when
         when(calendarRepository.findDailyContentCalendars(email, start, end))

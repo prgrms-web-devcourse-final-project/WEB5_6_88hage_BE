@@ -10,6 +10,7 @@ import lombok.Data;
 public class CalendarDailyResponse {
     private Long calendarId;
     private ActivityType type;
+    private Long activityId;
     private String title;
     private LocalDateTime selectedDate;
     private String address;

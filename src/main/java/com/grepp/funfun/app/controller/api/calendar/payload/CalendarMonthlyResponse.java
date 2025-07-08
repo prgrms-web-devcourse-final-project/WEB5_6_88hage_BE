@@ -10,6 +10,7 @@ import lombok.Data;
 public class CalendarMonthlyResponse {
     private Long calendarId;
     private ActivityType type;
+    private Long activityId;
     private String title;
     private LocalDateTime selectedDate;
 }

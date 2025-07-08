@@ -28,6 +28,7 @@ public class CalendarRepositoryCustomImpl implements CalendarRepositoryCustom{
                 CalendarMonthlyResponse.class,
                 calendar.id,
                 calendar.type,
+                content.id,
                 content.contentTitle,
                 calendar.selectedDate
             ))
@@ -47,6 +48,7 @@ public class CalendarRepositoryCustomImpl implements CalendarRepositoryCustom{
                 CalendarMonthlyResponse.class,
                 calendar.id,
                 calendar.type,
+                group.id,
                 group.title,
                 group.groupDate
             ))
@@ -66,6 +68,7 @@ public class CalendarRepositoryCustomImpl implements CalendarRepositoryCustom{
                 CalendarDailyResponse.class,
                 calendar.id,
                 calendar.type,
+                content.id,
                 content.contentTitle,
                 calendar.selectedDate,
                 content.address
@@ -86,6 +89,7 @@ public class CalendarRepositoryCustomImpl implements CalendarRepositoryCustom{
                 CalendarDailyResponse.class,
                 calendar.id,
                 calendar.type,
+                group.id,
                 group.title,
                 group.groupDate,
                 group.address
