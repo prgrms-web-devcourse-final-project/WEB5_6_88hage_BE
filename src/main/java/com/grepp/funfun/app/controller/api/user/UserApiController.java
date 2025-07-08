@@ -22,10 +22,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -76,11 +74,7 @@ public class UserApiController {
         String email = authentication.getName();
         userService.unActive(email, accessTokenId);
 
-        SecurityContextHolder.clearContext();
-        ResponseCookie expiredAccessToken = TokenCookieFactory.createExpiredToken(AuthToken.ACCESS_TOKEN.name());
-        ResponseCookie expiredRefreshToken = TokenCookieFactory.createExpiredToken(AuthToken.REFRESH_TOKEN.name());
-        response.addHeader("Set-Cookie", expiredAccessToken.toString());
-        response.addHeader("Set-Cookie", expiredRefreshToken.toString());
+        TokenCookieFactory.setAllExpiredCookies(response);
 
         return ResponseEntity.ok(ApiResponse.success("회원 탈퇴되었습니다."));
     }
@@ -89,14 +83,7 @@ public class UserApiController {
     @Operation(summary = "회원가입 이메일 인증", description = "회원가입 이메일 인증을 진행합니다.<br>자동으로 로그인됩니다.")
     public ResponseEntity<ApiResponse<TokenResponse>> verifySignup(@RequestParam("code") String code,  HttpServletResponse response) {
         TokenDto tokenDto = userService.verifySignupCode(code);
-
-        ResponseCookie accessToken = TokenCookieFactory.create(AuthToken.ACCESS_TOKEN.name(),
-            tokenDto.getAccessToken(), tokenDto.getRefreshExpiresIn());
-        ResponseCookie refreshToken = TokenCookieFactory.create(AuthToken.REFRESH_TOKEN.name(),
-            tokenDto.getRefreshToken(), tokenDto.getRefreshExpiresIn());
-
-        response.addHeader("Set-Cookie", accessToken.toString());
-        response.addHeader("Set-Cookie", refreshToken.toString());
+        TokenCookieFactory.setAllAuthCookies(response, tokenDto);
 
         return ResponseEntity.ok(ApiResponse.success(TokenResponse.builder().
             accessToken(tokenDto.getAccessToken())
