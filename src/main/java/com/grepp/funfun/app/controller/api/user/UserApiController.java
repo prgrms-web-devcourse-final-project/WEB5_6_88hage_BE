@@ -79,10 +79,8 @@ public class UserApiController {
         SecurityContextHolder.clearContext();
         ResponseCookie expiredAccessToken = TokenCookieFactory.createExpiredToken(AuthToken.ACCESS_TOKEN.name());
         ResponseCookie expiredRefreshToken = TokenCookieFactory.createExpiredToken(AuthToken.REFRESH_TOKEN.name());
-        ResponseCookie expiredSessionId = TokenCookieFactory.createExpiredToken(AuthToken.AUTH_SERVER_SESSION_ID.name());
         response.addHeader("Set-Cookie", expiredAccessToken.toString());
         response.addHeader("Set-Cookie", expiredRefreshToken.toString());
-        response.addHeader("Set-Cookie", expiredSessionId.toString());
 
         return ResponseEntity.ok(ApiResponse.success("회원 탈퇴되었습니다."));
     }
