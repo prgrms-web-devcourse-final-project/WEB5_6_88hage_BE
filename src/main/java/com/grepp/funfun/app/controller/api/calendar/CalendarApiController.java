@@ -1,6 +1,7 @@
 package com.grepp.funfun.app.controller.api.calendar;
 
 import com.grepp.funfun.app.controller.api.calendar.payload.CalendarContentRequest;
+import com.grepp.funfun.app.controller.api.calendar.payload.CalendarUpdateRequest;
 import com.grepp.funfun.app.model.calendar.service.CalendarService;
 import com.grepp.funfun.infra.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,5 +42,15 @@ public class CalendarApiController {
         String email = authentication.getName();
         calendarService.deleteCalendar(calendarId, email);
         return ResponseEntity.ok(ApiResponse.success("일정이 성공적으로 삭제되었습니다."));
+    }
+
+    @PatchMapping("/{calendarId}")
+    @Operation(summary = "캘린더 일정 수정", description = "선택한 Content 일정을 수정합니다. (Group 타입은 수정 불가)")
+    public ResponseEntity<ApiResponse<String>> updateCalendar(@PathVariable Long calendarId,
+        @RequestBody @Valid CalendarUpdateRequest request,
+        Authentication authentication) {
+        String email = authentication.getName();
+        calendarService.updateCalendar(calendarId, request.getSelectedDate(), email);
+        return ResponseEntity.ok(ApiResponse.success("일정이 성공적으로 수정되었습니다."));
     }
 }

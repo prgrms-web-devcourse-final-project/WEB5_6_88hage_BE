@@ -11,6 +11,7 @@ import com.grepp.funfun.app.model.group.entity.Group;
 import com.grepp.funfun.app.model.group.repository.GroupRepository;
 import com.grepp.funfun.infra.error.exceptions.CommonException;
 import com.grepp.funfun.infra.response.ResponseCode;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
@@ -57,6 +58,18 @@ public class CalendarService {
         }
 
         calendarRepository.delete(calendar);
+    }
+
+    @Transactional
+    public void updateCalendar(Long calendarId, LocalDateTime selectedDate, String email) {
+        Calendar calendar = calendarRepository.findByIdAndEmail(calendarId, email)
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+
+        if (calendar.getType() == ActivityType.GROUP) {
+            throw new CommonException(ResponseCode.BAD_REQUEST);
+        }
+
+        calendar.setSelectedDate(selectedDate);
     }
 
     public List<CalendarDTO> findAll() {
