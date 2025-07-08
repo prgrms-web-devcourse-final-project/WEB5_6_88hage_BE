@@ -399,4 +399,10 @@ public class UserService {
         return null;
     }
 
+    // 유저 닉네임으로 찾기
+    public UserDTO getUserByNickname(String nickname) {
+        return userRepository.findByNickname(nickname)
+                .map(user -> mapToDTO(user,new UserDTO()))
+                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+    }
 }

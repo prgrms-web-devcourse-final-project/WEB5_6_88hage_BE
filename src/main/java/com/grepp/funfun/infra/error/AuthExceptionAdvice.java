@@ -1,6 +1,7 @@
 package com.grepp.funfun.infra.error;
 
 import com.grepp.funfun.infra.error.exceptions.AuthApiException;
+import com.grepp.funfun.infra.error.exceptions.CommonException;
 import com.grepp.funfun.infra.response.ApiResponse;
 import com.grepp.funfun.infra.response.ResponseCode;
 import lombok.RequiredArgsConstructor;
@@ -46,5 +47,13 @@ public class AuthExceptionAdvice {
         return ResponseEntity
                    .status(HttpStatus.UNAUTHORIZED)
                    .body(ApiResponse.error(ResponseCode.UNAUTHORIZED));
+    }
+
+    @ResponseBody
+    @ExceptionHandler(CommonException.class)
+    public ResponseEntity<ApiResponse<String>> commonExHandler(CommonException ex) {
+        return ResponseEntity
+                .status(ex.code().status())
+                .body(ApiResponse.error(ex.code(), ex.getReason()));
     }
 }

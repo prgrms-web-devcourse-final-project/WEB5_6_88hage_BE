@@ -53,8 +53,19 @@ public class AuthService {
 
         // 정지 당한 사용자
         if (user.getStatus() != UserStatus.ACTIVE) {
-            throw new CommonException(ResponseCode.USER_SUSPENDED);
+            if (user.getDueDate() == null || user.getDueDate().isAfter(java.time.LocalDate.now())) {
+                throw new CommonException(ResponseCode.USER_SUSPENDED, user.getDueReason());
+            } else {
+                user.setStatus(UserStatus.ACTIVE);
+                user.setDueDate(null);
+                user.setSuspendDuration(null);
+                user.setDueReason(null);
+                userRepository.save(user);
+            }
         }
+         if (user.getStatus() == UserStatus.BANNED) {
+             throw new CommonException(ResponseCode.USER_BANNED, user.getDueReason());
+         }
 
         // 비활성화한 사용자 (Soft Delete)
         if (!user.getActivated()) {
