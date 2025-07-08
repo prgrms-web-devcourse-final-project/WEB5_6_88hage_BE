@@ -106,6 +106,13 @@ public class CalendarService {
         return result;
     }
 
+    public List<CalendarDailyResponse> getDailyForContent(String email, LocalDate date) {
+        LocalDateTime start = date.atStartOfDay();
+        LocalDateTime end = start.plusDays(1).minusNanos(1);
+
+        return calendarRepository.findDailyContentCalendars(email, start, end);
+    }
+
     @Transactional
     public void addGroupCalendar(String email, Group group) {
         Calendar calendar = new Calendar();

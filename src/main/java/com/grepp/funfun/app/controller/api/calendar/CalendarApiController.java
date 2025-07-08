@@ -86,4 +86,17 @@ public class CalendarApiController {
         List<CalendarDailyResponse> result = calendarService.getDaily(email, date);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
+
+    @GetMapping("/daily/content")
+    @Operation(summary = "컨텐츠 일별 일정 조회", description = "선택한 날짜로 컨텐츠 일정만 조회합니다.")
+    public ResponseEntity<ApiResponse<List<CalendarDailyResponse>>> getDailyCalendarForContent(
+        @RequestParam int year,
+        @RequestParam int month,
+        @RequestParam int day,
+        Authentication authentication) {
+        String email = authentication.getName();
+        LocalDate date = LocalDate.of(year, month, day);
+        List<CalendarDailyResponse> result = calendarService.getDailyForContent(email, date);
+        return ResponseEntity.ok(ApiResponse.success(result));
+    }
 }
