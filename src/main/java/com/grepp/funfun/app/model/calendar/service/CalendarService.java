@@ -38,11 +38,7 @@ public class CalendarService {
     public void addContentCalendar(String email, CalendarContentRequest request) {
         Calendar calendar = new Calendar();
         calendar.setEmail(email);
-        calendar.setType(request.getType());
-
-        if(calendar.getType() == ActivityType.GROUP) {
-            throw new CommonException(ResponseCode.BAD_REQUEST);
-        }
+        calendar.setType(ActivityType.CONTENT);
 
         Content content = contentRepository.findById(request.getActivityId())
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
