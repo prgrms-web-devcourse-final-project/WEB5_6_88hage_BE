@@ -47,6 +47,18 @@ public class CalendarService {
         calendarRepository.save(calendar);
     }
 
+    @Transactional
+    public void deleteCalendar(Long calendarId, String email) {
+        Calendar calendar = calendarRepository.findByIdAndEmail(calendarId, email)
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+
+        if(calendar.getType() == ActivityType.GROUP) {
+            throw new CommonException(ResponseCode.BAD_REQUEST);
+        }
+
+        calendarRepository.delete(calendar);
+    }
+
     public List<CalendarDTO> findAll() {
         final List<Calendar> calendars = calendarRepository.findAll(Sort.by("id"));
         return calendars.stream()
