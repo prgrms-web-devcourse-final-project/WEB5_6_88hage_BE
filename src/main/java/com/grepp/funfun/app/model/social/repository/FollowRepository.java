@@ -5,10 +5,17 @@ import com.grepp.funfun.app.model.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 
-public interface FollowRepository extends JpaRepository<Follow, Long> {
+public interface FollowRepository extends JpaRepository<Follow, Long>, FollowRepositoryCustom {
 
     Follow findFirstByFollower(User user);
 
     Follow findFirstByFollowee(User user);
 
+    boolean existsByFollowerEmailAndFolloweeEmail(String followerEmail, String followeeEmail);
+
+    void deleteByFollowerEmailAndFolloweeEmail(String followerEmail, String followeeEmail);
+
+    Long countByFolloweeEmail(String followeeEmail);
+
+    Long countByFollowerEmail(String followerEmail);
 }

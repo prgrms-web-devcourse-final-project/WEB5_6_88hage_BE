@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.model.social.service;
 
+import com.grepp.funfun.app.controller.api.social.payload.FollowsResponse;
 import com.grepp.funfun.app.model.social.dto.FollowDTO;
 import com.grepp.funfun.app.model.social.entity.Follow;
 import com.grepp.funfun.app.model.social.repository.FollowRepository;
@@ -8,20 +9,71 @@ import com.grepp.funfun.app.model.user.repository.UserRepository;
 import com.grepp.funfun.infra.error.exceptions.CommonException;
 import com.grepp.funfun.infra.response.ResponseCode;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
+@RequiredArgsConstructor
 public class FollowService {
 
     private final FollowRepository followRepository;
     private final UserRepository userRepository;
 
-    public FollowService(final FollowRepository followRepository,
-            final UserRepository userRepository) {
-        this.followRepository = followRepository;
-        this.userRepository = userRepository;
+    private User getUser(String email) {
+        return userRepository.findById(email)
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+    }
+
+    @Transactional
+    public void follow(String followerEmail, String followeeEmail) {
+        if (followerEmail.equals(followeeEmail)) {
+            // 자기 자신은 팔로우할 수 없습니다.
+            throw new CommonException(ResponseCode.BAD_REQUEST);
+        }
+
+        boolean exists = followRepository.existsByFollowerEmailAndFolloweeEmail(followerEmail, followeeEmail);
+        if (!exists) {
+            Follow follow = new Follow();
+            follow.setFollower(getUser(followerEmail));
+            follow.setFollowee(getUser(followeeEmail));
+            followRepository.save(follow);
+        } else {
+            // 이미 팔로우한 사용자입니다.
+            throw new CommonException(ResponseCode.BAD_REQUEST);
+        }
+    }
+
+    @Transactional
+    public void unfollow(String followerEmail, String followeeEmail) {
+        boolean exists = followRepository.existsByFollowerEmailAndFolloweeEmail(followerEmail, followeeEmail);
+        if (!exists) {
+            // 팔로우 관계가 아닙니다.
+         throw new CommonException(ResponseCode.BAD_REQUEST);
+        }
+        followRepository.deleteByFollowerEmailAndFolloweeEmail(followerEmail, followeeEmail);
+    }
+
+    public List<FollowsResponse> getFollowers(String email) {
+        return followRepository.findFollowersByFolloweeEmail(email);
+    }
+
+    public List<FollowsResponse> getFollowings(String email) {
+        return followRepository.findFollowingsByFollowerEmail(email);
+    }
+
+    public Long countFollowers(String email) {
+        return followRepository.countByFolloweeEmail(email);
+    }
+
+    public Long countFollowings(String email) {
+        return followRepository.countByFollowerEmail(email);
+    }
+
+    public boolean isFollowing(String followerEmail, String followeeEmail) {
+        return followRepository.existsByFollowerEmailAndFolloweeEmail(followerEmail, followeeEmail);
     }
 
     public List<FollowDTO> findAll() {
