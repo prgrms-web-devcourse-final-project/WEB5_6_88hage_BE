@@ -34,21 +34,21 @@ public class CalendarApiController {
     private final CalendarService calendarService;
 
     @PostMapping
-    @Operation(summary = "캘린더 일정 등록", description = "선택한 Content 일정을 캘린더에 등록합니다.")
+    @Operation(summary = "캘린더 일정 등록", description = "선택한 Content 일정을 캘린더에 등록합니다. (Group 타입은 등록 불가)")
     public ResponseEntity<ApiResponse<String>> addCalendar(
         @RequestBody @Valid CalendarContentRequest request,
         Authentication authentication) {
         String email = authentication.getName();
-        calendarService.addCalendar(email, request);
+        calendarService.addContentCalendar(email, request);
         return ResponseEntity.ok(ApiResponse.success("일정이 성공적으로 등록되었습니다."));
     }
 
     @DeleteMapping("/{calendarId}")
-    @Operation(summary = "캘린더 일정 삭제", description = "선택한 Content 일정을 캘린더에서 삭제합니다.")
+    @Operation(summary = "캘린더 일정 삭제", description = "선택한 Content 일정을 캘린더에서 삭제합니다. (Group 타입은 삭제 불가)")
     public ResponseEntity<ApiResponse<String>> deleteCalendar(@PathVariable Long calendarId,
         Authentication authentication) {
         String email = authentication.getName();
-        calendarService.deleteCalendar(calendarId, email);
+        calendarService.deleteContentCalendar(calendarId, email);
         return ResponseEntity.ok(ApiResponse.success("일정이 성공적으로 삭제되었습니다."));
     }
 
@@ -58,7 +58,7 @@ public class CalendarApiController {
         @RequestBody @Valid CalendarUpdateRequest request,
         Authentication authentication) {
         String email = authentication.getName();
-        calendarService.updateCalendar(calendarId, request.getSelectedDate(), email);
+        calendarService.updateContentCalendar(calendarId, request.getSelectedDate(), email);
         return ResponseEntity.ok(ApiResponse.success("일정이 성공적으로 수정되었습니다."));
     }
 

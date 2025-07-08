@@ -35,28 +35,25 @@ public class CalendarService {
     private final GroupRepository groupRepository;
 
     @Transactional
-    public void addCalendar(String email, CalendarContentRequest request) {
+    public void addContentCalendar(String email, CalendarContentRequest request) {
         Calendar calendar = new Calendar();
         calendar.setEmail(email);
         calendar.setType(request.getType());
 
-        if (request.getType() == ActivityType.CONTENT) {
-            Content content = contentRepository.findById(request.getActivityId())
-                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-            calendar.setContent(content);
-            calendar.setSelectedDate(request.getSelectedDate());
-        } else {
-            Group group = groupRepository.findById(request.getActivityId())
-                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-            calendar.setGroup(group);
-            // 모임일 경우 selectedDate 사용 X
+        if(calendar.getType() == ActivityType.GROUP) {
+            throw new CommonException(ResponseCode.BAD_REQUEST);
         }
+
+        Content content = contentRepository.findById(request.getActivityId())
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+        calendar.setContent(content);
+        calendar.setSelectedDate(request.getSelectedDate());
 
         calendarRepository.save(calendar);
     }
 
     @Transactional
-    public void deleteCalendar(Long calendarId, String email) {
+    public void deleteContentCalendar(Long calendarId, String email) {
         Calendar calendar = calendarRepository.findByIdAndEmail(calendarId, email)
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
 
@@ -68,7 +65,7 @@ public class CalendarService {
     }
 
     @Transactional
-    public void updateCalendar(Long calendarId, LocalDateTime selectedDate, String email) {
+    public void updateContentCalendar(Long calendarId, LocalDateTime selectedDate, String email) {
         Calendar calendar = calendarRepository.findByIdAndEmail(calendarId, email)
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
 
@@ -107,6 +104,27 @@ public class CalendarService {
         result.sort(Comparator.comparing(CalendarDailyResponse::getSelectedDate));
 
         return result;
+    }
+
+    @Transactional
+    public void addGroupCalendar(String email, Group group) {
+        Calendar calendar = new Calendar();
+        calendar.setEmail(email);
+        calendar.setType(ActivityType.GROUP);
+        calendar.setGroup(group);
+        calendarRepository.save(calendar);
+    }
+
+    @Transactional
+    public void deleteGroupCalendar(Long groupId) {
+        // 전체 삭제 (모임 자체가 삭제될 때)
+        calendarRepository.deleteByGroupId(groupId);
+    }
+
+    @Transactional
+    public void deleteGroupCalendarForUser(String email, Long groupId) {
+        // 특정 유저만 삭제 (모임 나가기, 강퇴)
+        calendarRepository.deleteByEmailAndGroupId(email, groupId);
     }
 
     public List<CalendarDTO> findAll() {

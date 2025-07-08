@@ -14,4 +14,8 @@ public interface CalendarRepository extends JpaRepository<Calendar, Long>, Calen
     Calendar findFirstByGroup(Group group);
 
     Optional<Calendar> findByIdAndEmail(Long id, String email);
+
+    void deleteByGroupId(Long groupId);
+
+    void deleteByEmailAndGroupId(String email, Long groupId);
 }
