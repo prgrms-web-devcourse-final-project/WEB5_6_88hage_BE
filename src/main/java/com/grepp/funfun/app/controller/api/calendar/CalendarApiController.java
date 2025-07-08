@@ -34,7 +34,7 @@ public class CalendarApiController {
     private final CalendarService calendarService;
 
     @PostMapping
-    @Operation(summary = "캘린더 일정 등록", description = "선택한 Content 일정을 캘린더에 등록합니다.")
+    @Operation(summary = "캘린더 일정 등록", description = "선택한 컨텐츠 일정을 캘린더에 등록합니다.")
     public ResponseEntity<ApiResponse<String>> addCalendar(
         @RequestBody @Valid CalendarContentRequest request,
         Authentication authentication) {
@@ -44,7 +44,7 @@ public class CalendarApiController {
     }
 
     @DeleteMapping("/{calendarId}")
-    @Operation(summary = "캘린더 일정 삭제", description = "선택한 Content 일정을 캘린더에서 삭제합니다.")
+    @Operation(summary = "캘린더 일정 삭제", description = "선택한 컨텐츠 일정을 캘린더에서 삭제합니다.")
     public ResponseEntity<ApiResponse<String>> deleteCalendar(@PathVariable Long calendarId,
         Authentication authentication) {
         String email = authentication.getName();
@@ -53,7 +53,7 @@ public class CalendarApiController {
     }
 
     @PatchMapping("/{calendarId}")
-    @Operation(summary = "캘린더 일정 수정", description = "선택한 Content 일정을 수정합니다.")
+    @Operation(summary = "캘린더 일정 수정", description = "선택한 컨텐츠 일정을 수정합니다.")
     public ResponseEntity<ApiResponse<String>> updateCalendar(@PathVariable Long calendarId,
         @RequestBody @Valid CalendarUpdateRequest request,
         Authentication authentication) {
