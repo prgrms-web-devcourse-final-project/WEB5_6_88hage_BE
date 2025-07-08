@@ -80,6 +80,7 @@ public class AuthService {
         return processTokenSignin(authentication.getName(), roles, loginRequest.isRememberMe());
     }
 
+    @Transactional
     public TokenDto processTokenSignin(String email, String roles, boolean rememberMe) {
         // black list 에 있다면 해제
         userBlackListRepository.deleteById(email);
