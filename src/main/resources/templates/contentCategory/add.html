@@ -15,7 +15,6 @@
             <div th:replace="~{fragments/forms::globalErrors('contentCategory')}" />
             <form th:action="${requestUri}" method="post" novalidate="">
                 <div th:replace="~{fragments/forms::inputRow(object='contentCategory', field='category', type='select')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='contentCategory', field='during', type='number')}" />
                 <input type="submit" th:value="#{contentCategory.add.headline}" class="btn btn-primary mt-4" />
             </form>
         </div>

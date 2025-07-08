@@ -4,22 +4,22 @@ import com.grepp.funfun.app.model.bookmark.dto.ContentBookmarkDTO;
 import com.grepp.funfun.app.model.bookmark.service.ContentBookmarkService;
 import com.grepp.funfun.infra.response.ApiResponse;
 import jakarta.validation.Valid;
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @RestController
 @RequestMapping(value = "/api/contentBookmarks", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequiredArgsConstructor
 public class ContentBookmarkApiController {
 
     private final ContentBookmarkService contentBookmarkService;
-
-    public ContentBookmarkApiController(final ContentBookmarkService contentBookmarkService) {
-        this.contentBookmarkService = contentBookmarkService;
-    }
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<ContentBookmarkDTO>>> getAllContentBookmarks() {
@@ -27,17 +27,24 @@ public class ContentBookmarkApiController {
         return ResponseEntity.ok(ApiResponse.success(bookmarks));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<ContentBookmarkDTO>> getContentBookmark(
-            @PathVariable final Long id) {
-        ContentBookmarkDTO bookmark = contentBookmarkService.get(id);
-        return ResponseEntity.ok(ApiResponse.success(bookmark));
+    @GetMapping("/user")
+    public ResponseEntity<ApiResponse<List<ContentBookmarkDTO>>> getContentBookmark(
+            @RequestParam String email
+//            Authentication authentication
+    ) {
+//        String currentUserEmail = authentication.getName();
+        List<ContentBookmarkDTO> bookmarks = contentBookmarkService.getByEmail(email);
+        return ResponseEntity.ok(ApiResponse.success(bookmarks));
     }
 
     @PostMapping("/add")
     public ResponseEntity<ApiResponse<Long>> addContentBookmark(
-            @RequestBody @Valid final ContentBookmarkDTO contentBookmarkDTO) {
-        final Long createdId = contentBookmarkService.add(contentBookmarkDTO);
+            @RequestBody @Valid final ContentBookmarkDTO contentBookmarkDTO,
+            @RequestParam String email
+//            Authentication authentication
+    ) {
+//        String currentUserEmail = authentication.getName();
+        Long createdId = contentBookmarkService.addByEmail(contentBookmarkDTO, email);
         return new ResponseEntity<>(ApiResponse.success(createdId), HttpStatus.CREATED);
     }
 
@@ -51,9 +58,12 @@ public class ContentBookmarkApiController {
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteContentBookmark(
             @PathVariable final Long id,
-            @RequestParam String email) {
-        contentBookmarkService.delete(id, email);
+            @RequestParam String email
+//            Authentication authentication
+    ) {
+
+//        String currentUserEmail = authentication.getName();
+        contentBookmarkService.deleteByEmail(id, email);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
-
 }

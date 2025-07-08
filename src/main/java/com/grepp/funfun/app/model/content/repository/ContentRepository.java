@@ -23,15 +23,23 @@ public interface ContentRepository extends JpaRepository<Content, Long> {
     Optional<Content> findByIdWithCategory(@Param("id") Long id);
 
     @Query("SELECT c FROM Content c " +
-            "WHERE (:category IS NULL OR c.category = :category) " +
-            "AND (:region IS NULL OR c.guName = :guName) " +
+            "WHERE (:category IS NULL OR c.category.category = :category) " +
+            "AND (:guName IS NULL OR c.guName = :guName) " +
             "AND (:startDate IS NULL OR c.startDate >= :startDate) " +
             "AND (:endDate IS NULL OR c.endDate <= :endDate)")
-    Page<Content> findFilteredContents(String category, String guName, LocalDate startDate, LocalDate endDate, Pageable pageable);
+    Page<Content> findFilteredContents(
+            @Param("category") ContentClassification category,
+            @Param("guName") String guName,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            Pageable pageable);
 
     @Query(value = """
     SELECT * FROM content c
-    WHERE (
+    WHERE c.id != :excludeId 
+    AND c.latitude IS NOT NULL 
+    AND c.longitude IS NOT NULL
+    AND (
         6371 * acos(
             cos(radians(:lat)) * cos(radians(c.latitude)) *
             cos(radians(c.longitude) - radians(:lng)) +
@@ -45,11 +53,16 @@ public interface ContentRepository extends JpaRepository<Content, Long> {
             sin(radians(:lat)) * sin(radians(c.latitude))
         )
     ) ASC
+    LIMIT :limit
     """, nativeQuery = true)
     List<Content> findNearby(@Param("lat") double lat,
-                             @Param("lon") double lon,
+                             @Param("lng") double lng,
                              @Param("radiusInKm") double radiusInKm,
-                             Pageable pageable);
+                             @Param("excludeId") Long excludeId,
+                             @Param("limit") int limit);
 
-    List<Content> findByCategory_Category(ContentClassification category);
+    @Query("SELECT c FROM Content c JOIN FETCH c.category WHERE c.category.category = :category")
+    List<Content> findByCategoryCategory(@Param("category") ContentClassification category);
+
+//    List<Content> findAllByOrderByBookmarkCountDesc();
 }

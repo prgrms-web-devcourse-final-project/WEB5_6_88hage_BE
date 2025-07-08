@@ -16,38 +16,47 @@
             <div th:if="${!contents.empty}" class="table-responsive">
                 <table class="table table-striped table-hover align-middle">
                     <thead>
-                        <tr>
-                            <th scope="col">[[#{content.id.label}]]</th>
-                            <th scope="col">[[#{content.contentTitle.label}]]</th>
-                            <th scope="col">[[#{content.description.label}]]</th>
-                            <th scope="col">[[#{content.startDate.label}]]</th>
-                            <th scope="col">[[#{content.endDate.label}]]</th>
-                            <th scope="col">[[#{content.address.label}]]</th>
-                            <th scope="col">[[#{content.latitude.label}]]</th>
-                            <th scope="col">[[#{content.longitude.label}]]</th>
-                            <th><!-- --></th>
-                        </tr>
+                    <tr>
+                        <th scope="col">아이디</th>
+                        <th scope="col">제목</th>
+                        <th scope="col">상태</th>
+                        <th scope="col">요금</th>
+                        <th scope="col">시작일</th>
+                        <th scope="col">종료일</th>
+                        <th scope="col">시작 시간</th>
+                        <th scope="col">종료 시간</th>
+                        <th scope="col">구 이름</th>
+                        <th scope="col">런타임</th>
+                        <th scope="col">주소</th>
+                        <th scope="col">예약 링크</th>
+                        <th><!-- actions --></th>
+                    </tr>
                     </thead>
                     <tbody>
-                        <tr th:each="content : ${contents}">
-                            <td>[[${content.id}]]</td>
-                            <td>[[${content.contentTitle}]]</td>
-                            <td>[[${content.description}]]</td>
-                            <td>[[${content.startDate}]]</td>
-                            <td>[[${content.endDate}]]</td>
-                            <td>[[${content.address}]]</td>
-                            <td>[[${content.latitude}]]</td>
-                            <td>[[${content.longitude}]]</td>
-                            <td>
-                                <div class="float-end text-nowrap">
-                                    <a th:href="@{/contents/edit/{id}(id=${content.id})}" class="btn btn-sm btn-secondary">[[#{content.list.edit}]]</a>
-                                    <form th:action="@{/contents/delete/{id}(id=${content.id})}"
-                                            th:data-confirm-message="#{delete.confirm}" method="post" class="js-submit-confirm d-inline">
-                                        <button type="submit" class="btn btn-sm btn-secondary">[[#{content.list.delete}]]</button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
+                    <tr th:each="content : ${contents}">
+                        <td>[[${content.id}]]</td>
+                        <td>[[${content.contentTitle}]]</td>
+                        <td>[[${content.status}]]</td>
+                        <td>[[${content.fee}]]</td>
+                        <td>[[${content.startDate}]]</td>
+                        <td>[[${content.endDate}]]</td>
+                        <td>[[${content.startTime}]]</td>
+                        <td>[[${content.endTime}]]</td>
+                        <td>[[${content.guName}]]</td>
+                        <td>[[${content.runTime}]]분</td>
+                        <td>[[${content.address}]]</td>
+                        <td><a th:href="${content.reservationUrl}" target="_blank">예약</a></td>
+                        <td>
+                            <div class="float-end text-nowrap">
+                                <a th:href="@{/contents/edit/{id}(id=${content.id})}" class="btn btn-sm btn-secondary">수정</a>
+                                <form th:action="@{/contents/delete/{id}(id=${content.id})}"
+                                      th:data-confirm-message="#{delete.confirm}" method="post"
+                                      class="js-submit-confirm d-inline">
+                                    <button type="submit" class="btn btn-sm btn-danger">삭제</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
                     </tbody>
                 </table>
             </div>

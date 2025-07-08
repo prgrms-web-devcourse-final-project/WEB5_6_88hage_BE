@@ -59,14 +59,12 @@ public class ContentCategoryService {
             final ContentCategoryDTO contentCategoryDTO) {
         contentCategoryDTO.setId(contentCategory.getId());
         contentCategoryDTO.setCategory(contentCategory.getCategory());
-        contentCategoryDTO.setDuring(contentCategory.getDuring());
         return contentCategoryDTO;
     }
 
     private ContentCategory mapToEntity(final ContentCategoryDTO contentCategoryDTO,
             final ContentCategory contentCategory) {
         contentCategory.setCategory(contentCategoryDTO.getCategory());
-        contentCategory.setDuring(contentCategoryDTO.getDuring());
         return contentCategory;
     }
 

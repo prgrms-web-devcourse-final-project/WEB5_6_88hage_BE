@@ -5,6 +5,8 @@ import com.grepp.funfun.app.controller.api.content.payload.ContentFilterRequest;
 import com.grepp.funfun.app.model.content.dto.ContentDTO;
 import com.grepp.funfun.app.model.content.service.ContentService;
 import com.grepp.funfun.infra.response.ApiResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -21,14 +23,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value = "/api/contents", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequiredArgsConstructor
+@Slf4j
 public class ContentApiController {
 
     private final ContentService contentService;
-
-    public ContentApiController(
-            final ContentService contentService) {
-        this.contentService = contentService;
-    }
 
     // 컨텐츠 조회
     @GetMapping

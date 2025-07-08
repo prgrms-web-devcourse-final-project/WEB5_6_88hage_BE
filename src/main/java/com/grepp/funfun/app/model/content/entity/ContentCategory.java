@@ -24,6 +24,4 @@ public class ContentCategory extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private ContentClassification category;
 
-    private Integer during;
-
 }

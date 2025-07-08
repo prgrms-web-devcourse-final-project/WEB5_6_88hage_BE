@@ -1,19 +1,19 @@
 package com.grepp.funfun.app.model.content.code;
 
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum ContentClassification {
 
-    EDUCATION("교육/체험"),
-    CLASSIC("클래식"),
-    PLAY("연극"),
-    MUSICAL("뮤지컬"),
-    DANCE("무용"),
-    ART("전시/미술"),
-    GUKAK("국악"),
-    MOVIE("영화"),
-    FESTIVAL("축제"),
-    CONCERT("콘서트"),
-    SOLO("독주/독창회");
+    THEATER("연극"),
+    DANCE("무용(서양/한국무용)"),
+    POP_DANCE("대중무용"),
+    CLASSIC("서양음악(클래식)"),
+    GUKAK("한국음악(국악)"),
+    POP_MUSIC("대중음악"),
+    MIX("복합"),
+    MAGIC("서커스/마술"),
+    MUSICAL("뮤지컬");
 
     private final String koreanName;
 
@@ -21,6 +21,7 @@ public enum ContentClassification {
         this.koreanName = koreanName;
     }
 
+    @JsonValue
     public String getKoreanName() {
         return koreanName;
     }
