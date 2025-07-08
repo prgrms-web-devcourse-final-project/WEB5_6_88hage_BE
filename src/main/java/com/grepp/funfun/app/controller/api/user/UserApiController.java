@@ -44,14 +44,14 @@ public class UserApiController {
     private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
 
-    @PostMapping
+    @PostMapping("/signup")
     @Operation(summary = "회원가입", description = "회원가입을 진행 후 인증 메일을 발송합니다.")
     public ResponseEntity<ApiResponse<String>> createUser(@RequestBody @Valid SignupRequest request) {
         String createdEmail = userService.create(request);
         return ResponseEntity.ok(ApiResponse.success(createdEmail));
     }
 
-    @PatchMapping("/oauth2")
+    @PatchMapping("/signup/oauth2")
     @Operation(summary = "OAuth2 회원가입", description = "소셜 로그인 대상의 추가 정보를 입력 받습니다.")
     public ResponseEntity<ApiResponse<String>> updateOAuth2User(@RequestBody @Valid OAuth2SignupRequest request, Authentication authentication) {
         String email = authentication.getName();
