@@ -7,7 +7,6 @@ import com.grepp.funfun.infra.error.exceptions.CommonException;
 import com.grepp.funfun.infra.response.ApiResponse;
 import com.grepp.funfun.infra.response.ResponseCode;
 
-import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
