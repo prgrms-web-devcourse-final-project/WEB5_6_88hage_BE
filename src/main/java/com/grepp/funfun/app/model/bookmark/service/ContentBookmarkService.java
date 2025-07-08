@@ -5,6 +5,7 @@ import com.grepp.funfun.app.model.bookmark.entity.ContentBookmark;
 import com.grepp.funfun.app.model.bookmark.repository.ContentBookmarkRepository;
 import com.grepp.funfun.app.model.content.entity.Content;
 import com.grepp.funfun.app.model.content.repository.ContentRepository;
+import com.grepp.funfun.app.model.content.repository.ContentRepositoryCustom;
 import com.grepp.funfun.app.model.user.entity.User;
 import com.grepp.funfun.app.model.user.repository.UserRepository;
 import com.grepp.funfun.infra.error.exceptions.CommonException;

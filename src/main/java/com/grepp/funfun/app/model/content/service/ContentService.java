@@ -43,6 +43,7 @@ public class ContentService {
     private final CalendarRepository calendarRepository;
     private final ModelMapper modelMapper;
 
+
     public ContentDTO get(final Long id) {
         Content content = contentRepository.findByIdWithCategory(id)
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
@@ -107,12 +108,6 @@ public class ContentService {
                 .map(c -> mapToDTO(c, new ContentDTO()))
                 .toList();
     }
-
-    // 즐겨찾기순 정렬
-//    public Page<ContentDTO> sortedByBookmarkCount(Pageable pageable) {
-//        Page<Content> contents = contentRepository.findAll(pageable);
-//        return contents.map(content -> mapToDTO(content, new ContentDTO()));
-//    }
 
     // view
     @Transactional(readOnly = true)
