@@ -8,13 +8,17 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import java.time.LocalDateTime;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor
+
 public class Chat extends BaseEntity {
 
     @Id
@@ -30,5 +34,13 @@ public class Chat extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_id", nullable = false)
     private ChatRoom room;
+
+    @Builder
+    public Chat(ChatRoom room,String senderNickname, String senderEmail, String message) {
+        this.room = room;
+        this.senderNickname = senderNickname;
+        this.senderEmail = senderEmail;
+        this.message = message;
+    }
 
 }

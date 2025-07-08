@@ -16,6 +16,12 @@ public class CommonException extends RuntimeException {
         this.code = code;
         log.error(e.getMessage(), e);
     }
+
+    public CommonException(ResponseCode code, String message) {
+        super(message);
+        this.code = code;
+        log.error(message);
+    }
     
     public ResponseCode code() {
         return code;

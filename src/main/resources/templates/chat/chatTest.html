@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>팀 채팅방 테스트</title>
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f0f2f5;
+    }
+
+    .container {
+      background-color: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #333;
+      border-bottom: 2px solid #e9ecef;
+      padding-bottom: 20px;
+    }
+
+    .team-setup {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 25px;
+      border-radius: 10px;
+      margin-bottom: 25px;
+    }
+
+    .team-setup h3 {
+      margin-top: 0;
+      color: white;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      margin: 15px 0;
+    }
+
+    .input-group label {
+      font-weight: 600;
+      min-width: 80px;
+    }
+
+    .input-group input, .input-group select {
+      padding: 12px 15px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      background-color: rgba(255,255,255,0.9);
+    }
+
+    .btn {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: #0056b3;
+      transform: translateY(-2px);
+    }
+
+    .btn-success {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background-color: #218838;
+    }
+
+    .btn-danger {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background-color: #c82333;
+    }
+
+    .members-panel {
+      background-color: #f8f9fa;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 25px;
+      border-left: 5px solid #28a745;
+    }
+
+    .member-card {
+      background-color: white;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: transform 0.2s ease;
+    }
+
+    .member-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .member-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .member-email {
+      font-weight: 700;
+      color: #333;
+      font-size: 16px;
+    }
+
+    .member-details {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    .status-badge {
+      background-color: #28a745;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .connection-status {
+      text-align: center;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .connected {
+      background-color: #d4edda;
+      color: #155724;
+      border: 2px solid #28a745;
+    }
+
+    .disconnected {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 2px solid #dc3545;
+    }
+
+    .chat-container {
+      background-color: #ffffff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .chat-area {
+      height: 500px;
+      overflow-y: auto;
+      padding: 20px;
+      background-color: #fafafa;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .message {
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      max-width: 70%;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .my-message {
+      align-self: flex-end;
+    }
+
+    .other-message {
+      align-self: flex-start;
+    }
+
+    .message-bubble {
+      padding: 12px 16px;
+      border-radius: 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .my-message .message-bubble {
+      background: linear-gradient(135deg, #007bff, #0056b3);
+      color: white;
+    }
+
+    .other-message .message-bubble {
+      background-color: #e9ecef;
+      color: #333;
+    }
+
+    .message-sender {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 5px;
+      opacity: 0.8;
+    }
+
+    .message-content {
+      font-size: 15px;
+      line-height: 1.4;
+    }
+
+    .message-time {
+      font-size: 11px;
+      opacity: 0.7;
+      margin-top: 5px;
+      text-align: right;
+    }
+
+    .message-input-area {
+      padding: 20px;
+      background-color: white;
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .sender-select {
+      min-width: 200px;
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: 25px;
+      background-color: #f8f9fa;
+    }
+
+    .message-input {
+      flex: 1;
+      padding: 12px 20px;
+      border: 1px solid #ddd;
+      border-radius: 25px;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.3s ease;
+    }
+
+    .message-input:focus {
+      border-color: #007bff;
+      box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+    }
+
+    .send-button {
+      padding: 12px 25px;
+      background: linear-gradient(135deg, #28a745, #20c997);
+      color: white;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .send-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(40,167,69,0.3);
+    }
+
+    .send-button:disabled {
+      background-color: #6c757d;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .logs-panel {
+      margin-top: 30px;
+      background-color: #f8f9fa;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .logs-header {
+      background-color: #343a40;
+      color: white;
+      padding: 15px 20px;
+      font-weight: 600;
+    }
+
+    .logs-content {
+      padding: 20px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      max-height: 200px;
+      overflow-y: auto;
+      line-height: 1.6;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #666;
+      font-style: italic;
+      margin-top: 100px;
+    }
+
+    .loading {
+      text-align: center;
+      color: #666;
+      font-style: italic;
+    }
+
+    .error-message {
+      background-color: #f8d7da;
+      color: #721c24;
+      padding: 15px;
+      border-radius: 8px;
+      border-left: 4px solid #dc3545;
+      margin: 15px 0;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🏢 팀 채팅방 테스트</h1>
+    <p>Thymeleaf + WebSocket 실시간 채팅 시스템</p>
+  </div>
+
+  <!-- 팀 설정 -->
+  <div class="team-setup">
+    <h3>📋 팀 설정</h3>
+    <div class="input-group">
+      <label for="teamId">팀 ID:</label>
+      <input type="number" id="teamId" value="3" min="1" placeholder="팀 ID 입력">
+      <button class="btn btn-primary" onclick="loadTeamMembers()">👥 멤버 조회</button>
+      <button class="btn btn-success" onclick="connectToChatRoom()">💬 채팅방 입장</button>
+      <button class="btn btn-danger" onclick="disconnect()">🚪 나가기</button>
+    </div>
+  </div>
+
+  <!-- 팀 멤버 목록 -->
+  <div class="members-panel">
+    <h3>👥 승인된 팀 멤버</h3>
+    <div id="membersList">
+      <div class="loading">팀 멤버 조회 버튼을 클릭하세요</div>
+    </div>
+  </div>
+
+  <!-- 연결 상태 -->
+  <div id="connectionStatus" class="connection-status disconnected">
+    ❌ 채팅방에 연결되지 않음
+  </div>
+
+  <!-- 채팅 컨테이너 -->
+  <div class="chat-container">
+    <div id="chatArea" class="chat-area">
+      <div class="empty-state">
+        🗨️ 채팅방에 입장하면 메시지가 표시됩니다
+      </div>
+    </div>
+
+    <div class="message-input-area">
+      <select id="senderEmail" class="sender-select" disabled>
+        <option value="">발송자 선택</option>
+      </select>
+      <input type="text" id="messageInput" class="message-input" placeholder="메시지를 입력하세요..." disabled>
+      <button id="sendButton" class="send-button" onclick="sendMessage()" disabled>전송</button>
+    </div>
+  </div>
+
+  <!-- 시스템 로그 -->
+  <div class="logs-panel">
+    <div class="logs-header">
+      📋 시스템 로그
+    </div>
+    <div class="logs-content" id="logs">
+      시스템이 준비되었습니다.
+    </div>
+  </div>
+</div>
+
+<script th:inline="javascript">
+  let stompClient = null;
+  let currentTeamId = null;
+  let teamMembers = [];
+
+  function addLog(message) {
+    const logs = document.getElementById('logs');
+    const time = new Date().toLocaleTimeString();
+    logs.innerHTML += `<br><span style="color: #007bff;">[${time}]</span> ${message}`;
+    logs.scrollTop = logs.scrollHeight;
+    console.log(`[LOG] ${message}`);
+  }
+
+  function updateConnectionStatus(connected) {
+    const status = document.getElementById('connectionStatus');
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+    const senderEmail = document.getElementById('senderEmail');
+
+    if (connected) {
+      status.className = 'connection-status connected';
+      status.innerHTML = `✅ 팀 ${currentTeamId} 채팅방에 연결됨`;
+      messageInput.disabled = false;
+      sendButton.disabled = false;
+      senderEmail.disabled = false;
+    } else {
+      status.className = 'connection-status disconnected';
+      status.innerHTML = '❌ 채팅방에 연결되지 않음';
+      messageInput.disabled = true;
+      sendButton.disabled = true;
+      senderEmail.disabled = true;
+    }
+  }
+
+  async function loadTeamMembers() {
+    const teamId = document.getElementById('teamId').value;
+
+    if (!teamId) {
+      alert('팀 ID를 입력하세요!');
+      return;
+    }
+
+    addLog(`팀 ${teamId} 멤버 조회 중...`);
+
+    try {
+      const response = await fetch(`/api/participants/${teamId}/approve`);
+      const result = await response.json();
+
+      if (result.code === '0000') {
+        teamMembers = result.data;
+        displayTeamMembers(teamMembers);
+        setupSenderOptions(teamMembers);
+        addLog(`팀 멤버 ${teamMembers.length}명 조회 완료`);
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (error) {
+      addLog(`멤버 조회 실패: ${error.message}`);
+      document.getElementById('membersList').innerHTML =
+          `<div class="error-message">멤버 조회 실패: ${error.message}</div>`;
+    }
+  }
+
+  function displayTeamMembers(members) {
+    const membersList = document.getElementById('membersList');
+
+    if (members.length === 0) {
+      membersList.innerHTML = '<div class="loading">승인된 멤버가 없습니다.</div>';
+      return;
+    }
+
+    membersList.innerHTML = members.map(member => `
+      <div class="member-card">
+        <div class="member-info">
+          <div class="member-email">${member.userEmail}</div>
+          <div class="member-details">ID: ${member.id} | 그룹: ${member.groupId}</div>
+        </div>
+        <div class="status-badge">✓ 승인됨</div>
+      </div>
+    `).join('');
+  }
+
+  function setupSenderOptions(members) {
+    const senderSelect = document.getElementById('senderEmail');
+    senderSelect.innerHTML = '<option value="">발송자 선택</option>' +
+        members.map(member => `<option value="${member.userEmail}">${member.userEmail}</option>`).join('');
+  }
+
+  function connectToChatRoom() {
+    const teamId = document.getElementById('teamId').value;
+
+    if (!teamId) {
+      alert('팀 ID를 입력하세요!');
+      return;
+    }
+
+    if (teamMembers.length === 0) {
+      alert('먼저 팀 멤버를 조회하세요!');
+      return;
+    }
+
+    currentTeamId = teamId;
+    addLog('WebSocket 연결 시도 중...');
+
+    const socket = new SockJS('/ws');
+    stompClient = Stomp.over(socket);
+
+    // 디버그 모드 활성화
+    stompClient.debug = function(str) {
+      console.log('STOMP DEBUG:', str);
+      addLog('STOMP: ' + str.substring(0, 100));
+    };
+
+    stompClient.connect({}, function(frame) {
+      console.log('🟢 STOMP 연결 성공:', frame);
+      addLog('🎉 STOMP 연결 완료!');
+      updateConnectionStatus(true);
+
+      // 채팅방 구독
+      console.log('🔵 구독 시도:', `/room/${teamId}`);
+      const subscription = stompClient.subscribe(`/room/${teamId}`, function(message) {
+        console.log('🔵 구독 메시지 수신:', message);
+        console.log('🔵 메시지 바디:', message.body);
+        addLog('📨 메시지 수신: ' + message.body.substring(0, 50) + '...');
+
+        try {
+          const chatResponse = JSON.parse(message.body);
+          console.log('🔵 파싱된 ChatResponse:', chatResponse);
+          displayMessage(chatResponse);
+          addLog('✅ 메시지 화면 표시 완료');
+        } catch (e) {
+          console.error('🔴 메시지 파싱 오류:', e);
+          addLog('❌ 메시지 파싱 오류: ' + e.message);
+          // 파싱 실패해도 원본 메시지 표시
+          addLog('원본 메시지: ' + message.body);
+        }
+      });
+
+      console.log('🔵 구독 객체:', subscription);
+      addLog(`✅ 팀 ${teamId} 채팅방 구독 완료 (/room/${teamId})`);
+      clearChatArea();
+
+      // 채팅 이력 자동 로드
+      loadChatHistory(teamId);
+
+    }, function(error) {
+      console.error('🔴 STOMP 연결 실패:', error);
+      addLog('❌ STOMP 연결 실패: ' + error);
+      updateConnectionStatus(false);
+    });
+  }
+
+  function sendMessage() {
+    const messageInput = document.getElementById('messageInput');
+    const senderEmail = document.getElementById('senderEmail');
+    const messageContent = messageInput.value.trim();
+    const sender = senderEmail.value;
+
+    if (!messageContent) {
+      alert('메시지를 입력하세요!');
+      return;
+    }
+
+    if (!sender) {
+      alert('발송자를 선택하세요!');
+      return;
+    }
+
+    if (stompClient && currentTeamId) {
+      const chatResponse = {
+        groupId: parseInt(currentTeamId),
+        senderEmail: sender,
+        senderNickname: sender.split('@')[0], // 이메일에서 닉네임 추출
+        message: messageContent
+      };
+
+      console.log('🟡 전송할 메시지:', chatResponse);
+      console.log('🟡 STOMP 연결 상태:', stompClient.connected);
+      addLog(`메시지 전송 시도: "${messageContent}" (${sender})`);
+
+      try {
+        stompClient.send("/send/message", {}, JSON.stringify(chatResponse));
+        addLog('WebSocket 메시지 전송 성공');
+        messageInput.value = '';
+      } catch (error) {
+        console.error('🔴 메시지 전송 오류:', error);
+        addLog('메시지 전송 실패: ' + error.message);
+      }
+    } else {
+      addLog('STOMP 클라이언트가 연결되지 않음');
+    }
+  }
+
+  function displayMessage(chatResponse) {
+    console.log('🟢 displayMessage 호출:', chatResponse);
+    addLog('🎨 메시지 화면 표시 시작');
+
+    const chatArea = document.getElementById('chatArea');
+    const currentSender = document.getElementById('senderEmail').value;
+
+    console.log('🟢 현재 발송자:', currentSender);
+    console.log('🟢 메시지 발송자:', chatResponse.senderEmail);
+
+    // 첫 메시지면 안내 텍스트 제거
+    if (chatArea.querySelector('.empty-state')) {
+      console.log('🟢 안내 텍스트 제거');
+      clearChatArea();
+    }
+
+    const messageDiv = document.createElement('div');
+    const isMyMessage = chatResponse.senderEmail === currentSender;
+
+    console.log('🟢 내 메시지인가?', isMyMessage);
+
+    messageDiv.className = isMyMessage ? 'message my-message' : 'message other-message';
+
+    const time = chatResponse.time || new Date().toLocaleTimeString();
+
+    const messageHTML = `
+      <div class="message-bubble">
+        <div class="message-sender">${chatResponse.senderNickname || chatResponse.senderEmail}</div>
+        <div class="message-content">${chatResponse.message}</div>
+        <div class="message-time">${time}</div>
+      </div>
+    `;
+
+    console.log('🟢 생성할 HTML:', messageHTML);
+    messageDiv.innerHTML = messageHTML;
+
+    chatArea.appendChild(messageDiv);
+    chatArea.scrollTop = chatArea.scrollHeight;
+
+    console.log('🟢 메시지 DOM에 추가 완료');
+    console.log('🟢 현재 채팅 영역 자식 수:', chatArea.children.length);
+    addLog('✅ 메시지 화면 표시 완료!');
+  }
+
+  function clearChatArea() {
+    document.getElementById('chatArea').innerHTML = '';
+  }
+
+  function disconnect() {
+    if (stompClient) {
+      stompClient.disconnect();
+      stompClient = null;
+      updateConnectionStatus(false);
+      addLog('채팅방에서 나갔습니다');
+
+      document.getElementById('chatArea').innerHTML =
+          '<div class="empty-state">🗨️ 채팅방에 입장하면 메시지가 표시됩니다</div>';
+    }
+  }
+
+  async function loadChatHistory(teamId) {
+    addLog(`📚 팀 ${teamId} 채팅 이력 로딩 중...`);
+
+    try {
+      const response = await fetch(`/api/chats/history/${teamId}`);
+      const result = await response.json();
+
+      console.log('📚 채팅 이력 응답:', result);
+
+      if (result.code === '0000' && result.data) {
+        const chatHistory = result.data;
+
+        // 기존 메시지 영역 초기화
+        clearChatArea();
+
+        // 이력 메시지들을 순서대로 표시
+        chatHistory.forEach((chatResponse, index) => {
+          console.log(`📚 이력 메시지 ${index + 1}:`, chatResponse);
+          displayMessage(chatResponse);
+        });
+
+        addLog(`✅ 채팅 이력 ${chatHistory.length}개 로드 완료`);
+
+        if (chatHistory.length === 0) {
+          addLog('💬 이전 채팅 내역이 없습니다.');
+        }
+      } else {
+        addLog(`❌ 채팅 이력 로드 실패: ${result.message || '알 수 없는 오류'}`);
+      }
+    } catch (error) {
+      console.error('📚 채팅 이력 로드 오류:', error);
+      addLog(`❌ 채팅 이력 로드 오류: ${error.message}`);
+    }
+  }
+
+  // Enter 키로 메시지 전송
+  document.getElementById('messageInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      sendMessage();
+    }
+  });
+
+  // 페이지 종료 시 연결 해제
+  window.addEventListener('beforeunload', function() {
+    if (stompClient) {
+      stompClient.disconnect();
+    }
+  });
+</script>
+</body>
+</html>

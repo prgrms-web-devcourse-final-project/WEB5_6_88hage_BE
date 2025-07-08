@@ -1,13 +1,20 @@
 package com.grepp.funfun.app.controller.web.chat;
 
+import com.grepp.funfun.app.controller.api.chat.payload.ChatResponse;
 import com.grepp.funfun.app.model.chat.dto.ChatDTO;
+import com.grepp.funfun.app.model.chat.entity.Chat;
 import com.grepp.funfun.app.model.chat.service.ChatService;
 import com.grepp.funfun.app.model.chat.entity.ChatRoom;
 import com.grepp.funfun.app.model.chat.repository.ChatRoomRepository;
 import com.grepp.funfun.util.CustomCollectors;
 import com.grepp.funfun.util.WebUtils;
 import jakarta.validation.Valid;
+import java.time.format.DateTimeFormatter;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -18,18 +25,37 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-
 @Controller
+@RequiredArgsConstructor
+@Slf4j
 @RequestMapping("/chats")
 public class ChatController {
 
     private final ChatService chatService;
     private final ChatRoomRepository chatRoomRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    public ChatController(final ChatService chatService,
-            final ChatRoomRepository chatRoomRepository) {
-        this.chatService = chatService;
-        this.chatRoomRepository = chatRoomRepository;
+    @MessageMapping("/message")
+    public void sendMessage(ChatResponse chatResponse) {
+        try{
+            Long groupId = chatResponse.getGroupId();
+
+            Chat savedChat = chatService.saveChatMessage(chatResponse);
+            chatResponse.setChatId(savedChat.getId());
+            chatResponse.setTime(savedChat.getCreatedAt().format(DateTimeFormatter.ofPattern("HH:mm")));
+            log.info("==========DB 저장완료===========");
+
+            messagingTemplate.convertAndSend("/room/" + groupId, chatResponse);
+            log.info("/room/{} 메시지 전송 완료", groupId);
+
+        } catch (Exception e) {
+            log.error("메시지 처리 중 오류 발생: groupId={}, error={}",
+                chatResponse.getGroupId(), e.getMessage(), e);
+        }
+    }
+    @GetMapping("/test")
+    public String test(){
+        return "chat/chatTest";
     }
 
     @ModelAttribute
@@ -38,6 +64,7 @@ public class ChatController {
                 .stream()
                 .collect(CustomCollectors.toSortedMap(ChatRoom::getId, ChatRoom::getId)));
     }
+
 
     @GetMapping
     public String list(final Model model) {

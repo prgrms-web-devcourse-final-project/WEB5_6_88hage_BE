@@ -73,13 +73,13 @@ public class Group extends BaseEntity {
     @JoinColumn(name = "leader_id", nullable = false)
     private User leader;
 
-    @OneToMany(mappedBy = "group")
+    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Participant> participants;
 
     @OneToOne(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
     private ChatRoom chatRoom;
 
-    @OneToMany(mappedBy = "group")
+    @OneToMany(mappedBy = "group",cascade = CascadeType.ALL)
     private List<GroupHashtag> hashtags;
 
 }
