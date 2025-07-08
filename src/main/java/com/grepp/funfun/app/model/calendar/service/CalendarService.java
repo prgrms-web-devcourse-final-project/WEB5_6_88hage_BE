@@ -1,6 +1,7 @@
 package com.grepp.funfun.app.model.calendar.service;
 
 import com.grepp.funfun.app.controller.api.calendar.payload.CalendarContentRequest;
+import com.grepp.funfun.app.controller.api.calendar.payload.CalendarDailyResponse;
 import com.grepp.funfun.app.controller.api.calendar.payload.CalendarMonthlyResponse;
 import com.grepp.funfun.app.model.calendar.code.ActivityType;
 import com.grepp.funfun.app.model.calendar.dto.CalendarDTO;
@@ -12,10 +13,12 @@ import com.grepp.funfun.app.model.group.entity.Group;
 import com.grepp.funfun.app.model.group.repository.GroupRepository;
 import com.grepp.funfun.infra.error.exceptions.CommonException;
 import com.grepp.funfun.infra.response.ResponseCode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.YearMonth;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
@@ -86,6 +89,22 @@ public class CalendarService {
         List<CalendarMonthlyResponse> result = new ArrayList<>();
         result.addAll(contentList);
         result.addAll(groupList);
+
+        return result;
+    }
+
+    public List<CalendarDailyResponse> getDaily(String email, LocalDate date) {
+        LocalDateTime start = date.atStartOfDay();
+        LocalDateTime end = start.plusDays(1).minusNanos(1);
+
+        List<CalendarDailyResponse> content = calendarRepository.findDailyContentCalendars(email, start, end);
+        List<CalendarDailyResponse> group = calendarRepository.findDailyGroupCalendars(email, start, end);
+
+        List<CalendarDailyResponse> result = new ArrayList<>();
+        result.addAll(content);
+        result.addAll(group);
+        // 오름차순 정렬
+        result.sort(Comparator.comparing(CalendarDailyResponse::getSelectedDate));
 
         return result;
     }
