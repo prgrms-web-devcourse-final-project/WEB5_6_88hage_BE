@@ -54,7 +54,7 @@ public class ParticipantApiController {
     }
 
     // 참여 신청
-    @PostMapping("/apply/{groupId}")
+    @PostMapping("/{groupId}/apply")
     @Operation(summary = "모임 신청", description = "그룹 ID 와 사용자 Email 을 통해 모임 신청.")
     public ResponseEntity<ApiResponse<String>> applyGroup(
         @PathVariable Long groupId,
@@ -74,7 +74,7 @@ public class ParticipantApiController {
     }
 
     // 참여 승인
-    @PostMapping("/approve/{groupId}")
+    @PostMapping("/{groupId}/approve")
     @Operation(summary = "모임 참여 승인", description = "userEmails 로 여러 대상의 사용자를 받아서 승인 처리")
     public ResponseEntity<ApiResponse<String>> approveParticipant(@PathVariable Long groupId,
         @RequestBody List<String> userEmails,
@@ -95,7 +95,7 @@ public class ParticipantApiController {
     }
 
     // 참여 거절
-    @PostMapping("/reject/{groupId}")
+    @PostMapping("/{groupId}/reject")
     @Operation(summary = "모임 참여 거절", description = "userEmails 로 여러 대상의 사용자를 받아서 승인 거절")
     public ResponseEntity<ApiResponse<String>> rejectParticipant(@PathVariable Long groupId,
         @RequestBody List<String> userEmails,
@@ -116,7 +116,7 @@ public class ParticipantApiController {
     }
 
     // 참여자 강퇴
-    @PostMapping("/kickout/{groupId}/{userEmail}")
+    @PostMapping("/{groupId}/{userEmail}/kickout")
     @Operation(summary = "모임 참여자 강퇴", description = "모임 참여자를 강제퇴장")
     public ResponseEntity<ApiResponse<String>> kickoutParticipant(@PathVariable Long groupId,
         @PathVariable String userEmail,
@@ -137,7 +137,7 @@ public class ParticipantApiController {
     }
 
     // 모임 나가기
-    @PostMapping("/leave/{groupId}")
+    @PostMapping("/{groupId}/leave")
     @Operation(summary = "모임 나가기", description = "모임에서 나가기")
     public ResponseEntity<ApiResponse<String>> leaveParticipant(@PathVariable Long groupId,
         Authentication authentication) {
@@ -155,7 +155,6 @@ public class ParticipantApiController {
 
     }
 
-
     @GetMapping
     public ResponseEntity<List<ParticipantDTO>> getAllParticipants() {
         return ResponseEntity.ok(participantService.findAll());
@@ -164,26 +163,6 @@ public class ParticipantApiController {
     @GetMapping("/{id}")
     public ResponseEntity<ParticipantDTO> getParticipant(@PathVariable(name = "id") final Long id) {
         return ResponseEntity.ok(participantService.get(id));
-    }
-
-    @PostMapping
-    public ResponseEntity<Long> createParticipant(
-        @RequestBody @Valid final ParticipantDTO participantDTO) {
-        final Long createdId = participantService.create(participantDTO);
-        return new ResponseEntity<>(createdId, HttpStatus.CREATED);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Long> updateParticipant(@PathVariable(name = "id") final Long id,
-        @RequestBody @Valid final ParticipantDTO participantDTO) {
-        participantService.update(id, participantDTO);
-        return ResponseEntity.ok(id);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteParticipant(@PathVariable(name = "id") final Long id) {
-        participantService.delete(id);
-        return ResponseEntity.noContent().build();
     }
 
 }
