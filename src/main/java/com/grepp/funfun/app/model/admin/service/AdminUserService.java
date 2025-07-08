@@ -2,19 +2,26 @@ package com.grepp.funfun.app.model.admin.service;
 
 import com.grepp.funfun.app.model.user.code.UserStatus;
 import com.grepp.funfun.app.model.user.dto.UserDTO;
+import com.grepp.funfun.app.model.user.entity.User;
+import com.grepp.funfun.app.model.user.repository.UserRepository;
 import com.grepp.funfun.app.model.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdminUserService {
 
     private final UserService userService;
+    private final UserRepository userRepository;
 
     // admin 유저 조회
     public UserDTO getAuthenticatedUser(Authentication authentication) {
@@ -49,6 +56,34 @@ public class AdminUserService {
         user.setDueReason(reason);
 
         userService.update(email, user);
+    }
+
+    // 매일 새벽 6시에 일시정지 만료 유저 자동 복구
+    @Scheduled(cron = "0 0 6 * * ?")
+    @Transactional
+    public void autoUnsuspendedUser() {
+        List<User> suspendedUsers = userRepository.findAllByStatus(UserStatus.SUSPENDED);
+        LocalDate today = LocalDate.now();
+
+        int updatedCount = 0;
+
+        // duedate 가 오늘 or 이후인 경우에 정지 해제
+        for(User user : suspendedUsers) {
+            if(user.getDueDate() != null && !user.getDueDate().isAfter(today)) {
+                user.setStatus(UserStatus.ACTIVE);
+                user.setDueDate(null);
+                user.setSuspendDuration(null);
+                user.setDueReason(null);
+                updatedCount++;
+            }
+        }
+
+        if(updatedCount > 0) {
+            userRepository.saveAll(suspendedUsers);
+            log.info("자동 정지 해제 : {}명", updatedCount);
+        } else {
+            log.info("자동 정지 해제 대상 없음");
+        }
     }
 
     // 닉네임으로 유저 찾기

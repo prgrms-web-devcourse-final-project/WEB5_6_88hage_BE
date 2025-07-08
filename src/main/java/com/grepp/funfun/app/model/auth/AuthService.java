@@ -51,21 +51,23 @@ public class AuthService {
             throw new CommonException(ResponseCode.USER_NOT_VERIFY);
         }
 
-        // 정지 당한 사용자
-        if (user.getStatus() != UserStatus.ACTIVE) {
-            if (user.getDueDate() == null || user.getDueDate().isAfter(java.time.LocalDate.now())) {
-                throw new CommonException(ResponseCode.USER_SUSPENDED, user.getDueReason());
-            } else {
+        // 영구 정지된 사용자
+        if (user.getStatus() == UserStatus.BANNED) {
+            throw new CommonException(ResponseCode.USER_BANNED, "정지 사유: " + user.getDueReason());
+        }
+
+        // 일시 정지된 사용자
+        if (user.getStatus() == UserStatus.SUSPENDED) {
+            if (user.getDueDate() != null && !user.getDueDate().isAfter(java.time.LocalDate.now())) {
                 user.setStatus(UserStatus.ACTIVE);
                 user.setDueDate(null);
                 user.setSuspendDuration(null);
                 user.setDueReason(null);
                 userRepository.save(user);
+            } else {
+                throw new CommonException(ResponseCode.USER_SUSPENDED, "정지 사유: " + user.getDueReason());
             }
         }
-         if (user.getStatus() == UserStatus.BANNED) {
-             throw new CommonException(ResponseCode.USER_BANNED, user.getDueReason());
-         }
 
         // 비활성화한 사용자 (Soft Delete)
         if (!user.getActivated()) {
