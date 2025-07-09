@@ -5,16 +5,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.grepp.funfun.app.model.chat.repository.ChatRoomRepository;
+import com.grepp.funfun.app.model.calendar.service.CalendarService;
 import com.grepp.funfun.app.model.group.code.GroupStatus;
 import com.grepp.funfun.app.model.group.entity.Group;
-import com.grepp.funfun.app.model.group.repository.GroupHashtagRepository;
 import com.grepp.funfun.app.model.group.repository.GroupRepository;
 import com.grepp.funfun.app.model.participant.code.ParticipantStatus;
 import com.grepp.funfun.app.model.participant.entity.Participant;
 import com.grepp.funfun.app.model.participant.repository.ParticipantRepository;
 import com.grepp.funfun.app.model.user.entity.User;
-import com.grepp.funfun.app.model.user.repository.UserRepository;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -32,6 +30,9 @@ public class ParticipantServiceTest {
     @Mock
     private ParticipantRepository participantRepository;
 
+    @Mock
+    private CalendarService calendarService;
+
     // InjectMocks
     // 테스트 대상인 실제 Service 객체를 생성
     @InjectMocks
@@ -44,6 +45,7 @@ public class ParticipantServiceTest {
         String leaderEmail = "test@aaa.aaa";
         String pendingEmail = "testPending@aaa.aaa";
 
+        // 로그인
         User mockLeader = new User();
         mockLeader.setEmail(leaderEmail);
 

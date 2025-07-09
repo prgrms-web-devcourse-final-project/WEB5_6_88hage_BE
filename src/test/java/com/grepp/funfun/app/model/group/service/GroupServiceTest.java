@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.grepp.funfun.app.controller.api.group.payload.GroupRequest;
+import com.grepp.funfun.app.model.calendar.service.CalendarService;
 import com.grepp.funfun.app.model.chat.entity.ChatRoom;
 import com.grepp.funfun.app.model.chat.repository.ChatRoomRepository;
 import com.grepp.funfun.app.model.group.code.GroupClassification;
@@ -51,10 +52,13 @@ public class GroupServiceTest {
     @Mock
     private ParticipantRepository participantRepository;
 
+    @Mock
+    private CalendarService calendarService;
     // InjectMocks
     // 테스트 대상인 실제 Service 객체를 생성
     @InjectMocks
     private GroupService groupService;
+
 
     @Test
     public void createGroupTest() {
