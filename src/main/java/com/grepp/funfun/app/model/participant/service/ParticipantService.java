@@ -10,11 +10,13 @@ import com.grepp.funfun.app.model.participant.code.ParticipantStatus;
 import com.grepp.funfun.app.model.participant.dto.ParticipantDTO;
 import com.grepp.funfun.app.model.participant.entity.Participant;
 import com.grepp.funfun.app.model.participant.repository.ParticipantRepository;
+import com.grepp.funfun.app.model.user.code.UserStatus;
 import com.grepp.funfun.app.model.user.entity.User;
 import com.grepp.funfun.app.model.user.repository.UserRepository;
 import com.grepp.funfun.infra.error.exceptions.CommonException;
 import com.grepp.funfun.infra.response.ResponseCode;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,12 +53,24 @@ public class ParticipantService {
             throw new CommonException(ResponseCode.BAD_REQUEST);
         }
 
-        // 중복 신청
-        boolean alreadyApplied = participantRepository.existsByUserAndGroup(user,group);
-        if(alreadyApplied){
-            throw new CommonException(ResponseCode.BAD_REQUEST);
+        // 기존 참여 이력 확인
+        Optional<Participant> existingParticipant = participantRepository.findByUserAndGroup(user, group);
+
+        if (existingParticipant.isPresent()) {
+            ParticipantStatus status = existingParticipant.get().getStatus();
+
+            switch (status) {
+                case PENDING -> throw new CommonException(ResponseCode.BAD_REQUEST, "이미 신청한 모임입니다.");
+                case APPROVED -> throw new CommonException(ResponseCode.BAD_REQUEST, "이미 참여 중인 모임입니다.");
+                case GROUP_KICKOUT -> throw new CommonException(ResponseCode.BAD_REQUEST, "강제퇴장으로 인해 참여할 수 없습니다.");
+                case LEAVE -> {
+                    existingParticipant.get().setStatus(ParticipantStatus.PENDING);
+                    return;
+                }
+            }
         }
 
+        //todo : 프론트 확인 필요
 //        // 모임 시간 체크
 //        if(group.getGroupDate().isBefore(LocalDateTime.now())){
 //            throw new CommonException(ResponseCode.BAD_REQUEST);
@@ -89,7 +103,11 @@ public class ParticipantService {
         // 리더 검증
         User leader = group.getLeader();
 
-        if (!leader.getEmail().equals(leaderEmail) || !leader.getActivated()) {
+        if (!leader.getEmail().equals(leaderEmail)) {
+            throw new CommonException(ResponseCode.UNAUTHORIZED);
+        }
+
+        if(leader.getStatus() == UserStatus.SUSPENDED || leader.getStatus() == UserStatus.BANNED){
             throw new CommonException(ResponseCode.UNAUTHORIZED);
         }
 
@@ -121,13 +139,13 @@ public class ParticipantService {
     //참여 거절
     @Transactional
     public void rejectParticipant(Long groupId, List<String> userEmails, String leaderEmail) {
-        // 1. 그룹 존재 확인
+        // 1. 모임 존재 확인
         Group group = groupRepository.findById(groupId)
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
 
         // 2. 활성화 상태 확인
         if (!group.getActivated()) {
-            throw new CommonException(ResponseCode.USER_SUSPENDED); // 또는 적절한 에러코드
+            throw new CommonException(ResponseCode.NOT_FOUND); // 또는 적절한 에러코드
         }
 
         // 3. 리더 검증
@@ -150,13 +168,13 @@ public class ParticipantService {
     //모임 강퇴
     @Transactional
     public void kickOut(Long groupId, String targetEmail, String leaderEmail) {
-        // 1. 그룹 존재 확인
+        // 1. 모임 존재 확인
         Group group = groupRepository.findById(groupId)
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
 
         // 2. 활성화 상태 확인
         if (!group.getActivated()) {
-            throw new CommonException(ResponseCode.USER_SUSPENDED); // 또는 적절한 에러코드
+            throw new CommonException(ResponseCode.NOT_FOUND);
         }
 
         // 3. 리더 검증
@@ -176,6 +194,10 @@ public class ParticipantService {
 
         group.setNowPeople(group.getNowPeople() - 1);
 
+        if(group.getMaxPeople()>group.getNowPeople()){
+            group.setStatus(GroupStatus.RECRUITING);
+        }
+
         participantRepository.save(participant);
 
         // 추방된 사용자의 캘린더 모임 일정 제거
@@ -194,10 +216,13 @@ public class ParticipantService {
             .orElseThrow(()-> new CommonException(ResponseCode.NOT_FOUND));
 
         // 3. 모임 나가기 : 비활성화 처리 + LEAVE 처리
-        participant.unActivated();
         participant.setStatus(ParticipantStatus.LEAVE);
 
         group.setNowPeople(group.getNowPeople() - 1);
+
+        if(group.getMaxPeople()>group.getNowPeople()){
+            group.setStatus(GroupStatus.RECRUITING);
+        }
 
         participantRepository.save(participant);
 
@@ -214,7 +239,7 @@ public class ParticipantService {
 
         // 2. 활성화 상태 확인
         if (!group.getActivated()) {
-            throw new CommonException(ResponseCode.USER_SUSPENDED); // 또는 적절한 에러코드
+            throw new CommonException(ResponseCode.BAD_REQUEST);
         }
         List<Participant> participants = participantRepository.findTruePendingMembers(groupId);
 
@@ -232,7 +257,7 @@ public class ParticipantService {
 
         // 2. 활성화 상태 확인
         if (!group.getActivated()) {
-            throw new CommonException(ResponseCode.USER_SUSPENDED); // 또는 적절한 에러코드
+            throw new CommonException(ResponseCode.NOT_FOUND);
         }
 
         List<Participant> participants = participantRepository.findTrueApproveMembers(groupId);
