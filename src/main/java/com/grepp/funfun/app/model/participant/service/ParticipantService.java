@@ -1,6 +1,7 @@
 package com.grepp.funfun.app.model.participant.service;
 
 import com.grepp.funfun.app.controller.api.participant.payload.ParticipantResponse;
+import com.grepp.funfun.app.model.calendar.service.CalendarService;
 import com.grepp.funfun.app.model.group.code.GroupStatus;
 import com.grepp.funfun.app.model.group.entity.Group;
 import com.grepp.funfun.app.model.group.repository.GroupRepository;
@@ -30,6 +31,7 @@ public class ParticipantService {
     private final ParticipantRepository participantRepository;
     private final UserRepository userRepository;
     private final GroupRepository groupRepository;
+    private final CalendarService calendarService;
 
     //모임 참여 신청
     @Transactional
@@ -102,6 +104,8 @@ public class ParticipantService {
             Participant participant = participantRepository.findByGroupIdAndUserEmail(groupId,userEmail).orElseThrow(()-> new CommonException(ResponseCode.NOT_FOUND));
             log.info(participant.toString());
             participant.setStatus(ParticipantStatus.APPROVED);
+            // 모임 생성 시 참여자의 캘린더에 자동으로 일정 추가하기
+            calendarService.addGroupCalendar(userEmail, group);
         }
         // 인원 수 변경
         group.setNowPeople(group.getNowPeople() + userEmails.size());
@@ -173,6 +177,9 @@ public class ParticipantService {
         group.setNowPeople(group.getNowPeople() - 1);
 
         participantRepository.save(participant);
+
+        // 추방된 사용자의 캘린더 모임 일정 제거
+        calendarService.deleteGroupCalendarForUser(targetEmail, groupId);
     }
 
     // 모임 나가기
@@ -193,6 +200,9 @@ public class ParticipantService {
         group.setNowPeople(group.getNowPeople() - 1);
 
         participantRepository.save(participant);
+
+        // 나간 사용자의 캘린더 모임 일정 제거
+        calendarService.deleteGroupCalendarForUser(userEmail, groupId);
     }
 
     // 모임 신청한 사용자 조회
