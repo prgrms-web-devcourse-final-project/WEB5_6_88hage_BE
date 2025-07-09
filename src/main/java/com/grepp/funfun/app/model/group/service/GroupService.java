@@ -20,6 +20,7 @@ import com.grepp.funfun.app.model.participant.code.ParticipantRole;
 import com.grepp.funfun.app.model.participant.code.ParticipantStatus;
 import com.grepp.funfun.app.model.participant.entity.Participant;
 import com.grepp.funfun.app.model.participant.repository.ParticipantRepository;
+import com.grepp.funfun.app.model.user.code.UserStatus;
 import com.grepp.funfun.app.model.user.entity.User;
 import com.grepp.funfun.app.model.user.repository.UserRepository;
 import com.grepp.funfun.infra.error.exceptions.CommonException;
@@ -82,8 +83,9 @@ public class GroupService {
 
         User leader = userRepository.findByEmail(leaderEmail);
 
-        if (leader == null || !leader.getActivated()) {
-            throw new CommonException(ResponseCode.NOT_FOUND);
+        if (leader == null) throw new CommonException(ResponseCode.NOT_FOUND);
+        if(leader.getStatus() == UserStatus.SUSPENDED || leader.getStatus() == UserStatus.BANNED) {
+            throw new CommonException(ResponseCode.UNAUTHORIZED);
         }
         Group savedGroup = groupRepository.save(request.toEntity(leader));
 
@@ -211,13 +213,18 @@ public class GroupService {
         // 그룹 존재 확인
         Group group = groupRepository.findById(groupId)
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+
         // 리더인지 확인
         User leader = group.getLeader();
+
+        log.info(String.valueOf(leader.getStatus()));
+        log.info(String.valueOf(leader.getEmail()));
+
         if (!leader.getEmail().equals(leaderEmail)) {
             throw new CommonException(ResponseCode.UNAUTHORIZED);
         }
         // 사용자로 false (정지 당한 사람이 아닌지)
-        if (!leader.getActivated()) {
+        if (leader.getStatus() == UserStatus.SUSPENDED || leader.getStatus() == UserStatus.BANNED) {
             throw new CommonException(ResponseCode.UNAUTHORIZED);
         }
         return group;
