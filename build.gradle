@@ -1,0 +1,134 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.4.4'
+    id 'io.spring.dependency-management' version '1.1.6'
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+group = 'com.grepp'
+version = '0.0.1-SNAPSHOT'
+description = 'springboot-thymeleaf'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+// QueryDSL 생성된 소스 경로
+def generated = "$buildDir/generated/sources/annotationProcessor/java/main"
+
+sourceSets {
+    main {
+        java {
+            srcDirs += [generated]
+        }
+    }
+}
+
+//clean {
+//    delete file(generated)
+//}
+
+dependencies {
+    // BOM (Bill of Materials) 임포트
+    implementation platform('org.springframework.cloud:spring-cloud-dependencies:2024.0.1')
+    implementation platform('com.google.cloud:spring-cloud-gcp-dependencies:6.2.2')
+
+    // Spring Boot Starters
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    // Configuration Processor
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+    // Database Driver
+    implementation 'org.postgresql:postgresql:42.7.7'
+
+    // LLM (LangChain4j)
+    implementation 'dev.langchain4j:langchain4j-google-ai-gemini-spring-boot-starter:1.0.0-beta3'
+    implementation 'dev.langchain4j:langchain4j-spring-boot-starter:1.0.0-beta3'
+    implementation 'dev.langchain4j:langchain4j-embeddings-all-minilm-l6-v2:1.0.0-beta3'
+    implementation 'dev.langchain4j:langchain4j-mongodb-atlas:1.0.0-beta3'
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok:1.18.32'
+    annotationProcessor 'org.projectlombok:lombok:1.18.32'
+    testCompileOnly 'org.projectlombok:lombok:1.18.32'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.32'
+
+    // QueryDSL
+    implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+    annotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta'
+    annotationProcessor 'jakarta.persistence:jakarta.persistence-api:3.1.0'
+    annotationProcessor 'jakarta.annotation:jakarta.annotation-api:2.1.1'
+
+    // ModelMapper
+    implementation 'org.modelmapper:modelmapper:3.2.2'
+
+    // Google Cloud
+    implementation 'com.google.cloud:google-cloud-storage'
+    implementation 'com.google.cloud:spring-cloud-gcp-starter-secretmanager'
+
+    // Spring Cloud OpenFeign
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
+    // XML Processing
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml'
+
+    // JWT
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+
+    // OpenAPI (Swagger)
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5'
+
+    // Thymeleaf Layout Dialect
+    implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect'
+
+    // WebJars (Bootstrap)
+    implementation 'org.webjars:bootstrap:5.3.7'
+
+    // Development Tools
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    // Test Dependencies
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+}
+
+// **가장 중요한 테스트 설정!**
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
+        showExceptions true
+        showCauses true
+        showStackTraces true
+    }
+}
+
+// 인코딩 설정
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+tasks.withType(Javadoc) {
+    options.encoding = 'UTF-8'
+}
+
+// 빌드 시 테스트 실행 설정
+check.dependsOn test
