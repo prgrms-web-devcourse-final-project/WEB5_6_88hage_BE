@@ -11,8 +11,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseCookie;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -39,13 +37,8 @@ public class LogoutFilter extends OncePerRequestFilter {
         
         if(path.equals("/auth/logout")){
             refreshTokenService.deleteByAccessTokenId(claims.getId());
-            SecurityContextHolder.clearContext();
-            ResponseCookie expiredAccessToken = TokenCookieFactory.createExpiredToken(AuthToken.ACCESS_TOKEN.name());
-            ResponseCookie expiredRefreshToken = TokenCookieFactory.createExpiredToken(AuthToken.REFRESH_TOKEN.name());
-            ResponseCookie expiredSessionId = TokenCookieFactory.createExpiredToken(AuthToken.AUTH_SERVER_SESSION_ID.name());
-            response.addHeader("Set-Cookie", expiredAccessToken.toString());
-            response.addHeader("Set-Cookie", expiredRefreshToken.toString());
-            response.addHeader("Set-Cookie", expiredSessionId.toString());
+            TokenCookieFactory.setAllExpiredCookies(response);
+            // NOTE: 프론트 측 URI 로 변경 필요
             response.sendRedirect("/");
         }
         

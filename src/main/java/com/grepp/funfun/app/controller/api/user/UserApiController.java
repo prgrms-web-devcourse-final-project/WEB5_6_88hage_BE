@@ -1,14 +1,13 @@
 package com.grepp.funfun.app.controller.api.user;
 
 import com.grepp.funfun.app.controller.api.auth.payload.TokenResponse;
-import com.grepp.funfun.app.controller.api.user.payload.NicknameRequest;
 import com.grepp.funfun.app.controller.api.user.payload.ChangePasswordRequest;
+import com.grepp.funfun.app.controller.api.user.payload.NicknameRequest;
 import com.grepp.funfun.app.controller.api.user.payload.OAuth2SignupRequest;
 import com.grepp.funfun.app.controller.api.user.payload.SignupRequest;
 import com.grepp.funfun.app.controller.api.user.payload.VerifyCodeRequest;
 import com.grepp.funfun.app.model.auth.code.AuthToken;
 import com.grepp.funfun.app.model.auth.dto.TokenDto;
-import com.grepp.funfun.app.model.user.dto.UserDTO;
 import com.grepp.funfun.app.model.user.service.UserService;
 import com.grepp.funfun.infra.auth.jwt.JwtTokenProvider;
 import com.grepp.funfun.infra.auth.jwt.TokenCookieFactory;
@@ -20,19 +19,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -48,36 +42,19 @@ public class UserApiController {
     private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
 
-    @GetMapping
-    public ResponseEntity<List<UserDTO>> getAllUsers() {
-        return ResponseEntity.ok(userService.findAll());
-    }
-
-    @GetMapping("/{email}")
-    public ResponseEntity<UserDTO> getUser(@PathVariable(name = "email") final String email) {
-        return ResponseEntity.ok(userService.get(email));
-    }
-
-    @PostMapping
+    @PostMapping("/signup")
     @Operation(summary = "회원가입", description = "회원가입을 진행 후 인증 메일을 발송합니다.")
     public ResponseEntity<ApiResponse<String>> createUser(@RequestBody @Valid SignupRequest request) {
         String createdEmail = userService.create(request);
         return ResponseEntity.ok(ApiResponse.success(createdEmail));
     }
 
-    @PatchMapping("/oauth2")
+    @PatchMapping("/signup/oauth2")
     @Operation(summary = "OAuth2 회원가입", description = "소셜 로그인 대상의 추가 정보를 입력 받습니다.")
     public ResponseEntity<ApiResponse<String>> updateOAuth2User(@RequestBody @Valid OAuth2SignupRequest request, Authentication authentication) {
         String email = authentication.getName();
         userService.updateOAuth2User(email, request);
         return ResponseEntity.ok(ApiResponse.success(email));
-    }
-
-    @PutMapping("/{email}")
-    public ResponseEntity<String> updateUser(@PathVariable(name = "email") final String email,
-            @RequestBody @Valid final UserDTO userDTO) {
-        userService.update(email, userDTO);
-        return ResponseEntity.ok('"' + email + '"');
     }
 
     @PatchMapping
@@ -97,13 +74,7 @@ public class UserApiController {
         String email = authentication.getName();
         userService.unActive(email, accessTokenId);
 
-        SecurityContextHolder.clearContext();
-        ResponseCookie expiredAccessToken = TokenCookieFactory.createExpiredToken(AuthToken.ACCESS_TOKEN.name());
-        ResponseCookie expiredRefreshToken = TokenCookieFactory.createExpiredToken(AuthToken.REFRESH_TOKEN.name());
-        ResponseCookie expiredSessionId = TokenCookieFactory.createExpiredToken(AuthToken.AUTH_SERVER_SESSION_ID.name());
-        response.addHeader("Set-Cookie", expiredAccessToken.toString());
-        response.addHeader("Set-Cookie", expiredRefreshToken.toString());
-        response.addHeader("Set-Cookie", expiredSessionId.toString());
+        TokenCookieFactory.setAllExpiredCookies(response);
 
         return ResponseEntity.ok(ApiResponse.success("회원 탈퇴되었습니다."));
     }
@@ -112,14 +83,7 @@ public class UserApiController {
     @Operation(summary = "회원가입 이메일 인증", description = "회원가입 이메일 인증을 진행합니다.<br>자동으로 로그인됩니다.")
     public ResponseEntity<ApiResponse<TokenResponse>> verifySignup(@RequestParam("code") String code,  HttpServletResponse response) {
         TokenDto tokenDto = userService.verifySignupCode(code);
-
-        ResponseCookie accessToken = TokenCookieFactory.create(AuthToken.ACCESS_TOKEN.name(),
-            tokenDto.getAccessToken(), tokenDto.getRefreshExpiresIn());
-        ResponseCookie refreshToken = TokenCookieFactory.create(AuthToken.REFRESH_TOKEN.name(),
-            tokenDto.getRefreshToken(), tokenDto.getRefreshExpiresIn());
-
-        response.addHeader("Set-Cookie", accessToken.toString());
-        response.addHeader("Set-Cookie", refreshToken.toString());
+        TokenCookieFactory.setAllAuthCookies(response, tokenDto);
 
         return ResponseEntity.ok(ApiResponse.success(TokenResponse.builder().
             accessToken(tokenDto.getAccessToken())

@@ -29,20 +29,22 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    
+
     private final RefreshTokenService refreshTokenService;
     private final UserBlackListRepository userBlackListRepository;
     private final JwtTokenProvider jwtTokenProvider;
-    
+
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         List<String> excludePath = new ArrayList<>();
-        excludePath.addAll(List.of("/auth/signup", "/auth/login",  "/favicon.ico", "/img", "/js","/css","/download"));
-        excludePath.addAll(List.of("/error", "/api/member/exists", "/member/signin", "/member/signup"));
+        excludePath.addAll(List.of("/error", "/favicon.ico", "/img", "/js", "/css"));
+        excludePath.addAll(List.of("/auth/login", "/oauth2/authorization", "/login/oauth2/code",
+            "/api/users/signup", "/api/users/verify/signup", "/api/users/send/signup",
+            "/api/users/send/code", "/api/users/verify/code", "/api/users/verify/nickname"));
         String path = request.getRequestURI();
         return excludePath.stream().anyMatch(path::startsWith);
     }
-    
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
         FilterChain filterChain) throws ServletException, IOException {
@@ -51,7 +53,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        
+
         try {
             if (jwtTokenProvider.validateToken(accessToken, request)) {
                 Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
@@ -66,48 +68,52 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         filterChain.doFilter(request, response);
     }
-    
+
     private void manageTokenRefresh(
         String accessToken,
         HttpServletRequest request,
         HttpServletResponse response) throws IOException {
-        
-        Claims claims  = jwtTokenProvider.getClaims(accessToken);
+
+        Claims claims = jwtTokenProvider.getClaims(accessToken);
         if (userBlackListRepository.existsById(claims.getSubject())) {
             return;
         }
-        
+
         String refreshToken = jwtTokenProvider.resolveToken(request, AuthToken.REFRESH_TOKEN);
         RefreshToken rt = refreshTokenService.findByAccessTokenId(claims.getId());
-        
-        if(rt == null) return;
-        
+
+        if (rt == null) {
+            return;
+        }
+
         if (!rt.getToken().equals(refreshToken)) {
             userBlackListRepository.save(new UserBlackList(claims.getSubject()));
             throw new CommonException(ResponseCode.SECURITY_INCIDENT);
         }
-        
+
         addToken(response, claims, rt);
     }
-    
+
     private void addToken(HttpServletResponse response, Claims claims, RefreshToken refreshToken) {
         String username = claims.getSubject();
         AccessTokenDto newAccessToken = jwtTokenProvider.generateAccessToken(username,
             (String) claims.get("roles"));
-        Authentication authentication = jwtTokenProvider.getAuthentication(newAccessToken.getToken());
-        
+        Authentication authentication = jwtTokenProvider.getAuthentication(
+            newAccessToken.getToken());
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        
-        RefreshToken newRefreshToken = refreshTokenService.renewingToken(refreshToken.getAtId(), newAccessToken.getJti());
-        
+
+        RefreshToken newRefreshToken = refreshTokenService.renewingToken(refreshToken.getAtId(),
+            newAccessToken.getJti());
+
         ResponseCookie accessTokenCookie = TokenCookieFactory.create(AuthToken.ACCESS_TOKEN.name(),
             newAccessToken.getToken(), newRefreshToken.getTtl());
-        
+
         ResponseCookie refreshTokenCookie = TokenCookieFactory.create(
             AuthToken.REFRESH_TOKEN.name(),
             newRefreshToken.getToken(),
             newRefreshToken.getTtl());
-        
+
         response.addHeader("Set-Cookie", accessTokenCookie.toString());
         response.addHeader("Set-Cookie", refreshTokenCookie.toString());
     }
