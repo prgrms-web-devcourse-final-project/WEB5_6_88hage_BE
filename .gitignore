@@ -170,6 +170,9 @@ buildNumber.properties
 **/build/
 !src/**/build/
 
+# Ignore Gradle properties
+gradle.properties
+
 # Ignore Gradle GUI config
 gradle-app.setting
 
@@ -194,3 +197,4 @@ gradle-app.setting
 
 spring.iml
 .DS_Store
+
