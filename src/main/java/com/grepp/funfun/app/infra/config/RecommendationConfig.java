@@ -18,15 +18,15 @@ import org.springframework.context.annotation.Configuration;
 public class RecommendationConfig {
 
 
-    @Bean(name = "chatModel")
-    public ChatLanguageModel chatModel() {
-        return GoogleAiGeminiChatModel.builder()
-            .apiKey("AIzaSyCoJ8iF8VWMM084BiTUFhZtcYZFdYZNdKI")
-            .modelName("gemini-2.0-flash-lite")
-            .logRequestsAndResponses(true)
-            .maxOutputTokens(1000)
-            .build();
-    }
+//    @Bean(name = "chatModel")
+//    public ChatLanguageModel chatModel() {
+//        return GoogleAiGeminiChatModel.builder()
+//            .apiKey("AIzaSyCoJ8iF8VWMM084BiTUFhZtcYZFdYZNdKI")
+//            .modelName("gemini-2.0-flash-lite")
+//            .logRequestsAndResponses(true)
+//            .maxOutputTokens(1000)
+//            .build();
+//    }
 
     // 임베딩 모델 정의
     // 문장 -> 벡터로
@@ -42,19 +42,19 @@ public class RecommendationConfig {
 
         Boolean createIndex = true;
         IndexMapping indexMapping = IndexMapping.builder()
-            .dimension(embeddingModel.dimension())
-            .metadataFieldNames(new HashSet<>())
-            .build();
+                                                .dimension(embeddingModel.dimension())
+                                                .metadataFieldNames(new HashSet<>())
+                                                .build();
 
         // 벡터 기반 RAG/추천 시스템이 동작할 수 있게 builder 패턴으로 생성
         return MongoDbEmbeddingStore.builder()
-            .databaseName("llm")
-            .collectionName("restaurants")
-            .createIndex(createIndex)
-            .indexName("vector_index")
-            .indexMapping(indexMapping)
-            .fromClient(mongoClient)
-            .build();
+                                    .databaseName("funfun")
+                                    .collectionName("contents")
+                                    .createIndex(createIndex)
+                                    .indexName("vector_index")
+                                    .indexMapping(indexMapping)
+                                    .fromClient(mongoClient)
+                                    .build();
     }
 
     // RAG 방식 검색, 추천 시스템, 유사 문장 검색 활용하기 위한 컴포넌트
@@ -64,11 +64,11 @@ public class RecommendationConfig {
         EmbeddingModel embeddingModel
     ){
         return EmbeddingStoreContentRetriever.builder()
-            .embeddingStore(embeddingStore)
-            .embeddingModel(embeddingModel)
-            .maxResults(100)
-            .minScore(0.7)
-            .build();
+                                             .embeddingStore(embeddingStore)
+                                             .embeddingModel(embeddingModel)
+                                             .maxResults(100)
+                                             .minScore(0.7)
+                                             .build();
     }
 
 }
