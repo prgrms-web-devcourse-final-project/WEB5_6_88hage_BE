@@ -1,22 +1,16 @@
 package com.grepp.funfun.app.domain.preference.service;
 
-import com.grepp.funfun.app.domain.group.vo.GroupClassification;
 import com.grepp.funfun.app.domain.preference.dto.GroupPreferenceDTO;
-import com.grepp.funfun.app.domain.preference.dto.payload.GroupPreferenceRequest;
 import com.grepp.funfun.app.domain.preference.entity.GroupPreference;
 import com.grepp.funfun.app.domain.preference.repository.GroupPreferenceRepository;
 import com.grepp.funfun.app.domain.user.entity.User;
 import com.grepp.funfun.app.domain.user.repository.UserRepository;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
@@ -25,50 +19,6 @@ public class GroupPreferenceService {
 
     private final GroupPreferenceRepository groupPreferenceRepository;
     private final UserRepository userRepository;
-
-    private User getUser(String email) {
-        return userRepository.findById(email)
-            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-    }
-
-    @Transactional
-    public void create(String email, GroupPreferenceRequest request) {
-        User user = getUser(email);
-        // 첫 취향 등록 시만 사용 가능
-        if (!user.getGroupPreferences().isEmpty()) {
-            throw new CommonException(ResponseCode.BAD_REQUEST);
-        }
-
-        request.getPreferences().forEach(c -> {
-            GroupPreference groupPreference = GroupPreference.builder()
-                .category(c)
-                .user(user)
-                .build();
-            groupPreferenceRepository.save(groupPreference);
-        });
-    }
-
-    @Transactional
-    public void update(String email, GroupPreferenceRequest request) {
-        User user = getUser(email);
-        // 이전 컨텐츠 취향 모두 삭제
-        groupPreferenceRepository.deleteAllByUserEmail(email);
-
-        request.getPreferences().forEach(c -> {
-            GroupPreference groupPreference = GroupPreference.builder()
-                .category(c)
-                .user(user)
-                .build();
-            groupPreferenceRepository.save(groupPreference);
-        });
-    }
-
-    public Set<GroupClassification> get(String email) {
-        return groupPreferenceRepository.findByUserEmail(email)
-            .stream()
-            .map(GroupPreference::getCategory).collect(Collectors.toCollection(
-                HashSet::new));
-    }
 
     public List<GroupPreferenceDTO> findAll() {
         final List<GroupPreference> groupPreferences = groupPreferenceRepository.findAll(Sort.by("id"));
