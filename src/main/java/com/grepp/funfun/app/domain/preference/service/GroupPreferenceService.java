@@ -1,9 +1,7 @@
 package com.grepp.funfun.app.domain.preference.service;
 
 import com.grepp.funfun.app.domain.preference.dto.GroupPreferenceDTO;
-import com.grepp.funfun.app.domain.preference.dto.payload.ContentPreferenceRequest;
 import com.grepp.funfun.app.domain.preference.dto.payload.GroupPreferenceRequest;
-import com.grepp.funfun.app.domain.preference.entity.ContentPreference;
 import com.grepp.funfun.app.domain.preference.entity.GroupPreference;
 import com.grepp.funfun.app.domain.preference.repository.GroupPreferenceRepository;
 import com.grepp.funfun.app.domain.user.entity.User;
@@ -36,6 +34,21 @@ public class GroupPreferenceService {
         if (!user.getContentPreferences().isEmpty()) {
             throw new CommonException(ResponseCode.BAD_REQUEST);
         }
+
+        request.getPreferences().forEach(c -> {
+            GroupPreference groupPreference = GroupPreference.builder()
+                .category(c)
+                .user(user)
+                .build();
+            groupPreferenceRepository.save(groupPreference);
+        });
+    }
+
+    @Transactional
+    public void update(String email, GroupPreferenceRequest request) {
+        User user = getUser(email);
+        // 이전 컨텐츠 취향 모두 삭제
+        groupPreferenceRepository.deleteAllByUserEmail(email);
 
         request.getPreferences().forEach(c -> {
             GroupPreference groupPreference = GroupPreference.builder()

@@ -9,4 +9,5 @@ public interface GroupPreferenceRepository extends JpaRepository<GroupPreference
 
     GroupPreference findFirstByUser(User user);
 
+    void deleteAllByUserEmail(String email);
 }
