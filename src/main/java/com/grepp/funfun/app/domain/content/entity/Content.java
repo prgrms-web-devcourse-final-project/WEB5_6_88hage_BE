@@ -59,4 +59,19 @@ public class Content extends BaseEntity {
     @Column(nullable = false)
     private Integer bookmarkCount = 0;
 
+    @Override
+    public String toString() {
+        return "Content{" +
+            "id=" + id +
+            ", 행사 제목은'" + contentTitle + '\'' +
+            "이고 행사 시작날짜는" + startDate +
+            "이고 행사 종료 일자는" + endDate +
+            "이며 행사는 '" + address + '\'' +
+            "에서 진행하고 정확한 위도는" + latitude +
+            "이고 경도는" + longitude +
+            "이야 행사는'" + guName + '\'' +
+            "에서 진행하고 행사 카테고리는" + category + "이야" +
+            '}';
+    }
+
 }
