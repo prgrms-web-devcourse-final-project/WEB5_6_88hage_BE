@@ -44,6 +44,21 @@ public class ContentPreferenceService {
         });
     }
 
+    @Transactional
+    public void update(String email, ContentPreferenceRequest request) {
+        User user = getUser(email);
+        // 이전 컨텐츠 취향 모두 삭제
+        contentPreferenceRepository.deleteAllByUserEmail(email);
+
+        request.getPreferences().forEach(c -> {
+            ContentPreference contentPreference = ContentPreference.builder()
+                .category(c)
+                .user(user)
+                .build();
+            contentPreferenceRepository.save(contentPreference);
+        });
+    }
+
     public List<ContentPreferenceDTO> findAll() {
         final List<ContentPreference> contentPreferences = contentPreferenceRepository.findAll(Sort.by("id"));
         return contentPreferences.stream()

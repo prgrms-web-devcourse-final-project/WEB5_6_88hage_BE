@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,5 +30,14 @@ public class ContentPreferenceApiController {
         String email = authentication.getName();
         contentPreferenceService.create(email, request);
         return ResponseEntity.ok(ApiResponse.success("컨텐츠 취향이 등록되었습니다."));
+    }
+
+    @PutMapping
+    @Operation(summary = "컨텐츠 취향 수정", description = "선택한 컨텐츠 취향으로 수정합니다.")
+    public ResponseEntity<ApiResponse<String>> updateContentPreference(
+        @RequestBody @Valid ContentPreferenceRequest request, Authentication authentication) {
+        String email = authentication.getName();
+        contentPreferenceService.update(email, request);
+        return ResponseEntity.ok(ApiResponse.success("컨텐츠 취향이 수정되었습니다."));
     }
 }

@@ -9,4 +9,5 @@ public interface ContentPreferenceRepository extends JpaRepository<ContentPrefer
 
     ContentPreference findFirstByUser(User user);
 
+    void deleteAllByUserEmail(String email);
 }
