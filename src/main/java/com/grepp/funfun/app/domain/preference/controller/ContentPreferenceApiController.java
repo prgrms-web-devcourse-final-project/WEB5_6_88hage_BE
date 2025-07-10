@@ -1,14 +1,17 @@
 package com.grepp.funfun.app.domain.preference.controller;
 
+import com.grepp.funfun.app.domain.content.vo.ContentClassification;
 import com.grepp.funfun.app.domain.preference.dto.payload.ContentPreferenceRequest;
 import com.grepp.funfun.app.domain.preference.service.ContentPreferenceService;
 import com.grepp.funfun.app.infra.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -39,5 +42,12 @@ public class ContentPreferenceApiController {
         String email = authentication.getName();
         contentPreferenceService.update(email, request);
         return ResponseEntity.ok(ApiResponse.success("컨텐츠 취향이 수정되었습니다."));
+    }
+
+    @GetMapping
+    @Operation(summary = "컨텐츠 취향 조회", description = "사용자 컨텐츠 취향을 조회합니다.")
+    public ResponseEntity<ApiResponse<Set<ContentClassification>>> getContentPreference(Authentication authentication) {
+        String email = authentication.getName();
+        return ResponseEntity.ok(ApiResponse.success(contentPreferenceService.get(email)));
     }
 }

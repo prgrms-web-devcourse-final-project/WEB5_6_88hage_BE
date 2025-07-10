@@ -1,8 +1,9 @@
 package com.grepp.funfun.app.domain.content.vo;
 
 
-import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.Getter;
 
+@Getter
 public enum ContentClassification {
 
     THEATER("연극"),
@@ -19,11 +20,6 @@ public enum ContentClassification {
 
     ContentClassification(String koreanName) {
         this.koreanName = koreanName;
-    }
-
-    @JsonValue
-    public String getKoreanName() {
-        return koreanName;
     }
 
 }
