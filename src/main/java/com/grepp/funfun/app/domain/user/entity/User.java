@@ -18,7 +18,10 @@ import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 
@@ -26,6 +29,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @Table(name = "\"user\"")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class User extends BaseEntity {
 
     @Id

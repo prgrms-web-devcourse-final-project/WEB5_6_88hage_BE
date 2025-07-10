@@ -78,7 +78,8 @@ public class PreferenceService {
             .groupPreferences(groupPreferenceRepository.findByUserEmail(email)
                 .stream()
                 .map(GroupPreference::getCategory).collect(Collectors.toCollection(
-                    HashSet::new))).build();
+                    HashSet::new)))
+            .build();
     }
 
 }
