@@ -16,9 +16,8 @@ public interface ParticipantRepository extends JpaRepository<Participant, Long>,
 
     Participant findFirstByGroup(Group group);
 
-    Boolean existsByUserAndGroup(User user, Group group);
-
     Optional<Participant> findByGroupIdAndUserEmail(Long groupId,String userEmail);
 
-    String user(User user);
+    // 특정 그룹 참여 기록 찾기
+    Optional<Participant> findByUserAndGroup(User user, Group group);
 }
