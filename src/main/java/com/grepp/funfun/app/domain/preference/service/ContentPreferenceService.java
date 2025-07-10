@@ -1,6 +1,7 @@
 package com.grepp.funfun.app.domain.preference.service;
 
 import com.grepp.funfun.app.domain.preference.dto.ContentPreferenceDTO;
+import com.grepp.funfun.app.domain.preference.dto.payload.ContentPreferenceRequest;
 import com.grepp.funfun.app.domain.preference.entity.ContentPreference;
 import com.grepp.funfun.app.domain.preference.repository.ContentPreferenceRepository;
 import com.grepp.funfun.app.domain.user.entity.User;
@@ -8,20 +9,39 @@ import com.grepp.funfun.app.domain.user.repository.UserRepository;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
+@RequiredArgsConstructor
 public class ContentPreferenceService {
 
     private final ContentPreferenceRepository contentPreferenceRepository;
     private final UserRepository userRepository;
 
-    public ContentPreferenceService(final ContentPreferenceRepository contentPreferenceRepository,
-            final UserRepository userRepository) {
-        this.contentPreferenceRepository = contentPreferenceRepository;
-        this.userRepository = userRepository;
+    private User getUser(String email) {
+        return userRepository.findById(email)
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+    }
+
+    @Transactional
+    public void create(String email, ContentPreferenceRequest request) {
+        User user = getUser(email);
+        // 첫 취향 등록 시만 사용 가능
+        if (!user.getContentPreferences().isEmpty()) {
+            throw new CommonException(ResponseCode.BAD_REQUEST);
+        }
+
+        request.getPreferences().forEach(c -> {
+            ContentPreference contentPreference = ContentPreference.builder()
+                .category(c)
+                .user(user)
+                .build();
+            contentPreferenceRepository.save(contentPreference);
+        });
     }
 
     public List<ContentPreferenceDTO> findAll() {
