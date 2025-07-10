@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.domain.preference.service;
 
+import com.grepp.funfun.app.domain.group.vo.GroupClassification;
 import com.grepp.funfun.app.domain.preference.dto.GroupPreferenceDTO;
 import com.grepp.funfun.app.domain.preference.dto.payload.GroupPreferenceRequest;
 import com.grepp.funfun.app.domain.preference.entity.GroupPreference;
@@ -8,7 +9,10 @@ import com.grepp.funfun.app.domain.user.entity.User;
 import com.grepp.funfun.app.domain.user.repository.UserRepository;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -31,7 +35,7 @@ public class GroupPreferenceService {
     public void create(String email, GroupPreferenceRequest request) {
         User user = getUser(email);
         // 첫 취향 등록 시만 사용 가능
-        if (!user.getContentPreferences().isEmpty()) {
+        if (!user.getGroupPreferences().isEmpty()) {
             throw new CommonException(ResponseCode.BAD_REQUEST);
         }
 
@@ -57,6 +61,13 @@ public class GroupPreferenceService {
                 .build();
             groupPreferenceRepository.save(groupPreference);
         });
+    }
+
+    public Set<GroupClassification> get(String email) {
+        return groupPreferenceRepository.findByUserEmail(email)
+            .stream()
+            .map(GroupPreference::getCategory).collect(Collectors.toCollection(
+                HashSet::new));
     }
 
     public List<GroupPreferenceDTO> findAll() {
