@@ -43,7 +43,11 @@ public class Group extends BaseEntity {
 
     private String title;
 
+    // 모임 소개
     private String explain;
+
+    // 모임 한 줄 소개
+    private String simpleExplain;
 
     private String placeName;
 

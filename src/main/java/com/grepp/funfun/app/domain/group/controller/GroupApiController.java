@@ -33,17 +33,18 @@ public class GroupApiController {
 
     private final GroupService groupService;
 
+    // 특정 모임 조회(상세)
     @GetMapping("/{id}")
     @Operation(summary = "특정 모임 조회", description = "특정 모임을 조회합니다.")
-    public ResponseEntity<GroupDTO> getGroup(@PathVariable(name = "id") final Long id) {
+    public ResponseEntity<GroupResponse> getGroup(@PathVariable(name = "id") final Long id) {
         return ResponseEntity.ok(groupService.get(id));
     }
 
-    // 모든 모임 조회
+    // 모든 모임 조회(최신순)
     @GetMapping
-    @Operation(summary = "모든 모임 조회", description = "모든 모임을 조회합니다.")
-    public ResponseEntity<List<GroupResponse>> getAllGroups() {
-        return ResponseEntity.ok(groupService.findByActivatedTrue());
+    @Operation(summary = "모든 모임 조회(최신순)", description = "모든 모임을 조회합니다.(최신순)")
+    public ResponseEntity<List<GroupResponse>> getAllRecentGroups() {
+        return ResponseEntity.ok(groupService.getRecentGroups());
     }
 
     // 내가 속한 모임 조회
