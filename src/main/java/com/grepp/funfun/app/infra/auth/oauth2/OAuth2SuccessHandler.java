@@ -65,12 +65,17 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         } else {
             User user = userRepository.findById(email).orElse(null);
+            if (user != null && user.getRole().equals(Role.ROLE_GUEST)) {
+                // NOTE : 프론트 측 URI 로 변경 필요
+                response.sendRedirect("/users/oauth2/signup");
+            }
+
             if (user != null) {
                 TokenDto tokenDto = authService.processTokenSignin(email, user.getRole().name(), false);
 
                 TokenCookieFactory.setAllAuthCookies(response, tokenDto);
 
-                if (user.getGroupPreferences() == null || user.getContentPreferences() == null) {
+                if (user.getGroupPreferences().isEmpty() || user.getContentPreferences().isEmpty()) {
                     // NOTE : 프론트 측 URI 로 변경 필요
                     response.sendRedirect("/users/preference");
                 } else {
