@@ -7,6 +7,7 @@ import com.grepp.funfun.app.infra.response.ApiResponse;
 import com.grepp.funfun.app.infra.response.ResponseCode;
 import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,17 +19,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-
 @RestController
 @Slf4j
+@RequiredArgsConstructor
 @RequestMapping(value = "/api/participants", produces = MediaType.APPLICATION_JSON_VALUE)
 public class ParticipantApiController {
 
     private final ParticipantService participantService;
-
-    public ParticipantApiController(final ParticipantService participantService) {
-        this.participantService = participantService;
-    }
 
     // PENDING MEMBER 사용자 데려오기
     @GetMapping("/{groupId}/pending")
@@ -150,15 +147,4 @@ public class ParticipantApiController {
         }
 
     }
-
-    @GetMapping
-    public ResponseEntity<List<ParticipantDTO>> getAllParticipants() {
-        return ResponseEntity.ok(participantService.findAll());
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<ParticipantDTO> getParticipant(@PathVariable(name = "id") final Long id) {
-        return ResponseEntity.ok(participantService.get(id));
-    }
-
 }
