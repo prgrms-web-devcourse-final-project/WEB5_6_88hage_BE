@@ -40,6 +40,7 @@ dependencies {
     implementation platform('org.springframework.cloud:spring-cloud-dependencies:2024.0.1')
     implementation platform('io.awspring.cloud:spring-cloud-aws-dependencies:3.2.1')
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-secrets-manager'
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
 
     // Spring Boot Starters
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
