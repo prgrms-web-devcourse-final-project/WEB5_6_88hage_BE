@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.domain.content.entity;
 
+import com.grepp.funfun.app.domain.content.vo.EventType;
 import com.grepp.funfun.app.infra.entity.BaseEntity;
 import jakarta.persistence.*;
 
@@ -8,22 +9,26 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 
-@Entity
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Entity
 public class Content extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false)
     private Long id; // 컨텐츠 아이디
 
+    @Column(nullable = false)
     private String contentTitle; // 컨텐츠명
-
-    private String status; // 컨텐츠 상태
+    
+    private String age; // 나이
 
     private String fee; // 이용 금액
 
@@ -39,18 +44,25 @@ public class Content extends BaseEntity {
     @Column(name = "longitude")
     private Double longitude;
 
-    private String reservationUrl; // 예약 링크
+    private String guname; // 자치구
 
-    private String guName; // 자치구
+    private String time;
 
     private Integer runTime; // 공연 런타임
 
     private LocalTime startTime; // 시작 시간
 
-    private LocalTime endTime; // 종료 시간
+    private String description;
 
     @OneToMany(mappedBy = "content", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ContentImage> images = new ArrayList<>();
+    private List<ContentUrl> urls = new ArrayList<>();  // 예약 링크
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private EventType eventType;
+
+    @OneToMany(mappedBy = "content", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ContentImage> images = new ArrayList<>(); // 이미지
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)

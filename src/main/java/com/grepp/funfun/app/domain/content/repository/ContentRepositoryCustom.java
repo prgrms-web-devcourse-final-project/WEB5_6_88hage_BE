@@ -17,7 +17,7 @@ public interface ContentRepositoryCustom {
 
     Page<Content> findFilteredContents(
             ContentClassification category,
-            String guName,
+            String guname,
             LocalDate startDate,
             LocalDate endDate,
             Pageable pageable);

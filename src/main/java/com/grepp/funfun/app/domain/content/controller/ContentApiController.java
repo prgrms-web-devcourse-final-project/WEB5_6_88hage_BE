@@ -44,7 +44,7 @@ public class ContentApiController {
     public ResponseEntity<ApiResponse<ContentDetailResponse>> getContent(
             @PathVariable(name = "id") final Long id
     ) {
-        ContentDTO content = contentService.get(id);
+        ContentDTO content = contentService.getContents(id);
         List<ContentDTO> related = contentService.findRandomByCategory(id, 5);
         List<ContentDTO> nearby = contentService.findNearbyContents(id, 3.0, 5);
 

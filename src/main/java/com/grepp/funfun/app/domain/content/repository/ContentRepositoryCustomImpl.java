@@ -46,7 +46,7 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
     @Override
     public Page<Content> findFilteredContents(
             ContentClassification categoryParam,
-            String guName,
+            String guname,
             LocalDate startDate,
             LocalDate endDate,
             Pageable pageable) {
@@ -56,7 +56,7 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
                 .join(content.category, category)
                 .where(
                         categoryEq(categoryParam),
-                        guNameEq(guName),
+                        gunameEq(guname),
                         startDateGoe(startDate),
                         endDateLoe(endDate)
                 );
@@ -106,8 +106,8 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
         return categoryParam != null ? content.category.category.eq(categoryParam) : null;
     }
 
-    private BooleanExpression guNameEq(String guName) {
-        return guName != null ? content.guName.eq(guName) : null;
+    private BooleanExpression gunameEq(String guname) {
+        return guname != null ? content.guname.eq(guname) : null;
     }
 
     private BooleanExpression startDateGoe(LocalDate startDate) {

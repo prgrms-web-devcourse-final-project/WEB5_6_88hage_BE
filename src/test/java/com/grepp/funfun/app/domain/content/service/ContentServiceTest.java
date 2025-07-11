@@ -61,10 +61,10 @@ class ContentServiceTest {
     }
 
     @Test
-    public void getFilterByGuName() {
+    public void getFilterByguname() {
         // given
         ContentFilterRequest request = new ContentFilterRequest();
-        request.setGuName("강남구");
+        request.setguname("강남구");
         Pageable pageable = PageRequest.of(0, 10);
 
         // when
@@ -73,12 +73,12 @@ class ContentServiceTest {
         // then
         assertThat(result).isNotNull();
         assertThat(result.getContent()).allMatch(content ->
-                "강남구".equals(content.getGuName())
+                "강남구".equals(content.getguname())
         );
 
         System.out.println("======= 강남구 지역 필터링 =======");
         result.getContent().forEach(content ->
-                System.out.println(content.getContentTitle() + " - 지역: " + content.getGuName())
+                System.out.println(content.getContentTitle() + " - 지역: " + content.getguname())
         );
     }
 
@@ -87,7 +87,7 @@ class ContentServiceTest {
         // given
         ContentFilterRequest request = new ContentFilterRequest();
         request.setCategory(ContentClassification.DANCE);
-        request.setGuName("강남구");
+        request.setguname("강남구");
         request.setStartDate(LocalDate.of(2025, 7, 1));
         request.setEndDate(LocalDate.of(2025, 12, 31));
 
@@ -103,7 +103,7 @@ class ContentServiceTest {
         result.getContent().forEach(content ->
                 System.out.println(content.getContentTitle() +
                         " - 카테고리: " + content.getCategory() +
-                        ", 지역: " + content.getGuName() +
+                        ", 지역: " + content.getguname() +
                         ", 기간: " + content.getStartDate() + "~" + content.getEndDate() +
                         ", 북마크: " + content.getBookmarkCount())
         );
