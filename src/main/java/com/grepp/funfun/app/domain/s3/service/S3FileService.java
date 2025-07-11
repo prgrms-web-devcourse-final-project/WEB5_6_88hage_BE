@@ -4,6 +4,7 @@ import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
 import io.awspring.cloud.s3.S3Template;
 import java.io.IOException;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -18,20 +19,31 @@ public class S3FileService {
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
 
-    public void upload(MultipartFile file, String filename) {
-        try {
-            s3Template.upload(bucketName, filename, file.getInputStream());
-        } catch(IOException e) {
-            throw new CommonException(ResponseCode.BAD_REQUEST);
+    @Value("${cloud.aws.s3.url}")
+    private String s3BaseUrl;
+
+    public String upload(MultipartFile file, String depth) {
+        if (file.isEmpty()) return null;
+
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null) {
+            throw new CommonException(ResponseCode.INVALID_FILENAME);
         }
+
+        String ext = getExtension(originalFilename);
+        String renameFilename = UUID.randomUUID() + ext;
+        String fullPath = depth + "/" + renameFilename;
+
+        try {
+            s3Template.upload(bucketName, fullPath, file.getInputStream());
+        } catch (IOException e) {
+            throw new CommonException(ResponseCode.BAD_REQUEST, "S3 업로드 실패");
+        }
+
+        return s3BaseUrl + fullPath;
     }
 
-    public void delete(String filename) {
-        try {
-            s3Template.deleteObject(bucketName, filename);
-        } catch (Exception e) {
-            throw new CommonException(ResponseCode.BAD_REQUEST);
-        }
+    private String getExtension(String filename) {
+        return filename.substring(filename.lastIndexOf("."));
     }
 }
-

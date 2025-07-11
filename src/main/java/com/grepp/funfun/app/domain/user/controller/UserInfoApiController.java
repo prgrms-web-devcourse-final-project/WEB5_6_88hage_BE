@@ -1,70 +1,50 @@
 package com.grepp.funfun.app.domain.user.controller;
 
-import com.grepp.funfun.app.domain.user.dto.UserInfoDTO;
+import com.grepp.funfun.app.domain.user.dto.payload.ProfileRequest;
 import com.grepp.funfun.app.domain.user.service.UserInfoService;
-import com.grepp.funfun.app.delete.util.ReferencedException;
-import com.grepp.funfun.app.delete.util.ReferencedWarning;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import com.grepp.funfun.app.infra.response.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
-import java.util.List;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 
 @RestController
 @RequestMapping(value = "/api/userInfos", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequiredArgsConstructor
 public class UserInfoApiController {
 
     private final UserInfoService userInfoService;
 
-    public UserInfoApiController(final UserInfoService userInfoService) {
-        this.userInfoService = userInfoService;
+    @PutMapping
+    @Operation(
+        summary = "프로필 수정",
+        description = """
+            아래와 같은 형식으로 multipart/form-data 요청을 전송해 주세요.
+            
+            • image: 프로필 이미지 파일 (예: PNG, JPG 등 이미지 파일만 업로드 가능하게 해주세요.)
+              - Swagger 에서는 이미지 업로드 테스트가 어려우므로 Postman 으로 테스트하는 것을 권장합니다.
+            
+            • imageChanged: 이미지 변경 여부 (true/false)
+              - true: 이미지가 업로드되거나 삭제됩니다.
+              - false: 서버는 이미지 변경을 무시합니다.
+            
+            • introduction: 사용자 한 줄 소개 텍스트
+            
+            • hashTags: 같은 키로 여러 번 전달해야 합니다.
+              - 예시: hashTags=여행, hashTags=음악, hashTags=커피
+            """
+    )
+    public ResponseEntity<ApiResponse<String>> updateProfile(
+        @ModelAttribute @Valid ProfileRequest request, Authentication authentication) {
+        String email = authentication.getName();
+        userInfoService.update(email, request);
+        return ResponseEntity.ok(ApiResponse.success("프로필이 수정되었습니다."));
     }
-
-    @GetMapping
-    public ResponseEntity<List<UserInfoDTO>> getAllUserInfos() {
-        return ResponseEntity.ok(userInfoService.findAll());
-    }
-
-    @GetMapping("/{email}")
-    public ResponseEntity<UserInfoDTO> getUserInfo(
-            @PathVariable(name = "email") final String email) {
-        return ResponseEntity.ok(userInfoService.get(email));
-    }
-
-    @PostMapping
-    @ApiResponse(responseCode = "201")
-    public ResponseEntity<String> createUserInfo(
-            @RequestBody @Valid final UserInfoDTO userInfoDTO) {
-        final String createdEmail = userInfoService.create(userInfoDTO);
-        return new ResponseEntity<>('"' + createdEmail + '"', HttpStatus.CREATED);
-    }
-
-    @PutMapping("/{email}")
-    public ResponseEntity<String> updateUserInfo(@PathVariable(name = "email") final String email,
-            @RequestBody @Valid final UserInfoDTO userInfoDTO) {
-        userInfoService.update(email, userInfoDTO);
-        return ResponseEntity.ok('"' + email + '"');
-    }
-
-    @DeleteMapping("/{email}")
-    @ApiResponse(responseCode = "204")
-    public ResponseEntity<Void> deleteUserInfo(@PathVariable(name = "email") final String email) {
-        final ReferencedWarning referencedWarning = userInfoService.getReferencedWarning(email);
-        if (referencedWarning != null) {
-            throw new ReferencedException(referencedWarning);
-        }
-        userInfoService.delete(email);
-        return ResponseEntity.noContent().build();
-    }
-
 }
