@@ -15,16 +15,14 @@
             <div th:replace="~{fragments/forms::globalErrors('content')}" />
             <form th:action="${requestUri}" method="post" novalidate="">
                 <div th:replace="~{fragments/forms::inputRow(object='content', field='contentTitle')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='content', field='status')}" />
                 <div th:replace="~{fragments/forms::inputRow(object='content', field='fee')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='content', field='age')}" />
                 <div th:replace="~{fragments/forms::inputRow(object='content', field='startDate', inputClass='js-datepicker')}" />
                 <div th:replace="~{fragments/forms::inputRow(object='content', field='endDate', inputClass='js-datepicker')}" />
                 <div th:replace="~{fragments/forms::inputRow(object='content', field='address')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='content', field='reservationUrl')}" />
                 <div th:replace="~{fragments/forms::inputRow(object='content', field='guname')}" />
                 <div th:replace="~{fragments/forms::inputRow(object='content', field='runTime')}" />
                 <div th:replace="~{fragments/forms::inputRow(object='content', field='startTime', inputClass='js-timepicker')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='content', field='endTime', inputClass='js-timepicker')}" />
                 <div th:replace="~{fragments/forms::inputRow(object='content', field='category', required=true, type='select')}" />
                 <input type="submit" th:value="#{content.add.headline}" class="btn btn-primary mt-4" />
             </form>
