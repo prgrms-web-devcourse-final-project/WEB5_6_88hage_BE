@@ -69,8 +69,8 @@ public class FollowApiController {
         return ResponseEntity.ok(ApiResponse.success(followService.countFollowings(email)));
     }
 
-    @GetMapping("/status")
-    @Operation(summary = "팔로우 여부 확인", description = "특정 사용자의 팔로우 여부를 확인합니다.")
+    @GetMapping("/status/following")
+    @Operation(summary = "팔로잉 여부 확인", description = "특정 사용자에 대한 자신의 팔로잉 여부를 확인합니다.")
     public ResponseEntity<ApiResponse<Boolean>> isFollowing(@RequestParam String target, Authentication authentication) {
         String email = authentication.getName();
         return ResponseEntity.ok(ApiResponse.success(followService.isFollowing(email, target)));
