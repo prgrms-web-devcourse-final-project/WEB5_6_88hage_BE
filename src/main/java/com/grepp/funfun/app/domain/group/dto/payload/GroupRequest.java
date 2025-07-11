@@ -24,6 +24,10 @@ public class GroupRequest {
     //모임 설명
     @NotBlank(message = "설명은 필수로 입력해야 합니다.")
     private String explain;
+
+    @NotBlank(message="모임 한 줄 소개는 필수로 입력해야 합니다.")
+    private String simpleExplain;
+
     //모임 장소
     @NotBlank(message="모임 장소는 필수입니다.")
     private String placeName;
@@ -38,6 +42,7 @@ public class GroupRequest {
     //모임 카테고리
     @NotNull(message="모임 카테고리는 필수입니다.")
     private GroupClassification category;
+
     //최대 인원
     @Min(value = 2, message = "최소 2명 이상이어야 합니다.")
     @Max(value = 10, message = "최대 10명까지 가능합니다.")
@@ -60,6 +65,7 @@ public class GroupRequest {
             .leader(leader)
             .title(this.title)
             .explain(this.explain)
+            .simpleExplain(this.simpleExplain)
             .placeName(this.placeName)
             .groupDate(this.groupDate)
             .address(this.address)

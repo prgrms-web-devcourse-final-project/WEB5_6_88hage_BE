@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -54,7 +55,9 @@ public class ChatController {
         }
     }
     @GetMapping("/test")
-    public String test(){
+    public String test(Authentication authentication, Model model) {
+        String userEmail = authentication.getName();
+        model.addAttribute("userEmail", userEmail);
         return "chat/chatTest";
     }
 

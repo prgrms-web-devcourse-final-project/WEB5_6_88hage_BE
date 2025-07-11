@@ -49,22 +49,23 @@ public class GroupService {
     private final GroupHashtagRepository groupHashtagRepository;
     private final CalendarService calendarService;
 
-    public List<GroupDTO> findAll() {
-        final List<Group> groups = groupRepository.findAll(Sort.by("id"));
+    // 모든 모임 조회
+    public List<GroupResponse> findAll() {
+        final List<Group> groups = groupRepository.findAll();
         return groups.stream()
-            .map(group -> mapToDTO(group, new GroupDTO()))
+            .map(this::mapToResponse)
             .toList();
     }
-
-    public GroupDTO get(final Long id) {
-        return groupRepository.findById(id)
-            .map(group -> mapToDTO(group, new GroupDTO()))
+    // 특정 모임 조회
+    public GroupResponse get(final Long groupId) {
+        return groupRepository.findByIdWithFullInfo(groupId)
+            .map(this::mapToResponse)
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
     }
-    // 모든 모임 조회
+    //모임 조회(최신순)
     @Transactional(readOnly = true)
-    public List<GroupResponse> findByActivatedTrue(){
-        return groupRepository.findByActivatedTrue().stream()
+    public List<GroupResponse> getRecentGroups(){
+        return groupRepository.findActiveRecentGroups().stream()
             .map(this::mapToResponse)
             .collect(Collectors.toList());
     }
@@ -77,6 +78,7 @@ public class GroupService {
     }
 
     // 모임 생성
+    // todo : 모임 한 줄 소개 추가 request 받고 -> toEntity -> save 완료
     @Transactional
     public void create(String leaderEmail, GroupRequest request) {
 
@@ -87,10 +89,11 @@ public class GroupService {
         }
         Group savedGroup = groupRepository.save(request.toEntity(leader));
 
-        // HashTag 저장
+        // 해시태그
         if (request.getHashTags() != null && !request.getHashTags().isEmpty()) {
             List<GroupHashtag> hashTags = request.getHashTags().stream()
                 .map(tagName -> {
+                    System.out.println("저장할 태그: '" + tagName + "'"); // 이것도 추가
                     GroupHashtag hashTag = new GroupHashtag();
                     hashTag.setTag(tagName);
                     hashTag.setGroup(savedGroup);
@@ -119,7 +122,6 @@ public class GroupService {
         calendarService.addGroupCalendar(leaderEmail, savedGroup);
     }
 
-
     // 모임 수정
     @Transactional
     public void update(Long groupId, String leaderEmail, GroupRequest updateRequest) {
@@ -128,6 +130,7 @@ public class GroupService {
         //Builder 패턴으로 내용 수정하고 다시 저장하기
         group.setTitle(updateRequest.getTitle());
         group.setExplain(updateRequest.getExplain());
+        group.setSimpleExplain(updateRequest.getSimpleExplain());
         group.setPlaceName(updateRequest.getPlaceName());
         group.setGroupDate(updateRequest.getGroupDate());
         group.setAddress(updateRequest.getAddress());
@@ -207,6 +210,7 @@ public class GroupService {
 
     }
     // 그룹에 리더이자 사용자 false 상태 확인 코드(중복 코드 대체)
+    //todo 검증 코드
     private Group groupWithLeaderValidation(Long groupId, String leaderEmail) {
         // 그룹 존재 확인
         Group group = groupRepository.findById(groupId)
@@ -224,12 +228,14 @@ public class GroupService {
     }
 
     private GroupMyResponse convertToGroupMyResponse(Group group, String userEmail) {
-        // 내 상태 찾기
-        ParticipantStatus myStatus = group.getParticipants().stream()
+        // 내 참가자 정보 찾기
+        Participant myParticipant = group.getParticipants().stream()
             .filter(p -> p.getUser().getEmail().equals(userEmail))
             .findFirst()
-            .map(Participant::getStatus)
             .orElse(null);
+
+        ParticipantStatus myStatus = myParticipant != null ? myParticipant.getStatus() : null;
+        String userNickname = myParticipant != null ? myParticipant.getUser().getNickname() : null;
 
         // 참여자 이메일들 추출
         List<String> participantEmails = group.getParticipants().stream()
@@ -245,6 +251,7 @@ public class GroupService {
             .groupId(group.getId())
             .groupTitle(group.getTitle())
             .userEmail(userEmail)
+            .userNickname(userNickname)
             .status(myStatus)
             .participantEmails(participantEmails)
             .participantNicknames(participantNicknames)

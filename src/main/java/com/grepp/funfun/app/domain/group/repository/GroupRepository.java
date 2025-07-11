@@ -10,7 +10,4 @@ public interface GroupRepository extends JpaRepository<Group, Long>, GroupReposi
 
     Group findFirstByLeader(User user);
 
-    List<Group> findByActivatedTrue();
-
-
 }

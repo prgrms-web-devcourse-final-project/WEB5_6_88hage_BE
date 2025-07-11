@@ -11,4 +11,7 @@ public interface GroupRepositoryCustom {
     Optional<Group> findActiveRecruitingGroup(Long groupId);
 
     List<Group> findMyGroups(String userEmail);
+
+    List<Group> findActiveRecentGroups();
+    Optional<Group> findByIdWithFullInfo(Long groupId);
 }

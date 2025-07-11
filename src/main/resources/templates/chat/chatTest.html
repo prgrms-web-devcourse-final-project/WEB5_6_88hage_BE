@@ -3,691 +3,753 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>팀 채팅방 테스트</title>
+  <title>팀 채팅</title>
   <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px;
-      background-color: #f0f2f5;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #1e1f22;
+      color: #f2f3f5;
+      height: 100vh;
+      overflow: hidden;
     }
 
     .container {
-      background-color: white;
-      border-radius: 12px;
-      padding: 30px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-    }
-
-    .header {
-      text-align: center;
-      margin-bottom: 30px;
-      color: #333;
-      border-bottom: 2px solid #e9ecef;
-      padding-bottom: 20px;
-    }
-
-    .team-setup {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 25px;
-      border-radius: 10px;
-      margin-bottom: 25px;
-    }
-
-    .team-setup h3 {
-      margin-top: 0;
-      color: white;
-    }
-
-    .input-group {
       display: flex;
-      gap: 15px;
-      align-items: center;
-      margin: 15px 0;
+      height: 100vh;
     }
 
-    .input-group label {
-      font-weight: 600;
-      min-width: 80px;
-    }
-
-    .input-group input, .input-group select {
-      padding: 12px 15px;
-      border: none;
-      border-radius: 6px;
-      font-size: 14px;
-      background-color: rgba(255,255,255,0.9);
-    }
-
-    .btn {
-      padding: 12px 20px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.3s ease;
-    }
-
-    .btn-primary {
-      background-color: #007bff;
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background-color: #0056b3;
-      transform: translateY(-2px);
-    }
-
-    .btn-success {
-      background-color: #28a745;
-      color: white;
-    }
-
-    .btn-success:hover {
-      background-color: #218838;
-    }
-
-    .btn-danger {
-      background-color: #dc3545;
-      color: white;
-    }
-
-    .btn-danger:hover {
-      background-color: #c82333;
-    }
-
-    .members-panel {
-      background-color: #f8f9fa;
-      padding: 20px;
-      border-radius: 10px;
-      margin-bottom: 25px;
-      border-left: 5px solid #28a745;
-    }
-
-    .member-card {
-      background-color: white;
-      padding: 15px;
-      margin: 10px 0;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: transform 0.2s ease;
-    }
-
-    .member-card:hover {
-      transform: translateY(-2px);
-    }
-
-    .member-info {
+    /* 왼쪽 사이드바 */
+    .sidebar {
+      width: 240px;
+      background-color: #2b2d31;
       display: flex;
       flex-direction: column;
+      border-right: 1px solid #1e1f22;
     }
 
-    .member-email {
-      font-weight: 700;
-      color: #333;
+    .sidebar-header {
+      padding: 12px 16px;
+      background-color: #2b2d31;
+      border-bottom: 1px solid #1e1f22;
+      font-weight: 600;
       font-size: 16px;
+      color: #f2f3f5;
+      box-shadow: 0 1px 0 rgba(4,4,5,0.2);
     }
 
-    .member-details {
-      font-size: 12px;
-      color: #666;
-      margin-top: 5px;
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
     }
 
-    .status-badge {
-      background-color: #28a745;
-      color: white;
-      padding: 6px 12px;
-      border-radius: 20px;
+    /* 내 모임 섹션 */
+    .section-header {
+      padding: 16px 8px 0 18px;
+      margin-bottom: 8px;
       font-size: 12px;
       font-weight: 600;
+      color: #949ba4;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .group-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 8px;
+      margin: 1px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+      min-height: 44px;
+    }
+
+    .group-item:hover {
+      background-color: #35373c;
+    }
+
+    .group-item.active {
+      background-color: #404249;
+    }
+
+    .group-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background-color: #5865f2;
+      margin-right: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .group-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .group-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #949ba4;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 2px;
+    }
+
+    .group-subtitle {
+      font-size: 13px;
+      color: #6d6f78;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .group-item.active .group-name {
+      color: #f2f3f5;
+    }
+
+    .group-item.active .group-subtitle {
+      color: #b5bac1;
+    }
+
+    /* 사용자 패널 */
+    .user-panel {
+      margin-top: auto;
+      padding: 0 8px 8px;
+      background-color: #232428;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      padding: 8px;
+      border-radius: 4px;
+      background-color: #232428;
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: #5865f2;
+      margin-right: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: white;
+    }
+
+    .user-details {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .user-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #f2f3f5;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-status {
+      font-size: 12px;
+      color: #23a55a;
+    }
+
+    /* 메인 채팅 영역 */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background-color: #313338;
+    }
+
+    .chat-header {
+      height: 48px;
+      background-color: #313338;
+      border-bottom: 1px solid #1e1f22;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      box-shadow: 0 1px 0 rgba(4,4,5,0.2);
+    }
+
+    .channel-info {
+      display: flex;
+      align-items: center;
+      flex: 1;
+    }
+
+    .channel-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #f2f3f5;
     }
 
     .connection-status {
-      text-align: center;
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      font-weight: 700;
-      font-size: 16px;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
     }
 
-    .connected {
-      background-color: #d4edda;
-      color: #155724;
-      border: 2px solid #28a745;
-    }
-
-    .disconnected {
-      background-color: #f8d7da;
-      color: #721c24;
-      border: 2px solid #dc3545;
-    }
-
-    .chat-container {
-      background-color: #ffffff;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-
-    .chat-area {
-      height: 500px;
-      overflow-y: auto;
-      padding: 20px;
-      background-color: #fafafa;
-      border-bottom: 1px solid #e9ecef;
-    }
-
-    .message {
-      margin-bottom: 20px;
-      display: flex;
-      flex-direction: column;
-      max-width: 70%;
-      animation: slideIn 0.3s ease;
-    }
-
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .my-message {
-      align-self: flex-end;
-    }
-
-    .other-message {
-      align-self: flex-start;
-    }
-
-    .message-bubble {
-      padding: 12px 16px;
-      border-radius: 18px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .my-message .message-bubble {
-      background: linear-gradient(135deg, #007bff, #0056b3);
+    .status-connected {
+      background-color: #23a55a;
       color: white;
     }
 
-    .other-message .message-bubble {
-      background-color: #e9ecef;
-      color: #333;
+    .status-disconnected {
+      background-color: #f23f43;
+      color: white;
     }
 
-    .message-sender {
-      font-size: 12px;
+    /* 채팅 메시지 영역 */
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      background-color: #313338;
+    }
+
+    /* 메시지 그룹 - 수정된 부분 */
+    .message-group {
+      margin-bottom: 16px;
+    }
+
+    /* 다른 사람 메시지 (왼쪽) */
+    .message-group.other {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    /* 내 메시지 (오른쪽) */
+    .message-group.mine {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      flex-direction: row-reverse;
+    }
+
+    .message-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background-color: #5865f2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
       font-weight: 600;
-      margin-bottom: 5px;
-      opacity: 0.8;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .message-avatar.mine {
+      background-color: #23a55a;
     }
 
     .message-content {
-      font-size: 15px;
-      line-height: 1.4;
+      flex: 1;
+      max-width: 70%;
     }
 
-    .message-time {
-      font-size: 11px;
-      opacity: 0.7;
-      margin-top: 5px;
+    .message-content.mine {
       text-align: right;
     }
 
-    .message-input-area {
-      padding: 20px;
-      background-color: white;
-      display: flex;
-      gap: 15px;
-      align-items: center;
+    /* 닉네임 */
+    .message-author {
+      font-size: 14px;
+      font-weight: 600;
+      color: #f2f3f5;
+      margin-bottom: 4px;
     }
 
-    .sender-select {
-      min-width: 200px;
-      padding: 12px 15px;
-      border: 1px solid #ddd;
-      border-radius: 25px;
-      background-color: #f8f9fa;
+    .message-author.mine {
+      text-align: right;
+    }
+
+    /* 메시지 내용과 시간 */
+    .message-text-time {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .message-text-time.mine {
+      flex-direction: row-reverse;
+    }
+
+    .message-text {
+      background-color: #2b2d31;
+      color: #dbdee1;
+      padding: 8px 12px;
+      border-radius: 18px;
+      word-wrap: break-word;
+      max-width: 100%;
+    }
+
+    .message-text.mine {
+      background-color: #5865f2;
+      color: white;
+    }
+
+    .message-timestamp {
+      font-size: 11px;
+      color: #72767d;
+      white-space: nowrap;
+      align-self: flex-end;
+    }
+
+    /* 채팅 입력 */
+    .chat-input-container {
+      padding: 16px;
+      background-color: #313338;
+    }
+
+    .chat-input-wrapper {
+      background-color: #383a40;
+      border-radius: 8px;
+      padding: 11px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
     .message-input {
       flex: 1;
-      padding: 12px 20px;
-      border: 1px solid #ddd;
-      border-radius: 25px;
-      font-size: 15px;
+      background: transparent;
+      border: none;
+      color: #dbdee1;
+      font-size: 16px;
       outline: none;
-      transition: border-color 0.3s ease;
+      font-family: inherit;
     }
 
-    .message-input:focus {
-      border-color: #007bff;
-      box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+    .message-input::placeholder {
+      color: #6d6f78;
     }
 
     .send-button {
-      padding: 12px 25px;
-      background: linear-gradient(135deg, #28a745, #20c997);
+      background-color: #5865f2;
       color: white;
       border: none;
-      border-radius: 25px;
+      border-radius: 3px;
+      padding: 2px 16px;
       cursor: pointer;
-      font-weight: 600;
-      transition: all 0.3s ease;
+      font-size: 14px;
+      font-weight: 500;
+      height: 32px;
+      transition: background-color 0.17s ease;
     }
 
-    .send-button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(40,167,69,0.3);
+    .send-button:hover:not(:disabled) {
+      background-color: #4752c4;
     }
 
     .send-button:disabled {
-      background-color: #6c757d;
+      background-color: #4e5058;
       cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
     }
 
-    .logs-panel {
-      margin-top: 30px;
-      background-color: #f8f9fa;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    .logs-header {
-      background-color: #343a40;
-      color: white;
-      padding: 15px 20px;
-      font-weight: 600;
-    }
-
-    .logs-content {
-      padding: 20px;
-      font-family: 'Courier New', monospace;
-      font-size: 13px;
-      max-height: 200px;
-      overflow-y: auto;
-      line-height: 1.6;
-    }
-
+    /* 빈 상태 */
     .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #949ba4;
       text-align: center;
-      color: #666;
-      font-style: italic;
-      margin-top: 100px;
     }
 
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.6;
+    }
+
+    .empty-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #f2f3f5;
+    }
+
+    .empty-subtitle {
+      font-size: 16px;
+      color: #949ba4;
+    }
+
+    /* 스크롤바 */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background-color: #1e1f22;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background-color: #1a1b1e;
+    }
+
+    /* 로딩 상태 */
     .loading {
-      text-align: center;
-      color: #666;
+      padding: 8px 16px;
+      color: #949ba4;
+      font-size: 14px;
       font-style: italic;
     }
 
-    .error-message {
-      background-color: #f8d7da;
-      color: #721c24;
-      padding: 15px;
-      border-radius: 8px;
-      border-left: 4px solid #dc3545;
-      margin: 15px 0;
+    .error {
+      padding: 8px 16px;
+      color: #f23f43;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
 <div class="container">
-  <div class="header">
-    <h1>🏢 팀 채팅방 테스트</h1>
-    <p>Thymeleaf + WebSocket 실시간 채팅 시스템</p>
-  </div>
-
-  <!-- 팀 설정 -->
-  <div class="team-setup">
-    <h3>📋 팀 설정</h3>
-    <div class="input-group">
-      <label for="teamId">팀 ID:</label>
-      <input type="number" id="teamId" value="3" min="1" placeholder="팀 ID 입력">
-      <button class="btn btn-primary" onclick="loadTeamMembers()">👥 멤버 조회</button>
-      <button class="btn btn-success" onclick="connectToChatRoom()">💬 채팅방 입장</button>
-      <button class="btn btn-danger" onclick="disconnect()">🚪 나가기</button>
+  <!-- 사이드바 -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <span id="userGreeting">안녕하세요, 사용자님 👋</span>
     </div>
-  </div>
 
-  <!-- 팀 멤버 목록 -->
-  <div class="members-panel">
-    <h3>👥 승인된 팀 멤버</h3>
-    <div id="membersList">
-      <div class="loading">팀 멤버 조회 버튼을 클릭하세요</div>
-    </div>
-  </div>
-
-  <!-- 연결 상태 -->
-  <div id="connectionStatus" class="connection-status disconnected">
-    ❌ 채팅방에 연결되지 않음
-  </div>
-
-  <!-- 채팅 컨테이너 -->
-  <div class="chat-container">
-    <div id="chatArea" class="chat-area">
-      <div class="empty-state">
-        🗨️ 채팅방에 입장하면 메시지가 표시됩니다
+    <div class="sidebar-content">
+      <div class="section-header">내 모임</div>
+      <div id="groupsList">
+        <div class="loading">모임을 불러오는 중...</div>
       </div>
     </div>
 
-    <div class="message-input-area">
-      <select id="senderEmail" class="sender-select" disabled>
-        <option value="">발송자 선택</option>
-      </select>
-      <input type="text" id="messageInput" class="message-input" placeholder="메시지를 입력하세요..." disabled>
-      <button id="sendButton" class="send-button" onclick="sendMessage()" disabled>전송</button>
+    <div class="user-panel">
+      <div class="user-info">
+        <div class="user-avatar" id="userAvatar">U</div>
+        <div class="user-details">
+          <div class="user-name" id="userName">사용자</div>
+          <div class="user-status">온라인</div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- 시스템 로그 -->
-  <div class="logs-panel">
-    <div class="logs-header">
-      📋 시스템 로그
+  <!-- 메인 채팅 영역 -->
+  <div class="main-content">
+    <div class="chat-header">
+      <div class="channel-info">
+        <span class="channel-icon">#</span>
+        <span class="channel-name" id="channelName">모임을 선택해주세요</span>
+      </div>
+      <div id="connectionStatus" class="connection-status status-disconnected">
+        연결되지 않음
+      </div>
     </div>
-    <div class="logs-content" id="logs">
-      시스템이 준비되었습니다.
+
+    <div id="chatMessages" class="chat-messages">
+      <div class="empty-state">
+        <div class="empty-icon">💬</div>
+        <div class="empty-title">채팅을 시작해보세요!</div>
+        <div class="empty-subtitle">왼쪽에서 참여 중인 모임을 선택하여 대화를 시작하세요</div>
+      </div>
+    </div>
+
+    <div class="chat-input-container">
+      <div class="chat-input-wrapper">
+        <input
+            type="text"
+            id="messageInput"
+            class="message-input"
+            placeholder="메시지 보내기..."
+        />
+        <button id="sendButton" class="send-button" onclick="sendMessage()" disabled>
+          전송
+        </button>
+      </div>
     </div>
   </div>
 </div>
 
 <script th:inline="javascript">
   let stompClient = null;
-  let currentTeamId = null;
-  let teamMembers = [];
+  let currentGroupId = null;
+  let myGroups = [];
+  let currentUserEmail = /*[[${userEmail}]]*/ 'test@example.com';
+  let currentUserNickname = '';
 
-  function addLog(message) {
-    const logs = document.getElementById('logs');
-    const time = new Date().toLocaleTimeString();
-    logs.innerHTML += `<br><span style="color: #007bff;">[${time}]</span> ${message}`;
-    logs.scrollTop = logs.scrollHeight;
-    console.log(`[LOG] ${message}`);
-  }
+  // 페이지 로드 시 초기화
+  window.addEventListener('DOMContentLoaded', function() {
+    loadMyGroups();
+  });
 
-  function updateConnectionStatus(connected) {
-    const status = document.getElementById('connectionStatus');
-    const messageInput = document.getElementById('messageInput');
-    const sendButton = document.getElementById('sendButton');
-    const senderEmail = document.getElementById('senderEmail');
-
-    if (connected) {
-      status.className = 'connection-status connected';
-      status.innerHTML = `✅ 팀 ${currentTeamId} 채팅방에 연결됨`;
-      messageInput.disabled = false;
-      sendButton.disabled = false;
-      senderEmail.disabled = false;
-    } else {
-      status.className = 'connection-status disconnected';
-      status.innerHTML = '❌ 채팅방에 연결되지 않음';
-      messageInput.disabled = true;
-      sendButton.disabled = true;
-      senderEmail.disabled = true;
-    }
-  }
-
-  async function loadTeamMembers() {
-    const teamId = document.getElementById('teamId').value;
-
-    if (!teamId) {
-      alert('팀 ID를 입력하세요!');
-      return;
-    }
-
-    addLog(`팀 ${teamId} 멤버 조회 중...`);
+  // 내가 가입한 모임 목록 로드
+  async function loadMyGroups() {
+    console.log('🟡 모임 목록 로드 시작');
 
     try {
-      const response = await fetch(`/api/participants/${teamId}/approve`);
+      const response = await fetch('/api/groups/my');
       const result = await response.json();
 
-      if (result.code === '0000') {
-        teamMembers = result.data;
-        displayTeamMembers(teamMembers);
-        setupSenderOptions(teamMembers);
-        addLog(`팀 멤버 ${teamMembers.length}명 조회 완료`);
+      if (Array.isArray(result) && result.length > 0) {
+        myGroups = result;
+
+        // 첫 번째 모임에서 사용자 닉네임 추출
+        const firstGroup = result[0];
+        currentUserNickname = firstGroup.userNickname || currentUserEmail.split('@')[0];
+
+        // UI에 사용자 정보 업데이트
+        updateUserInfo();
+
+        displayGroups(myGroups);
+        console.log('✅ 모임 목록 표시 완료:', myGroups);
+      } else if (result && result.length === 0) {
+        console.log('⚠️ 참여 중인 모임이 없음');
+        showError('참여 중인 모임이 없습니다');
       } else {
-        throw new Error(result.message);
+        console.log('⚠️ 예상과 다른 응답 구조');
+        showError('모임 목록을 불러올 수 없습니다');
       }
     } catch (error) {
-      addLog(`멤버 조회 실패: ${error.message}`);
-      document.getElementById('membersList').innerHTML =
-          `<div class="error-message">멤버 조회 실패: ${error.message}</div>`;
+      console.error('❌ 에러 발생:', error);
+      showError('모임 목록 조회 중 오류가 발생했습니다: ' + error.message);
     }
   }
 
-  function displayTeamMembers(members) {
-    const membersList = document.getElementById('membersList');
+  // 사용자 정보 UI 업데이트
+  function updateUserInfo() {
+    const userGreeting = document.getElementById('userGreeting');
+    const userAvatar = document.getElementById('userAvatar');
+    const userName = document.getElementById('userName');
 
-    if (members.length === 0) {
-      membersList.innerHTML = '<div class="loading">승인된 멤버가 없습니다.</div>';
-      return;
-    }
+    const nickname = currentUserNickname || currentUserEmail.split('@')[0];
+    const avatar = nickname.substring(0, 1).toUpperCase();
 
-    membersList.innerHTML = members.map(member => `
-      <div class="member-card">
-        <div class="member-info">
-          <div class="member-email">${member.userEmail}</div>
-          <div class="member-details">ID: ${member.id} | 그룹: ${member.groupId}</div>
-        </div>
-        <div class="status-badge">✓ 승인됨</div>
-      </div>
-    `).join('');
+    userGreeting.textContent = `안녕하세요, ${nickname}님 👋`;
+    userAvatar.textContent = avatar;
+    userName.textContent = nickname;
   }
 
-  function setupSenderOptions(members) {
-    const senderSelect = document.getElementById('senderEmail');
-    senderSelect.innerHTML = '<option value="">발송자 선택</option>' +
-        members.map(member => `<option value="${member.userEmail}">${member.userEmail}</option>`).join('');
+  // 모임 목록 표시
+  function displayGroups(groups) {
+    console.log('🟢 displayGroups 호출:', groups);
+
+    const groupsList = document.getElementById('groupsList');
+
+    if (groups.length === 0) {
+      groupsList.innerHTML = '<div class="loading">참여 중인 모임이 없습니다</div>';
+      return;
+    }
+
+    const groupsHtml = groups.map(group => {
+      const groupInitials = group.groupTitle.substring(0, 2).toUpperCase();
+      const memberCount = group.participantEmails ? group.participantEmails.length : 0;
+
+      return `
+          <div class="group-item" onclick="selectGroup(${group.groupId}, '${group.groupTitle}')">
+            <div class="group-avatar">${groupInitials}</div>
+            <div class="group-info">
+              <div class="group-name">${group.groupTitle}</div>
+              <div class="group-subtitle">${memberCount}명 참여</div>
+            </div>
+          </div>
+        `;
+    }).join('');
+
+    console.log('🟢 생성된 HTML:', groupsHtml);
+    groupsList.innerHTML = groupsHtml;
   }
 
-  function connectToChatRoom() {
-    const teamId = document.getElementById('teamId').value;
-
-    if (!teamId) {
-      alert('팀 ID를 입력하세요!');
-      return;
+  // 모임 선택
+  async function selectGroup(groupId, groupTitle) {
+    // 기존 연결 해제
+    if (stompClient && stompClient.connected) {
+      stompClient.disconnect();
     }
 
-    if (teamMembers.length === 0) {
-      alert('먼저 팀 멤버를 조회하세요!');
-      return;
-    }
+    // 이전 선택 해제
+    document.querySelectorAll('.group-item').forEach(item => {
+      item.classList.remove('active');
+    });
 
-    currentTeamId = teamId;
-    addLog('WebSocket 연결 시도 중...');
+    // 현재 선택 활성화
+    event.target.closest('.group-item').classList.add('active');
 
+    currentGroupId = groupId;
+    document.getElementById('channelName').textContent = groupTitle;
+
+    // 채팅 영역 초기화
+    clearChatArea();
+
+    // 채팅방 연결
+    connectToGroup(groupId);
+  }
+
+  // 채팅방 연결
+  function connectToGroup(groupId) {
     const socket = new SockJS('/ws');
     stompClient = Stomp.over(socket);
 
-    // 디버그 모드 활성화
-    stompClient.debug = function(str) {
-      console.log('STOMP DEBUG:', str);
-      addLog('STOMP: ' + str.substring(0, 100));
-    };
-
     stompClient.connect({}, function(frame) {
-      console.log('🟢 STOMP 연결 성공:', frame);
-      addLog('🎉 STOMP 연결 완료!');
       updateConnectionStatus(true);
 
       // 채팅방 구독
-      console.log('🔵 구독 시도:', `/room/${teamId}`);
-      const subscription = stompClient.subscribe(`/room/${teamId}`, function(message) {
-        console.log('🔵 구독 메시지 수신:', message);
-        console.log('🔵 메시지 바디:', message.body);
-        addLog('📨 메시지 수신: ' + message.body.substring(0, 50) + '...');
-
+      stompClient.subscribe(`/room/${groupId}`, function(message) {
         try {
-          const chatResponse = JSON.parse(message.body);
-          console.log('🔵 파싱된 ChatResponse:', chatResponse);
-          displayMessage(chatResponse);
-          addLog('✅ 메시지 화면 표시 완료');
-        } catch (e) {
-          console.error('🔴 메시지 파싱 오류:', e);
-          addLog('❌ 메시지 파싱 오류: ' + e.message);
-          // 파싱 실패해도 원본 메시지 표시
-          addLog('원본 메시지: ' + message.body);
+          const chatData = JSON.parse(message.body);
+          displayMessage(chatData);
+        } catch (error) {
+          console.error('메시지 파싱 오류:', error);
         }
       });
 
-      console.log('🔵 구독 객체:', subscription);
-      addLog(`✅ 팀 ${teamId} 채팅방 구독 완료 (/room/${teamId})`);
-      clearChatArea();
+      // 채팅 이력 로드
+      loadChatHistory(groupId);
 
-      // 채팅 이력 자동 로드
-      loadChatHistory(teamId);
+      // 입력 필드 활성화
+      enableChatInput();
 
     }, function(error) {
-      console.error('🔴 STOMP 연결 실패:', error);
-      addLog('❌ STOMP 연결 실패: ' + error);
       updateConnectionStatus(false);
+      disableChatInput();
+      console.error('연결 실패:', error);
     });
   }
 
-  function sendMessage() {
-    const messageInput = document.getElementById('messageInput');
-    const senderEmail = document.getElementById('senderEmail');
-    const messageContent = messageInput.value.trim();
-    const sender = senderEmail.value;
+  // 연결 상태 업데이트
+  function updateConnectionStatus(connected) {
+    const status = document.getElementById('connectionStatus');
 
-    if (!messageContent) {
-      alert('메시지를 입력하세요!');
-      return;
-    }
-
-    if (!sender) {
-      alert('발송자를 선택하세요!');
-      return;
-    }
-
-    if (stompClient && currentTeamId) {
-      const chatResponse = {
-        groupId: parseInt(currentTeamId),
-        senderEmail: sender,
-        senderNickname: sender.split('@')[0], // 이메일에서 닉네임 추출
-        message: messageContent
-      };
-
-      console.log('🟡 전송할 메시지:', chatResponse);
-      console.log('🟡 STOMP 연결 상태:', stompClient.connected);
-      addLog(`메시지 전송 시도: "${messageContent}" (${sender})`);
-
-      try {
-        stompClient.send("/send/message", {}, JSON.stringify(chatResponse));
-        addLog('WebSocket 메시지 전송 성공');
-        messageInput.value = '';
-      } catch (error) {
-        console.error('🔴 메시지 전송 오류:', error);
-        addLog('메시지 전송 실패: ' + error.message);
-      }
+    if (connected) {
+      status.className = 'connection-status status-connected';
+      status.textContent = '연결됨';
     } else {
-      addLog('STOMP 클라이언트가 연결되지 않음');
+      status.className = 'connection-status status-disconnected';
+      status.textContent = '연결되지 않음';
     }
   }
 
-  function displayMessage(chatResponse) {
-    console.log('🟢 displayMessage 호출:', chatResponse);
-    addLog('🎨 메시지 화면 표시 시작');
+  // 채팅 입력 활성화/비활성화
+  function enableChatInput() {
+    document.getElementById('messageInput').disabled = false;
+    document.getElementById('sendButton').disabled = false;
+  }
 
-    const chatArea = document.getElementById('chatArea');
-    const currentSender = document.getElementById('senderEmail').value;
+  function disableChatInput() {
+    document.getElementById('messageInput').disabled = true;
+    document.getElementById('sendButton').disabled = true;
+  }
 
-    console.log('🟢 현재 발송자:', currentSender);
-    console.log('🟢 메시지 발송자:', chatResponse.senderEmail);
+  // 메시지 전송
+  function sendMessage() {
+    const messageInput = document.getElementById('messageInput');
+    const messageText = messageInput.value.trim();
 
-    // 첫 메시지면 안내 텍스트 제거
-    if (chatArea.querySelector('.empty-state')) {
-      console.log('🟢 안내 텍스트 제거');
+    if (!messageText) {
+      alert('메시지를 입력하세요');
+      return;
+    }
+
+    if (stompClient && currentGroupId) {
+      const chatData = {
+        groupId: currentGroupId,
+        senderEmail: currentUserEmail,
+        senderNickname: currentUserNickname || currentUserEmail.split('@')[0],
+        message: messageText
+      };
+
+      stompClient.send('/send/message', {}, JSON.stringify(chatData));
+      messageInput.value = '';
+    }
+  }
+
+  // 메시지 표시 - 수정된 부분
+  function displayMessage(chatData) {
+    const chatMessages = document.getElementById('chatMessages');
+
+    // 빈 상태 제거
+    if (chatMessages.querySelector('.empty-state')) {
       clearChatArea();
     }
 
     const messageDiv = document.createElement('div');
-    const isMyMessage = chatResponse.senderEmail === currentSender;
+    const isMyMessage = chatData.senderEmail === currentUserEmail;
 
-    console.log('🟢 내 메시지인가?', isMyMessage);
+    // 내 메시지인지에 따라 클래스 설정
+    messageDiv.className = isMyMessage ? 'message-group mine' : 'message-group other';
 
-    messageDiv.className = isMyMessage ? 'message my-message' : 'message other-message';
+    const nickname = chatData.senderNickname || chatData.senderEmail.split('@')[0];
+    const initials = nickname.substring(0, 2).toUpperCase();
+    const timestamp = chatData.time || new Date().toLocaleTimeString('ko-KR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
 
-    const time = chatResponse.time || new Date().toLocaleTimeString();
+    messageDiv.innerHTML = `
+        <div class="message-avatar ${isMyMessage ? 'mine' : ''}">${initials}</div>
+        <div class="message-content ${isMyMessage ? 'mine' : ''}">
+          <div class="message-author ${isMyMessage ? 'mine' : ''}">${nickname}</div>
+          <div class="message-text-time ${isMyMessage ? 'mine' : ''}">
+            <div class="message-text ${isMyMessage ? 'mine' : ''}">${chatData.message}</div>
+            <div class="message-timestamp">${timestamp}</div>
+          </div>
+        </div>
+      `;
 
-    const messageHTML = `
-      <div class="message-bubble">
-        <div class="message-sender">${chatResponse.senderNickname || chatResponse.senderEmail}</div>
-        <div class="message-content">${chatResponse.message}</div>
-        <div class="message-time">${time}</div>
-      </div>
-    `;
-
-    console.log('🟢 생성할 HTML:', messageHTML);
-    messageDiv.innerHTML = messageHTML;
-
-    chatArea.appendChild(messageDiv);
-    chatArea.scrollTop = chatArea.scrollHeight;
-
-    console.log('🟢 메시지 DOM에 추가 완료');
-    console.log('🟢 현재 채팅 영역 자식 수:', chatArea.children.length);
-    addLog('✅ 메시지 화면 표시 완료!');
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
   }
 
+  // 채팅 영역 초기화
   function clearChatArea() {
-    document.getElementById('chatArea').innerHTML = '';
+    document.getElementById('chatMessages').innerHTML = '';
   }
 
-  function disconnect() {
-    if (stompClient) {
-      stompClient.disconnect();
-      stompClient = null;
-      updateConnectionStatus(false);
-      addLog('채팅방에서 나갔습니다');
-
-      document.getElementById('chatArea').innerHTML =
-          '<div class="empty-state">🗨️ 채팅방에 입장하면 메시지가 표시됩니다</div>';
-    }
-  }
-
-  async function loadChatHistory(teamId) {
-    addLog(`📚 팀 ${teamId} 채팅 이력 로딩 중...`);
-
+  // 채팅 이력 로드
+  async function loadChatHistory(groupId) {
     try {
-      const response = await fetch(`/api/chats/history/${teamId}`);
+      const response = await fetch(`/api/chats/history/${groupId}`);
       const result = await response.json();
 
-      console.log('📚 채팅 이력 응답:', result);
-
       if (result.code === '0000' && result.data) {
-        const chatHistory = result.data;
-
-        // 기존 메시지 영역 초기화
-        clearChatArea();
-
-        // 이력 메시지들을 순서대로 표시
-        chatHistory.forEach((chatResponse, index) => {
-          console.log(`📚 이력 메시지 ${index + 1}:`, chatResponse);
-          displayMessage(chatResponse);
+        result.data.forEach(message => {
+          displayMessage(message);
         });
-
-        addLog(`✅ 채팅 이력 ${chatHistory.length}개 로드 완료`);
-
-        if (chatHistory.length === 0) {
-          addLog('💬 이전 채팅 내역이 없습니다.');
-        }
-      } else {
-        addLog(`❌ 채팅 이력 로드 실패: ${result.message || '알 수 없는 오류'}`);
       }
     } catch (error) {
-      console.error('📚 채팅 이력 로드 오류:', error);
-      addLog(`❌ 채팅 이력 로드 오류: ${error.message}`);
+      console.error('채팅 이력 로드 실패:', error);
     }
+  }
+
+  // 오류 표시
+  function showError(message) {
+    document.getElementById('groupsList').innerHTML =
+        `<div class="error">${message}</div>`;
   }
 
   // Enter 키로 메시지 전송

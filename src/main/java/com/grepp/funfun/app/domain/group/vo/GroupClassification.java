@@ -5,13 +5,14 @@ import lombok.Getter;
 @Getter
 public enum GroupClassification {
 
-    GAME("게임"),
-    FOOD("푸드/드링크"),
-    TRAVEL("여행/나들이"),
     ART("예술"),
+    TRAVEL("여행"),
+    FOOD("음식"),
+    GAME("게임"),
     CULTURE("문화"),
-    STUDY("자기개발"),
-    SPORT("운동/신체활동");
+    SPORT("운동"),
+    STUDY("자기 개발"),
+    MOVIE("영화");
 
     private final String koreanName;
 
