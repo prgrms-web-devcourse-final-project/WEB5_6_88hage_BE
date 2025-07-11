@@ -10,7 +10,7 @@ import java.time.LocalDate;
 public class ContentFilterRequest {
 
     private ContentClassification category;
-    private String guName;
+    private String guname;
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate startDate;

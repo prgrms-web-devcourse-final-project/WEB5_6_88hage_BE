@@ -6,17 +6,21 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ContentDTO {
 
     private Long id;
 
     private String contentTitle;
+
+    private String age;
 
     private String status;
 
@@ -30,7 +34,7 @@ public class ContentDTO {
 
     private String reservationUrl;
 
-    private String guName;
+    private String guname;
 
     private Integer runTime;
 
@@ -42,6 +46,8 @@ public class ContentDTO {
     private Long category;
 
     private List<ContentImageDTO> images;
+
+    private List<ContentUrlDTO> urls;
 
     private Integer bookmarkCount;
 
