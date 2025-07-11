@@ -19,6 +19,8 @@ public interface ParticipantRepository extends JpaRepository<Participant, Long>,
 
     Optional<Participant> findByGroupIdAndUserEmail(Long groupId,String userEmail);
 
+    // 특정 그룹 참여 기록 찾기
+    Optional<Participant> findByUserAndGroup(User user, Group group);
     String user(User user);
 
     long countByUserEmailAndRoleAndStatus(String email, ParticipantRole participantRole, ParticipantStatus participantStatus);
