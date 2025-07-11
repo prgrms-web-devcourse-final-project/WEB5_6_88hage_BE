@@ -22,8 +22,9 @@ VALUES (1, 'http://www.kopis.or.kr/upload/pfmIntroImage/PF_PF269113_202507090417
        (3, 'http://www.kopis.or.kr/upload/pfmIntroImage/PF_PF269109_202507090401550230.jpg');
 
 INSERT INTO content_url (siteName, url)
+VALUES ();
 
-INSERT INTO content (category, content_title, fee, start_date, end_date, run_time, time, start_time, address, guname,
+INSERT INTO content (category, content_title, age, fee, start_date, end_date, run_time, time, start_time, address, guname,
                      longitude, latitude, description, poster, urls, images, event_type)
 VALUES
     ( 'MIX', '의식적 정화', '전석 35,000원', '2025-07-11', '2025-07-13', '1시간 30분', '금요일(19:30), 토요일 ~ 일요일(15:00)', '19:30, 15:00', '예술공간 혜화 (예술공간 혜화)', '종로구', NULL, NULL, NULL, 'http://www.kopis.or.kr/upload/pfmPoster/PF_PF266549_250605_105353.gif', '인터파크:http://ticket.interpark.com/Ticket/Goods/GoodsInfo.asp?GoodsCode=25007864', 'http://www.kopis.or.kr/upload/pfmIntroImage/PF_PF266549_250605_1053530.jpg', 'event'),

@@ -14,7 +14,10 @@ public enum ContentClassification {
     POP_MUSIC("대중음악"),
     MIX("복합"),
     MAGIC("서커스/마술"),
-    MUSICAL("뮤지컬");
+    MUSICAL("뮤지컬"),
+    TOUR("관광지"),
+    CULTURE("문화시설"),
+    SPORTS("레포츠");
 
     private final String koreanName;
 
