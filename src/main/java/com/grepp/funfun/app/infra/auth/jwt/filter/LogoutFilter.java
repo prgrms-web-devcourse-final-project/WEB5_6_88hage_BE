@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -20,6 +21,9 @@ public class LogoutFilter extends OncePerRequestFilter {
     
     private final RefreshTokenService refreshTokenService;
     private final JwtTokenProvider jwtTokenProvider;
+
+    @Value("${front-server.domain}")
+    private String front;
     
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -39,7 +43,7 @@ public class LogoutFilter extends OncePerRequestFilter {
             refreshTokenService.deleteByAccessTokenId(claims.getId());
             TokenCookieFactory.setAllExpiredCookies(response);
             // NOTE: 프론트 측 URI 로 변경 필요
-            response.sendRedirect("/");
+            response.sendRedirect(front + "/");
         }
         
         filterChain.doFilter(request,response);
