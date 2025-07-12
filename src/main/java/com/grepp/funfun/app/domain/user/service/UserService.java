@@ -296,6 +296,8 @@ public class UserService {
         userDTO.setBirthDate(user.getBirthDate());
         userDTO.setGender(user.getGender());
         userDTO.setAddress(user.getAddress());
+        userDTO.setLatitude(user.getLatitude());
+        userDTO.setLongitude(user.getLongitude());
         userDTO.setRole(user.getRole());
         userDTO.setStatus(user.getStatus());
         userDTO.setDueDate(user.getDueDate());

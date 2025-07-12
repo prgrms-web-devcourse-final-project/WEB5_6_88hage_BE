@@ -45,6 +45,12 @@ public class SignupRequest {
     @NotBlank(message = "주소는 필수입니다.")
     private String address;
 
+    @NotNull(message = "위도는 필수입니다.")
+    private Double latitude;
+
+    @NotNull(message = "경도는 필수입니다.")
+    private Double longitude;
+
     @NotBlank(message = "생년월일은 필수입니다.")
     private String birthDate;
 
@@ -71,6 +77,8 @@ public class SignupRequest {
         user.setEmail(email);
         user.setNickname(nickname);
         user.setAddress(address);
+        user.setLatitude(latitude);
+        user.setLongitude(longitude);
         user.setBirthDate(birthDate);
         user.setGender(gender);
         user.setIsMarketingAgreed(isMarketingAgreed);

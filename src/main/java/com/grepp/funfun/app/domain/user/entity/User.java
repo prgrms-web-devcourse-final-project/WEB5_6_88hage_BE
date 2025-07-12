@@ -48,6 +48,10 @@ public class User extends BaseEntity {
 
     private String address;
 
+    private Double latitude;
+
+    private Double longitude;
+
     @Enumerated(EnumType.STRING)
     private Role role;
 

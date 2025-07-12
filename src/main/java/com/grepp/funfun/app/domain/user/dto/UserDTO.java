@@ -38,6 +38,10 @@ public class UserDTO {
     @Size(max = 255)
     private String address;
 
+    private Double latitude;
+
+    private Double longitude;
+
     private Role role;
 
     private UserStatus status;
