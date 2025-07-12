@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>팀 채팅</title>
+  <title>개인 채팅</title>
   <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
   <style>
@@ -50,7 +50,7 @@
       overflow-y: auto;
     }
 
-    /* 내 모임 섹션 */
+    /* 내 채팅 섹션 */
     .section-header {
       padding: 16px 8px 0 18px;
       margin-bottom: 8px;
@@ -61,7 +61,7 @@
       letter-spacing: 0.02em;
     }
 
-    .group-item {
+    .chat-item {
       display: flex;
       align-items: center;
       padding: 8px 8px;
@@ -72,19 +72,19 @@
       min-height: 44px;
     }
 
-    .group-item:hover {
+    .chat-item:hover {
       background-color: #35373c;
     }
 
-    .group-item.active {
+    .chat-item.active {
       background-color: #404249;
     }
 
-    .group-avatar {
+    .chat-avatar {
       width: 48px;
       height: 48px;
       border-radius: 50%;
-      background-color: #5865f2;
+      background-color: #f23f43;
       margin-right: 12px;
       display: flex;
       align-items: center;
@@ -95,12 +95,12 @@
       flex-shrink: 0;
     }
 
-    .group-info {
+    .chat-info {
       flex: 1;
       min-width: 0;
     }
 
-    .group-name {
+    .chat-name {
       font-size: 16px;
       font-weight: 600;
       color: #949ba4;
@@ -110,7 +110,7 @@
       margin-bottom: 2px;
     }
 
-    .group-subtitle {
+    .chat-subtitle {
       font-size: 13px;
       color: #6d6f78;
       white-space: nowrap;
@@ -118,11 +118,11 @@
       text-overflow: ellipsis;
     }
 
-    .group-item.active .group-name {
+    .chat-item.active .chat-name {
       color: #f2f3f5;
     }
 
-    .group-item.active .group-subtitle {
+    .chat-item.active .chat-subtitle {
       color: #b5bac1;
     }
 
@@ -229,7 +229,7 @@
       background-color: #313338;
     }
 
-    /* 메시지 그룹 - 수정된 부분 */
+    /* 메시지 그룹 */
     .message-group {
       margin-bottom: 16px;
     }
@@ -442,9 +442,9 @@
     </div>
 
     <div class="sidebar-content">
-      <div class="section-header">내 모임</div>
-      <div id="groupsList">
-        <div class="loading">모임을 불러오는 중...</div>
+      <div class="section-header">개인 채팅</div>
+      <div id="chatsList">
+        <div class="loading">채팅 목록을 불러오는 중...</div>
       </div>
     </div>
 
@@ -463,8 +463,8 @@
   <div class="main-content">
     <div class="chat-header">
       <div class="channel-info">
-        <span class="channel-icon">#</span>
-        <span class="channel-name" id="channelName">모임을 선택해주세요</span>
+        <span class="channel-icon">💬</span>
+        <span class="channel-name" id="channelName">채팅을 선택해주세요</span>
       </div>
       <div id="connectionStatus" class="connection-status status-disconnected">
         연결되지 않음
@@ -474,8 +474,8 @@
     <div id="chatMessages" class="chat-messages">
       <div class="empty-state">
         <div class="empty-icon">💬</div>
-        <div class="empty-title">채팅을 시작해보세요!</div>
-        <div class="empty-subtitle">왼쪽에서 참여 중인 모임을 선택하여 대화를 시작하세요</div>
+        <div class="empty-title">개인 채팅을 시작해보세요!</div>
+        <div class="empty-subtitle">왼쪽에서 채팅을 선택하거나 새 채팅을 시작하세요</div>
       </div>
     </div>
 
@@ -497,46 +497,50 @@
 
 <script th:inline="javascript">
   let stompClient = null;
-  let currentGroupId = null;
-  let myGroups = [];
+  let currentChatRoomId = null;
+  let currentChatRoomType = 'PERSONAL_CHAT';
+  let myChats = [];
   let currentUserEmail = /*[[${userEmail}]]*/ 'test@example.com';
   let currentUserNickname = '';
 
   // 페이지 로드 시 초기화
   window.addEventListener('DOMContentLoaded', function() {
-    loadMyGroups();
+    loadMyChats();
   });
 
-  // 내가 가입한 모임 목록 로드
-  async function loadMyGroups() {
-    console.log('🟡 모임 목록 로드 시작');
+  // 내 채팅 목록 로드
+  async function loadMyChats() {
+    console.log('🟡 개인 채팅 목록 로드 시작');
 
     try {
-      const response = await fetch('/api/groups/my');
+      const response = await fetch('/api/chatRooms/rooms/my');
       const result = await response.json();
 
-      if (Array.isArray(result) && result.length > 0) {
-        myGroups = result;
+      console.log('📋 API 응답:', result);
 
-        // 첫 번째 모임에서 사용자 닉네임 추출
-        const firstGroup = result[0];
-        currentUserNickname = firstGroup.userNickname || currentUserEmail.split('@')[0];
+      if (result.code === '0000' && Array.isArray(result.data)) {
+        myChats = result.data;
 
-        // UI에 사용자 정보 업데이트
+        // 사용자 정보 업데이트
+        if (myChats.length > 0) {
+          currentUserNickname = myChats[0].currentUserEmail.split('@')[0];
+        } else {
+          currentUserNickname = currentUserEmail.split('@')[0];
+        }
+
         updateUserInfo();
-
-        displayGroups(myGroups);
-        console.log('✅ 모임 목록 표시 완료:', myGroups);
-      } else if (result && result.length === 0) {
-        console.log('⚠️ 참여 중인 모임이 없음');
-        showError('참여 중인 모임이 없습니다');
+        displayChats(myChats);
+        console.log('✅ 개인 채팅 목록 표시 완료:', myChats);
+      } else if (result.code === '0000' && result.data.length === 0) {
+        console.log('⚠️ 개인 채팅이 없음');
+        document.getElementById('chatsList').innerHTML = '<div class="loading">개인 채팅이 없습니다</div>';
       } else {
-        console.log('⚠️ 예상과 다른 응답 구조');
-        showError('모임 목록을 불러올 수 없습니다');
+        console.log('⚠️ 예상과 다른 응답 구조:', result);
+        showError('채팅 목록을 불러올 수 없습니다');
       }
     } catch (error) {
       console.error('❌ 에러 발생:', error);
-      showError('모임 목록 조회 중 오류가 발생했습니다: ' + error.message);
+      showError('채팅 목록 조회 중 오류가 발생했습니다: ' + error.message);
     }
   }
 
@@ -554,72 +558,73 @@
     userName.textContent = nickname;
   }
 
-  // 모임 목록 표시
-  function displayGroups(groups) {
-    console.log('🟢 displayGroups 호출:', groups);
+  // 채팅 목록 표시
+  function displayChats(chats) {
+    console.log('🟢 displayChats 호출:', chats);
 
-    const groupsList = document.getElementById('groupsList');
+    const chatsList = document.getElementById('chatsList');
 
-    if (groups.length === 0) {
-      groupsList.innerHTML = '<div class="loading">참여 중인 모임이 없습니다</div>';
+    if (chats.length === 0) {
+      chatsList.innerHTML = '<div class="loading">개인 채팅이 없습니다</div>';
       return;
     }
 
-    const groupsHtml = groups.map(group => {
-      const groupInitials = group.groupTitle.substring(0, 2).toUpperCase();
-      const memberCount = group.participantEmails ? group.participantEmails.length : 0;
+    const chatsHtml = chats.map(chat => {
+      const chatInitials = chat.otherUserNickname.substring(0, 2).toUpperCase();
 
       return `
-          <div class="group-item" onclick="selectGroup(${group.groupId}, '${group.groupTitle}')">
-            <div class="group-avatar">${groupInitials}</div>
-            <div class="group-info">
-              <div class="group-name">${group.groupTitle}</div>
-              <div class="group-subtitle">${memberCount}명 참여</div>
+          <div class="chat-item" onclick="selectChat(${chat.roomId}, '${chat.otherUserNickname}')">
+            <div class="chat-avatar">${chatInitials}</div>
+            <div class="chat-info">
+              <div class="chat-name">${chat.otherUserNickname}</div>
+              <div class="chat-subtitle">${chat.otherUserEmail}</div>
             </div>
           </div>
         `;
     }).join('');
 
-    console.log('🟢 생성된 HTML:', groupsHtml);
-    groupsList.innerHTML = groupsHtml;
+    console.log('🟢 생성된 HTML:', chatsHtml);
+    chatsList.innerHTML = chatsHtml;
   }
 
-  // 모임 선택
-  async function selectGroup(groupId, groupTitle) {
+  // 채팅 선택
+  async function selectChat(roomId, otherUserNickname) {
     // 기존 연결 해제
     if (stompClient && stompClient.connected) {
       stompClient.disconnect();
     }
 
     // 이전 선택 해제
-    document.querySelectorAll('.group-item').forEach(item => {
+    document.querySelectorAll('.chat-item').forEach(item => {
       item.classList.remove('active');
     });
 
     // 현재 선택 활성화
-    event.target.closest('.group-item').classList.add('active');
+    event.target.closest('.chat-item').classList.add('active');
 
-    currentGroupId = groupId;
-    document.getElementById('channelName').textContent = groupTitle;
+    currentChatRoomId = roomId;
+    document.getElementById('channelName').textContent = `${otherUserNickname}님과의 채팅`;
 
     // 채팅 영역 초기화
     clearChatArea();
 
     // 채팅방 연결
-    connectToGroup(groupId);
+    connectToChat(roomId);
   }
 
   // 채팅방 연결
-  function connectToGroup(groupId) {
+  function connectToChat(roomId) {
     const socket = new SockJS('/ws');
     stompClient = Stomp.over(socket);
 
     stompClient.connect({}, function(frame) {
+      console.log('✅ WebSocket 연결 성공:', frame);
       updateConnectionStatus(true);
 
-      // 채팅방 구독
-      stompClient.subscribe(`/room/${groupId}`, function(message) {
+      // 개인 채팅방 구독
+      stompClient.subscribe(`/personal/${roomId}`, function(message) {
         try {
+          console.log('📨 메시지 수신:', message.body);
           const chatData = JSON.parse(message.body);
           displayMessage(chatData);
         } catch (error) {
@@ -627,16 +632,18 @@
         }
       });
 
+      console.log(`🔔 구독 완료: /personal/${roomId}`);
+
       // 채팅 이력 로드
-      loadChatHistory(groupId);
+      loadChatHistory(roomId);
 
       // 입력 필드 활성화
       enableChatInput();
 
     }, function(error) {
+      console.error('❌ WebSocket 연결 실패:', error);
       updateConnectionStatus(false);
       disableChatInput();
-      console.error('연결 실패:', error);
     });
   }
 
@@ -674,20 +681,25 @@
       return;
     }
 
-    if (stompClient && currentGroupId) {
+    if (stompClient && currentChatRoomId) {
       const chatData = {
-        groupId: currentGroupId,
+        roomId: currentChatRoomId,
+        roomType: 'PERSONAL_CHAT',
         senderEmail: currentUserEmail,
         senderNickname: currentUserNickname || currentUserEmail.split('@')[0],
         message: messageText
       };
 
-      stompClient.send('/send/message', {}, JSON.stringify(chatData));
+      console.log('📤 메시지 전송:', chatData);
+
+      stompClient.send('/send/chat/message', {}, JSON.stringify(chatData));
       messageInput.value = '';
+    } else {
+      console.error('❌ WebSocket 연결 또는 채팅방 ID가 없음');
     }
   }
 
-  // 메시지 표시 - 수정된 부분
+  // 메시지 표시
   function displayMessage(chatData) {
     const chatMessages = document.getElementById('chatMessages');
 
@@ -699,7 +711,6 @@
     const messageDiv = document.createElement('div');
     const isMyMessage = chatData.senderEmail === currentUserEmail;
 
-    // 내 메시지인지에 따라 클래스 설정
     messageDiv.className = isMyMessage ? 'message-group mine' : 'message-group other';
 
     const nickname = chatData.senderNickname || chatData.senderEmail.split('@')[0];
@@ -731,10 +742,12 @@
   }
 
   // 채팅 이력 로드
-  async function loadChatHistory(groupId) {
+  async function loadChatHistory(roomId) {
     try {
-      const response = await fetch(`/api/chats/history/${groupId}`);
+      const response = await fetch(`/api/chats/${roomId}/${currentChatRoomType}/history`);
       const result = await response.json();
+
+      console.log('📋 채팅 이력:', result);
 
       if (result.code === '0000' && result.data) {
         result.data.forEach(message => {
@@ -748,7 +761,7 @@
 
   // 오류 표시
   function showError(message) {
-    document.getElementById('groupsList').innerHTML =
+    document.getElementById('chatsList').innerHTML =
         `<div class="error">${message}</div>`;
   }
 
