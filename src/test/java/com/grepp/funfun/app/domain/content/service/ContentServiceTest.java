@@ -27,10 +27,8 @@ class ContentServiceTest {
         ContentFilterRequest request = new ContentFilterRequest();
         Pageable pageable = PageRequest.of(0, 10);
 
-        // when
         Page<ContentDTO> result = contentService.findByFilters(request, pageable);
 
-        // then
         assertThat(result).isNotNull();
         assertThat(result.getContent()).isNotEmpty();
 
@@ -48,10 +46,8 @@ class ContentServiceTest {
         request.setCategory(ContentClassification.DANCE);
         Pageable pageable = PageRequest.of(0, 10);
 
-        // when
         Page<ContentDTO> result = contentService.findByFilters(request, pageable);
 
-        // then
         assertThat(result).isNotNull();
 
         System.out.println("============= 무용 카테고리 필터링 ============");
@@ -61,49 +57,43 @@ class ContentServiceTest {
     }
 
     @Test
-    public void getFilterByguname() {
-        // given
+    public void getFilterByGuname() {
         ContentFilterRequest request = new ContentFilterRequest();
-        request.setguname("강남구");
+        request.setGuname("강남구");
         Pageable pageable = PageRequest.of(0, 10);
 
-        // when
         Page<ContentDTO> result = contentService.findByFilters(request, pageable);
 
-        // then
         assertThat(result).isNotNull();
         assertThat(result.getContent()).allMatch(content ->
-                "강남구".equals(content.getguname())
+                "강남구".equals(content.getGuname())
         );
 
         System.out.println("======= 강남구 지역 필터링 =======");
         result.getContent().forEach(content ->
-                System.out.println(content.getContentTitle() + " - 지역: " + content.getguname())
+                System.out.println(content.getContentTitle() + " - 지역: " + content.getGuname())
         );
     }
 
     @Test
     public void getContentsByFilters() {
-        // given
         ContentFilterRequest request = new ContentFilterRequest();
         request.setCategory(ContentClassification.DANCE);
-        request.setguname("강남구");
+        request.setGuname("강남구");
         request.setStartDate(LocalDate.of(2025, 7, 1));
         request.setEndDate(LocalDate.of(2025, 12, 31));
 
         Pageable pageable = PageRequest.of(0, 10, Sort.by("bookmarkCount").descending());
 
-        // when
         Page<ContentDTO> result = contentService.findByFilters(request, pageable);
 
-        // then
         assertThat(result).isNotNull();
 
         System.out.println("=== 복합 필터링 (무용 + 강남구 + 2025년 하반기 + 북마크순) ===");
         result.getContent().forEach(content ->
                 System.out.println(content.getContentTitle() +
                         " - 카테고리: " + content.getCategory() +
-                        ", 지역: " + content.getguname() +
+                        ", 지역: " + content.getGuname() +
                         ", 기간: " + content.getStartDate() + "~" + content.getEndDate() +
                         ", 북마크: " + content.getBookmarkCount())
         );

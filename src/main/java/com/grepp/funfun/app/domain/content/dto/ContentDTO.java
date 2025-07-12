@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.domain.content.dto;
 
+import com.grepp.funfun.app.domain.content.vo.EventType;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
@@ -22,8 +23,6 @@ public class ContentDTO {
 
     private String age;
 
-    private String status;
-
     private String fee;
 
     private LocalDate startDate;
@@ -32,22 +31,26 @@ public class ContentDTO {
 
     private String address;
 
-    private String reservationUrl;
-
     private String guname;
 
-    private Integer runTime;
+    private String time;
 
-    private LocalTime startTime;
+    private String runTime;
 
-    private LocalTime endTime;
+    private String startTime;
+
+    private String poster;
+
+    private String description;
 
     @NotNull
-    private Long category;
+    private String category;
 
     private List<ContentImageDTO> images;
 
     private List<ContentUrlDTO> urls;
+
+    private EventType eventType;
 
     private Integer bookmarkCount;
 

@@ -5,8 +5,11 @@ import com.grepp.funfun.app.domain.content.dto.payload.ContentFilterRequest;
 import com.grepp.funfun.app.domain.content.dto.ContentDTO;
 import com.grepp.funfun.app.domain.content.service.ContentService;
 import com.grepp.funfun.app.infra.response.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -29,18 +32,23 @@ public class ContentApiController {
 
     private final ContentService contentService;
 
-    // 컨텐츠 조회
     @GetMapping
+    @Operation(
+            summary = "컨텐츠 목록 조회",
+            description = "필터 조건에 따라 컨텐츠 목록을 페이징하여 조회합니다."
+    )
     public ResponseEntity<ApiResponse<Page<ContentDTO>>> getAllContents(
-            ContentFilterRequest request,
-            @PageableDefault(size = 10, sort = "startDate", direction = Sort.Direction.ASC) Pageable pageable) {
+            @Valid @ParameterObject ContentFilterRequest request,
+            @ParameterObject @PageableDefault(size = 10, sort = "startDate", direction = Sort.Direction.ASC) Pageable pageable) {
 
         Page<ContentDTO> contents = contentService.findByFilters(request, pageable);
         return ResponseEntity.ok(ApiResponse.success(contents));
     }
 
-    // 컨텐츠 상세 조회
     @GetMapping("/{id}")
+    @Operation(
+            summary = "컨텐츠 상세 조회"
+    )
     public ResponseEntity<ApiResponse<ContentDetailResponse>> getContent(
             @PathVariable(name = "id") final Long id
     ) {
