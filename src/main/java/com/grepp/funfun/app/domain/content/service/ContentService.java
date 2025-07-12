@@ -56,14 +56,25 @@ public class ContentService {
                 .fee(content.getFee())
                 .address(content.getAddress())
                 .guname(content.getGuname())
+                .time(content.getTime())
                 .runTime(content.getRunTime())
                 .startTime(content.getStartTime())
+                .poster(content.getPoster())
+                .description(content.getDescription())
                 .bookmarkCount(content.getBookmarkCount())
-                .category(content.getCategory() != null ? content.getCategory().getId() : null)
+                .eventType(content.getEventType())
+                .category(content.getCategory() != null ? content.getCategory().getCategory().name() : null)
                 .images(content.getImages().stream()
                         .map(img -> ContentImageDTO.builder()
                                 .id(img.getId())
                                 .imageUrl(img.getImageUrl())
+                                .build())
+                        .toList())
+                .urls(content.getUrls().stream()            // 추가: URLs 매핑
+                        .map(url -> ContentUrlDTO.builder()
+                                .id(url.getId())
+                                .siteName(url.getSiteName())
+                                .url(url.getUrl())
                                 .build())
                         .toList())
                 .build();
@@ -137,17 +148,21 @@ public class ContentService {
                 .fee(content.getFee())
                 .address(content.getAddress())
                 .guname(content.getGuname())
+                .time(content.getTime())
                 .runTime(content.getRunTime())
                 .startTime(content.getStartTime())
+                .poster(content.getPoster())
+                .description(content.getDescription())
                 .bookmarkCount(content.getBookmarkCount())
-                .category(content.getCategory() != null ? content.getCategory().getId() : null)
+                .eventType(content.getEventType())
+                .category(content.getCategory() != null ? content.getCategory().getCategory().name() : null)
                 .images(content.getImages().stream()
                         .map(img -> ContentImageDTO.builder()
                                 .id(img.getId())
                                 .imageUrl(img.getImageUrl())
                                 .build())
                         .toList())
-                .urls(content.getUrls().stream()
+                .urls(content.getUrls().stream()            // 추가: URLs 매핑
                         .map(url -> ContentUrlDTO.builder()
                                 .id(url.getId())
                                 .siteName(url.getSiteName())
@@ -202,8 +217,9 @@ public class ContentService {
         contentDTO.setGuname(content.getGuname());
         contentDTO.setRunTime(content.getRunTime());
         contentDTO.setStartTime(content.getStartTime());
+        contentDTO.setPoster(content.getPoster());
         contentDTO.setBookmarkCount(content.getBookmarkCount());
-        contentDTO.setCategory(content.getCategory() == null ? null : content.getCategory().getId());
+        contentDTO.setCategory(content.getCategory() != null ? content.getCategory().getCategory().name() : null);
 
         if (content.getImages() != null) {
             List<ContentImageDTO> imageDTOs = content.getImages().stream()
@@ -230,11 +246,11 @@ public class ContentService {
         content.setGuname(contentDTO.getGuname());
         content.setRunTime(contentDTO.getRunTime());
         content.setStartTime(contentDTO.getStartTime());
+        content.setPoster(contentDTO.getPoster());
         content.setBookmarkCount(contentDTO.getBookmarkCount() != null ? contentDTO.getBookmarkCount() : 0);
-        final ContentCategory category = contentDTO.getCategory() == null ? null : contentCategoryRepository.findById(contentDTO.getCategory())
-                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        content.setCategory(category);
-
+        if (contentDTO.getCategory() != null) {
+            content.setCategory(null);
+        }
         if (contentDTO.getImages() != null) {
             List<ContentImage> imageEntities = contentDTO.getImages().stream()
                     .map(imgDto -> {

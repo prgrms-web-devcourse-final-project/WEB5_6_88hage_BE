@@ -18,6 +18,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @Entity
+@Table(name = "content")
 public class Content extends BaseEntity {
 
     @Id
@@ -38,31 +39,32 @@ public class Content extends BaseEntity {
 
     private String address;
 
-    @Column(name = "latitude")
     private Double latitude;
 
-    @Column(name = "longitude")
     private Double longitude;
 
     private String guname; // 자치구
 
     private String time;
 
-    private Integer runTime; // 공연 런타임
+    private String runTime; // 공연 런타임
 
-    private LocalTime startTime; // 시작 시간
+    private String startTime; // 시작 시간
 
+    private String poster;
+
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     @OneToMany(mappedBy = "content", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ContentUrl> urls = new ArrayList<>();  // 예약 링크
+    private List<ContentUrl> urls = new ArrayList<>();  // 사이트 링크
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EventType eventType;
 
     @OneToMany(mappedBy = "content", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ContentImage> images = new ArrayList<>(); // 이미지
+    private List<ContentImage> images = new ArrayList<>(); // 이미지 설명
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)

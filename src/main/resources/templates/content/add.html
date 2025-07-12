@@ -21,9 +21,17 @@
                 <div th:replace="~{fragments/forms::inputRow(object='content', field='endDate', inputClass='js-datepicker')}" />
                 <div th:replace="~{fragments/forms::inputRow(object='content', field='address')}" />
                 <div th:replace="~{fragments/forms::inputRow(object='content', field='guname')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='content', field='poster')}" />
                 <div th:replace="~{fragments/forms::inputRow(object='content', field='runTime')}" />
                 <div th:replace="~{fragments/forms::inputRow(object='content', field='startTime', inputClass='js-timepicker')}" />
                 <div th:replace="~{fragments/forms::inputRow(object='content', field='category', required=true, type='select')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='content', field='eventType', required=true, type='select')}" />
+                <div th:each="image, iterStat : *{images}">
+                    <div th:replace="~{fragments/forms::inputRow(object='content.images[__${iterStat.index}__]', field='imageUrl')}" />
+                </div>
+                <div th:each="url, iterStat : *{urls}">
+                    <div th:replace="~{fragments/forms::inputRow(object='content.urls[__${iterStat.index}__]', field='url')}" />
+                </div>
                 <input type="submit" th:value="#{content.add.headline}" class="btn btn-primary mt-4" />
             </form>
         </div>
