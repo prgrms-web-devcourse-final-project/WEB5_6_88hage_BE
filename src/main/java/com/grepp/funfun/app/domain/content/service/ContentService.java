@@ -70,7 +70,7 @@ public class ContentService {
                                 .imageUrl(img.getImageUrl())
                                 .build())
                         .toList())
-                .urls(content.getUrls().stream()            // 추가: URLs 매핑
+                .urls(content.getUrls().stream()
                         .map(url -> ContentUrlDTO.builder()
                                 .id(url.getId())
                                 .siteName(url.getSiteName())
@@ -129,7 +129,7 @@ public class ContentService {
         List<Content> sameCategoryContents = contentRepository.findByCategoryCategory(category);
 
         List<Content> filtered = sameCategoryContents.stream()
-                .filter(c -> !c.getId().equals(id)) // 자기 자신 제외
+                .filter(c -> !c.getId().equals(id))
                 .collect(Collectors.toList());
 
         return filtered.stream()
@@ -162,7 +162,7 @@ public class ContentService {
                                 .imageUrl(img.getImageUrl())
                                 .build())
                         .toList())
-                .urls(content.getUrls().stream()            // 추가: URLs 매핑
+                .urls(content.getUrls().stream()
                         .map(url -> ContentUrlDTO.builder()
                                 .id(url.getId())
                                 .siteName(url.getSiteName())
