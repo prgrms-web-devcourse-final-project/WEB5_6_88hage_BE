@@ -64,11 +64,11 @@ public class FollowService {
         return followRepository.findFollowingsByFollowerEmail(email);
     }
 
-    public Long countFollowers(String email) {
+    public long countFollowers(String email) {
         return followRepository.countByFolloweeEmail(email);
     }
 
-    public Long countFollowings(String email) {
+    public long countFollowings(String email) {
         return followRepository.countByFollowerEmail(email);
     }
 

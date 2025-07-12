@@ -241,6 +241,14 @@ public class ParticipantService {
             .map(ParticipantResponse::from)
             .collect(Collectors.toList());
     }
+
+    public long countJoinGroupByEmail(String email) {
+        return participantRepository.countByUserEmailAndRoleAndStatus(
+            email,
+            ParticipantRole.MEMBER,
+            ParticipantStatus.GROUP_COMPLETE
+        );
+    }
     // ------------------------------여기 까지 ------------------------------------
 
     public List<ParticipantDTO> findAll() {

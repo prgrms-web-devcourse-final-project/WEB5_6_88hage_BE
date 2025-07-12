@@ -1,30 +1,101 @@
 package com.grepp.funfun.app.domain.user.service;
 
+import com.grepp.funfun.app.delete.util.ReferencedWarning;
+import com.grepp.funfun.app.domain.group.service.GroupService;
+import com.grepp.funfun.app.domain.participant.service.ParticipantService;
+import com.grepp.funfun.app.domain.s3.service.S3FileService;
+import com.grepp.funfun.app.domain.social.service.FollowService;
 import com.grepp.funfun.app.domain.user.dto.UserInfoDTO;
+import com.grepp.funfun.app.domain.user.dto.payload.ProfileRequest;
+import com.grepp.funfun.app.domain.user.dto.payload.UserDetailResponse;
 import com.grepp.funfun.app.domain.user.entity.User;
+import com.grepp.funfun.app.domain.user.entity.UserHashtag;
 import com.grepp.funfun.app.domain.user.entity.UserInfo;
+import com.grepp.funfun.app.domain.user.repository.UserHashtagRepository;
 import com.grepp.funfun.app.domain.user.repository.UserInfoRepository;
 import com.grepp.funfun.app.domain.user.repository.UserRepository;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
-import com.grepp.funfun.app.delete.util.ReferencedWarning;
 import java.util.List;
+import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
+@RequiredArgsConstructor
 public class UserInfoService {
 
     private final UserInfoRepository userInfoRepository;
     private final UserRepository userRepository;
+    private final UserHashtagRepository userHashtagRepository;
+    private final S3FileService s3FileService;
+    private final FollowService followService;
+    private final GroupService groupService;
+    private final ParticipantService participantService;
 
-    public UserInfoService(final UserInfoRepository userInfoRepository,
-            final UserRepository userRepository) {
-        this.userInfoRepository = userInfoRepository;
-        this.userRepository = userRepository;
+    private User getUser(String email) {
+        return userRepository.findById(email)
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
     }
 
+    @Transactional
+    public void update(String email, ProfileRequest request) {
+        User user = getUser(email);
+
+        UserInfo userInfo = user.getInfo();
+
+        // 1. 소개글 변경
+        userInfo.setIntroduction(request.getIntroduction());
+
+        // 2. 해시태그 변경 (전체 삭제 후 재등록)
+        userHashtagRepository.deleteByInfoEmail(email);
+        List<UserHashtag> newTags = Optional.ofNullable(request.getHashTags())
+            .orElse(List.of()).stream()
+            .map(tag -> UserHashtag.builder().info(userInfo).tag(tag).build())
+            .toList();
+        userHashtagRepository.saveAll(newTags);
+
+        // 3. 이미지 처리
+        if (request.isImageChanged()) {
+            if (request.getImage() != null && !request.getImage().isEmpty()) {
+                // 새 이미지 업로드
+                String newImageUrl = s3FileService.upload(request.getImage(), "user");
+                userInfo.setImageUrl(newImageUrl);
+            } else {
+                userInfo.setImageUrl(null);
+            }
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public UserDetailResponse getUserDetail(String email) {
+        User user = getUser(email);
+
+        UserInfo userInfo = user.getInfo();
+
+        long followerCount = followService.countFollowers(email);
+        long followingCount = followService.countFollowings(email);
+
+        long groupLeadCount = groupService.countLeadGroupByEmail(email);
+        long groupJoinCount = participantService.countJoinGroupByEmail(email);
+
+        return UserDetailResponse.builder()
+            .email(userInfo.getEmail())
+            .nickname(user.getNickname())
+            .introduction(userInfo.getIntroduction())
+            .imageUrl(userInfo.getImageUrl())
+            .hashtags(userInfo.getHashtags().stream().map(UserHashtag::getTag).toList())
+            .followerCount(followerCount)
+            .followingCount(followingCount)
+            .groupLeadCount(groupLeadCount)
+            .groupJoinCount(groupJoinCount)
+            .build();
+    }
+
+    @Transactional(readOnly = true)
     public List<UserInfoDTO> findAll() {
         final List<UserInfo> userInfoes = userInfoRepository.findAll(Sort.by("email"));
         return userInfoes.stream()
@@ -60,6 +131,11 @@ public class UserInfoService {
         userInfoDTO.setEmail(userInfo.getEmail());
         userInfoDTO.setImageUrl(userInfo.getImageUrl());
         userInfoDTO.setIntroduction(userInfo.getIntroduction());
+        userInfoDTO.setHashtags(
+            userInfo.getHashtags().stream()
+                .map(UserHashtag::getTag)
+                .toList()
+        );
         return userInfoDTO;
     }
 

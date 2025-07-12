@@ -26,6 +26,8 @@ public class UserDTO {
     @Size(max = 255)
     private String nickname;
 
+    private String birthDate;
+
     private Integer age;
 
     private Gender gender;
