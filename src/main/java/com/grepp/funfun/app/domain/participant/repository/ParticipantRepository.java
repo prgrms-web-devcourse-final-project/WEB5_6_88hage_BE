@@ -2,6 +2,8 @@ package com.grepp.funfun.app.domain.participant.repository;
 
 import com.grepp.funfun.app.domain.group.entity.Group;
 import com.grepp.funfun.app.domain.participant.entity.Participant;
+import com.grepp.funfun.app.domain.participant.vo.ParticipantRole;
+import com.grepp.funfun.app.domain.participant.vo.ParticipantStatus;
 import com.grepp.funfun.app.domain.user.entity.User;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,4 +20,6 @@ public interface ParticipantRepository extends JpaRepository<Participant, Long>,
     Optional<Participant> findByGroupIdAndUserEmail(Long groupId,String userEmail);
 
     String user(User user);
+
+    long countByUserEmailAndRoleAndStatus(String email, ParticipantRole participantRole, ParticipantStatus participantStatus);
 }

@@ -286,6 +286,10 @@ public class GroupService {
         return response;
     }
 
+    public long countLeadGroupByEmail(String email) {
+        return groupRepository.countByLeaderEmailAndStatus(email, GroupStatus.COMPLETED);
+    }
+
     private GroupDTO mapToDTO(final Group group, final GroupDTO groupDTO) {
         groupDTO.setId(group.getId());
         groupDTO.setTitle(group.getTitle());

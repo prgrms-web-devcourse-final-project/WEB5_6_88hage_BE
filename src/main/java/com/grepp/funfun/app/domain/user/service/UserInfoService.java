@@ -1,8 +1,13 @@
 package com.grepp.funfun.app.domain.user.service;
 
+import com.grepp.funfun.app.delete.util.ReferencedWarning;
+import com.grepp.funfun.app.domain.group.service.GroupService;
+import com.grepp.funfun.app.domain.participant.service.ParticipantService;
 import com.grepp.funfun.app.domain.s3.service.S3FileService;
+import com.grepp.funfun.app.domain.social.service.FollowService;
 import com.grepp.funfun.app.domain.user.dto.UserInfoDTO;
 import com.grepp.funfun.app.domain.user.dto.payload.ProfileRequest;
+import com.grepp.funfun.app.domain.user.dto.payload.UserDetailResponse;
 import com.grepp.funfun.app.domain.user.entity.User;
 import com.grepp.funfun.app.domain.user.entity.UserHashtag;
 import com.grepp.funfun.app.domain.user.entity.UserInfo;
@@ -11,7 +16,6 @@ import com.grepp.funfun.app.domain.user.repository.UserInfoRepository;
 import com.grepp.funfun.app.domain.user.repository.UserRepository;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
-import com.grepp.funfun.app.delete.util.ReferencedWarning;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -28,11 +32,18 @@ public class UserInfoService {
     private final UserRepository userRepository;
     private final UserHashtagRepository userHashtagRepository;
     private final S3FileService s3FileService;
+    private final FollowService followService;
+    private final GroupService groupService;
+    private final ParticipantService participantService;
+
+    private User getUser(String email) {
+        return userRepository.findById(email)
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+    }
 
     @Transactional
     public void update(String email, ProfileRequest request) {
-        User user = userRepository.findById(email)
-            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+        User user = getUser(email);
 
         UserInfo userInfo = user.getInfo();
 
@@ -57,6 +68,31 @@ public class UserInfoService {
                 userInfo.setImageUrl(null);
             }
         }
+    }
+
+    @Transactional(readOnly = true)
+    public UserDetailResponse getUserDetail(String email) {
+        User user = getUser(email);
+
+        UserInfo userInfo = user.getInfo();
+
+        long followerCount = followService.countFollowers(email);
+        long followingCount = followService.countFollowings(email);
+
+        long groupLeadCount = groupService.countLeadGroupByEmail(email);
+        long groupJoinCount = participantService.countJoinGroupByEmail(email);
+
+        return UserDetailResponse.builder()
+            .email(userInfo.getEmail())
+            .nickname(user.getNickname())
+            .introduction(userInfo.getIntroduction())
+            .imageUrl(userInfo.getImageUrl())
+            .hashtags(userInfo.getHashtags().stream().map(UserHashtag::getTag).toList())
+            .followerCount(followerCount)
+            .followingCount(followingCount)
+            .groupLeadCount(groupLeadCount)
+            .groupJoinCount(groupJoinCount)
+            .build();
     }
 
     @Transactional(readOnly = true)
