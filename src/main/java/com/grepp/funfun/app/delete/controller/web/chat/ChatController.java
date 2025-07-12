@@ -35,7 +35,7 @@ public class ChatController {
     private final SimpMessagingTemplate messagingTemplate;
 
     // 그룹 채팅 메시지 전송
-    @MessageMapping("/chat/message")
+    @MessageMapping("/message")
     public void sendMessage(ChatResponse chatResponse) {
         try {
             // roomType 설정 (프론트에서 보내지 않는 경우 대비)
