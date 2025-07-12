@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface GroupRepository extends JpaRepository<Group, Long>, GroupRepositoryCustom {
 
+    Group findFirstByLeader(User user);
 
     long countByLeaderEmailAndStatus(String email, GroupStatus groupStatus);
 }
