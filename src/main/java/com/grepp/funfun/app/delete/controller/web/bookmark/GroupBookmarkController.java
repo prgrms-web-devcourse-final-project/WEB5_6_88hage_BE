@@ -50,17 +50,6 @@ public class GroupBookmarkController {
         return "groupBookmark/add";
     }
 
-    @PostMapping("/add")
-    public String add(
-            @ModelAttribute("groupBookmark") @Valid final GroupBookmarkDTO groupBookmarkDTO,
-            final BindingResult bindingResult, final RedirectAttributes redirectAttributes) {
-        if (bindingResult.hasErrors()) {
-            return "groupBookmark/add";
-        }
-        groupBookmarkService.create(groupBookmarkDTO);
-        redirectAttributes.addFlashAttribute(WebUtils.MSG_SUCCESS, WebUtils.getMessage("groupBookmark.create.success"));
-        return "redirect:/groupBookmarks";
-    }
 
     @GetMapping("/edit/{id}")
     public String edit(@PathVariable(name = "id") final Long id, final Model model) {
@@ -68,17 +57,6 @@ public class GroupBookmarkController {
         return "groupBookmark/edit";
     }
 
-    @PostMapping("/edit/{id}")
-    public String edit(@PathVariable(name = "id") final Long id,
-            @ModelAttribute("groupBookmark") @Valid final GroupBookmarkDTO groupBookmarkDTO,
-            final BindingResult bindingResult, final RedirectAttributes redirectAttributes) {
-        if (bindingResult.hasErrors()) {
-            return "groupBookmark/edit";
-        }
-        groupBookmarkService.update(id, groupBookmarkDTO);
-        redirectAttributes.addFlashAttribute(WebUtils.MSG_SUCCESS, WebUtils.getMessage("groupBookmark.update.success"));
-        return "redirect:/groupBookmarks";
-    }
 
     @PostMapping("/delete/{id}")
     public String delete(@PathVariable(name = "id") final Long id,

@@ -1,31 +1,63 @@
 package com.grepp.funfun.app.domain.bookmark.controller;
 
 import com.grepp.funfun.app.domain.bookmark.dto.GroupBookmarkDTO;
+import com.grepp.funfun.app.domain.bookmark.dto.payload.GroupBookmarkResponse;
 import com.grepp.funfun.app.domain.bookmark.service.GroupBookmarkService;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import jakarta.validation.Valid;
+import com.grepp.funfun.app.infra.response.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-
 @RestController
+@RequiredArgsConstructor
 @RequestMapping(value = "/api/groupBookmarks", produces = MediaType.APPLICATION_JSON_VALUE)
 public class GroupBookmarkApiController {
 
     private final GroupBookmarkService groupBookmarkService;
 
-    public GroupBookmarkApiController(final GroupBookmarkService groupBookmarkService) {
-        this.groupBookmarkService = groupBookmarkService;
+    // 즐겨찾기 추가(모임)
+    @PostMapping("/{groupId}")
+    @Operation(summary = "즐겨찾기 추가(모임)", description = "선택한 모임을 즐겨찾기에 추가합니다.")
+    public ResponseEntity<ApiResponse<String>> groupBookmarkAdd(@PathVariable Long groupId,
+        Authentication authentication) {
+        String userEmail = authentication.getName();
+
+        groupBookmarkService.addGroupBookmark(groupId, userEmail);
+
+        return ResponseEntity.ok(ApiResponse.success("Added group bookmark"));
+    }
+
+    // 즐겨찾기 삭제(모임)
+    @DeleteMapping("/{groupId}")
+    @Operation(summary = "즐겨찾기 삭제(모임)", description = "선택한 모임을 즐겨찾기에서 삭제합니다.")
+    public ResponseEntity<ApiResponse<String>> groupBookmarkDelete(@PathVariable Long groupId,
+        Authentication authentication) {
+        String userEmail = authentication.getName();
+
+        groupBookmarkService.removeGroupBookmark(groupId, userEmail);
+
+        return ResponseEntity.ok(ApiResponse.success("Deleted group bookmark"));
+    }
+
+
+    // 즐겨찾기 모임 조회
+    @GetMapping("/getBookMarks")
+    @Operation(summary = "내 즐겨찾기 조회", description = "내가 즐겨찾기한 모임 내용을 조회합니다.")
+    public ResponseEntity<ApiResponse<List<GroupBookmarkResponse>>> getBookMarks(Authentication authentication) {
+        String userEmail = authentication.getName();
+
+        List<GroupBookmarkResponse> myBookMark = groupBookmarkService.getMyGroupBookMarks(userEmail);
+
+        return ResponseEntity.ok(ApiResponse.success(myBookMark));
     }
 
     @GetMapping
@@ -33,32 +65,5 @@ public class GroupBookmarkApiController {
         return ResponseEntity.ok(groupBookmarkService.findAll());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<GroupBookmarkDTO> getGroupBookmark(
-            @PathVariable(name = "id") final Long id) {
-        return ResponseEntity.ok(groupBookmarkService.get(id));
-    }
-
-    @PostMapping
-    @ApiResponse(responseCode = "201")
-    public ResponseEntity<Long> createGroupBookmark(
-            @RequestBody @Valid final GroupBookmarkDTO groupBookmarkDTO) {
-        final Long createdId = groupBookmarkService.create(groupBookmarkDTO);
-        return new ResponseEntity<>(createdId, HttpStatus.CREATED);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Long> updateGroupBookmark(@PathVariable(name = "id") final Long id,
-            @RequestBody @Valid final GroupBookmarkDTO groupBookmarkDTO) {
-        groupBookmarkService.update(id, groupBookmarkDTO);
-        return ResponseEntity.ok(id);
-    }
-
-    @DeleteMapping("/{id}")
-    @ApiResponse(responseCode = "204")
-    public ResponseEntity<Void> deleteGroupBookmark(@PathVariable(name = "id") final Long id) {
-        groupBookmarkService.delete(id);
-        return ResponseEntity.noContent().build();
-    }
 
 }
