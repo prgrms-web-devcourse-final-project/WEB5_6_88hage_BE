@@ -1,5 +1,7 @@
 package com.grepp.funfun.app.domain.group.service;
 
+import com.grepp.funfun.app.domain.chat.entity.GroupChatRoom;
+import com.grepp.funfun.app.domain.chat.vo.ChatRoomType;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupMyResponse;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupRequest;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupResponse;
@@ -8,8 +10,7 @@ import com.grepp.funfun.app.domain.bookmark.repository.GroupBookmarkRepository;
 import com.grepp.funfun.app.domain.calendar.entity.Calendar;
 import com.grepp.funfun.app.domain.calendar.repository.CalendarRepository;
 import com.grepp.funfun.app.domain.calendar.service.CalendarService;
-import com.grepp.funfun.app.domain.chat.entity.ChatRoom;
-import com.grepp.funfun.app.domain.chat.repository.ChatRoomRepository;
+import com.grepp.funfun.app.domain.chat.repository.GroupChatRoomRepository;
 import com.grepp.funfun.app.domain.group.vo.GroupStatus;
 import com.grepp.funfun.app.domain.group.dto.GroupDTO;
 import com.grepp.funfun.app.domain.group.entity.Group;
@@ -31,7 +32,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,7 +45,7 @@ public class GroupService {
     private final UserRepository userRepository;
     private final GroupBookmarkRepository groupBookmarkRepository;
     private final ParticipantRepository participantRepository;
-    private final ChatRoomRepository chatRoomRepository;
+    private final GroupChatRoomRepository groupChatRoomRepository;
     private final CalendarRepository calendarRepository;
     private final GroupHashtagRepository groupHashtagRepository;
     private final CalendarService calendarService;
@@ -115,10 +115,13 @@ public class GroupService {
         participantRepository.save(leaderParticipant);
 
         // 모임 생성 시 자동으로 팀 채팅방 생성하기
-        ChatRoom chatRoom = new ChatRoom();
-        chatRoom.setGroup(savedGroup);
-        chatRoom.setName(savedGroup.getId() + "번 채팅방");
-        chatRoomRepository.save(chatRoom);
+        GroupChatRoom groupChatRoom = GroupChatRoom.builder()
+            .groupId(savedGroup.getId())
+            .status(ChatRoomType.GROUP_CHAT)
+            .name(savedGroup.getId()+"번 그룹 채팅방")
+            .build();
+
+        groupChatRoomRepository.save(groupChatRoom);
 
         // 모임 생성 시 리더의 캘린더에 자동으로 일정 추가하기
         calendarService.addGroupCalendar(leaderEmail, savedGroup);
@@ -256,6 +259,7 @@ public class GroupService {
             .userEmail(userEmail)
             .userNickname(userNickname)
             .status(myStatus)
+            .type(ChatRoomType.GROUP_CHAT)
             .participantEmails(participantEmails)
             .participantNicknames(participantNicknames)
             .build();
@@ -345,12 +349,6 @@ public class GroupService {
         if (groupParticipant != null) {
             referencedWarning.setKey("group.participant.group.referenced");
             referencedWarning.addParam(groupParticipant.getId());
-            return referencedWarning;
-        }
-        final ChatRoom groupChatRoom = chatRoomRepository.findFirstByGroup(group);
-        if (groupChatRoom != null) {
-            referencedWarning.setKey("group.chatRoom.group.referenced");
-            referencedWarning.addParam(groupChatRoom.getId());
             return referencedWarning;
         }
         final Calendar groupCalendar = calendarRepository.findFirstByGroup(group);
