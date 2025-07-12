@@ -43,18 +43,18 @@ public class GroupApiController {
     // 모든 모임 조회(최신순)
     @GetMapping
     @Operation(summary = "모든 모임 조회(최신순)", description = "모든 모임을 조회합니다.(최신순)")
-    public ResponseEntity<List<GroupResponse>> getAllRecentGroups() {
-        return ResponseEntity.ok(groupService.getRecentGroups());
+    public ResponseEntity<ApiResponse<List<GroupResponse>>> getAllRecentGroups() {
+        return ResponseEntity.ok(ApiResponse.success(groupService.getRecentGroups()));
     }
 
     // 내가 속한 모임 조회
     @GetMapping("/my")
     @Operation(summary = "내가 속한 모임 조회", description = "내가 속한 모임을 조회합니다.")
-    public ResponseEntity<List<GroupMyResponse>> getMyGroups(
+    public ResponseEntity<ApiResponse<List<GroupMyResponse>>> getMyGroups(
         Authentication authentication
     ) {
         String userEmail = authentication.getName();
-        return ResponseEntity.ok(groupService.findMyGroups(userEmail));
+        return ResponseEntity.ok(ApiResponse.success(groupService.findMyGroups(userEmail)));
     }
 
     // 모임 생성
