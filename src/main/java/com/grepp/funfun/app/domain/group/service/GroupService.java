@@ -50,6 +50,7 @@ public class GroupService {
     private final GroupHashtagRepository groupHashtagRepository;
     private final CalendarService calendarService;
 
+
     // 모든 모임 조회
     public List<GroupResponse> findAll() {
         final List<Group> groups = groupRepository.findAll();
@@ -63,6 +64,7 @@ public class GroupService {
             .map(this::mapToResponse)
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
     }
+
     //모임 조회(최신순)
     @Transactional(readOnly = true)
     public List<GroupResponse> getRecentGroups(){
@@ -70,6 +72,7 @@ public class GroupService {
             .map(this::mapToResponse)
             .collect(Collectors.toList());
     }
+
     // 내가 속한 모임 조회
     @Transactional(readOnly = true)
     public List<GroupMyResponse> findMyGroups(String userEmail) {
@@ -78,8 +81,26 @@ public class GroupService {
             .collect(Collectors.toList());
     }
 
+    // 모임 조회(가까운 순)
+    @Transactional(readOnly = true)
+    public List<GroupMyResponse> findNearGroups(String userEmail) {
+
+        User user = userRepository.findByEmail(userEmail);
+        return groupRepository.findMyGroups(userEmail).stream()
+            .map(group -> convertToGroupMyResponse(group, userEmail))
+            .collect(Collectors.toList());
+    }
+
+    // 모임 조회(키워드)
+    @Transactional(readOnly = true)
+    public List<GroupResponse> findByKeyword(String keyword) {
+
+        return groupRepository.findGroupsByKeyword(keyword).stream()
+            .map(this::mapToResponse)
+            .collect(Collectors.toList());
+    }
+
     // 모임 생성
-    // todo : 모임 한 줄 소개 추가 request 받고 -> toEntity -> save 완료
     @Transactional
     public void create(String leaderEmail, GroupRequest request) {
 
