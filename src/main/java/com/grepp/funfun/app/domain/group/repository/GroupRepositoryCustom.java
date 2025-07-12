@@ -23,6 +23,6 @@ public interface GroupRepositoryCustom {
     // 가까운 순 조회
     List<Group> findNearbyGroups(Double userLat, Double userLng);
 
-    // 특정 모임 조회
+    // 모임 상세 조회
     Optional<Group> findByIdWithFullInfo(Long groupId);
 }
