@@ -3,13 +3,12 @@ package com.grepp.funfun.app.delete.controller.web.chat;
 import com.grepp.funfun.app.domain.chat.dto.payload.ChatResponse;
 import com.grepp.funfun.app.domain.chat.dto.ChatDTO;
 import com.grepp.funfun.app.domain.chat.entity.Chat;
+import com.grepp.funfun.app.domain.chat.entity.GroupChatRoom;
 import com.grepp.funfun.app.domain.chat.service.ChatService;
-import com.grepp.funfun.app.domain.chat.entity.ChatRoom;
-import com.grepp.funfun.app.domain.chat.repository.ChatRoomRepository;
+import com.grepp.funfun.app.domain.chat.repository.GroupChatRoomRepository;
 import com.grepp.funfun.app.delete.util.CustomCollectors;
 import com.grepp.funfun.app.delete.util.WebUtils;
-import jakarta.validation.Valid;
-import java.time.format.DateTimeFormatter;
+import com.grepp.funfun.app.domain.chat.vo.ChatRoomType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
@@ -18,7 +17,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,80 +31,64 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class ChatController {
 
     private final ChatService chatService;
-    private final ChatRoomRepository chatRoomRepository;
+    private final GroupChatRoomRepository groupChatRoomRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
-    @MessageMapping("/message")
+    // 그룹 채팅 메시지 전송
+    @MessageMapping("/chat/message")
     public void sendMessage(ChatResponse chatResponse) {
-        try{
-            Long groupId = chatResponse.getGroupId();
+        try {
+            // roomType 설정 (프론트에서 보내지 않는 경우 대비)
+            if (chatResponse.getRoomType() == null) {
+                throw new IllegalArgumentException("roomType이 필요합니다.");
+            }
+
+            Long chatRoomId = chatResponse.getRoomId();
 
             Chat savedChat = chatService.saveChatMessage(chatResponse);
-            chatResponse.setChatId(savedChat.getId());
-            chatResponse.setTime(savedChat.getCreatedAt().format(DateTimeFormatter.ofPattern("HH:mm")));
-            log.info("==========DB 저장완료===========");
 
-            messagingTemplate.convertAndSend("/room/" + groupId, chatResponse);
-            log.info("/room/{} 메시지 전송 완료", groupId);
+            // 응답용 ChatResponse 생성
+            ChatResponse responseToSend = new ChatResponse(savedChat);
+
+            // roomType에 따라 적절한 채널 결정
+            String channelType = chatResponse.getRoomType().equals(ChatRoomType.GROUP_CHAT) ? "group" : "personal";
+            String destination = "/" + channelType + "/" + chatRoomId;
+
+            log.info("========== {} 채팅 DB 저장완료 ===========", channelType);
+
+            messagingTemplate.convertAndSend(destination, responseToSend);
+            log.info("{} 메시지 전송 완료", destination);
 
         } catch (Exception e) {
-            log.error("메시지 처리 중 오류 발생: groupId={}, error={}",
-                chatResponse.getGroupId(), e.getMessage(), e);
+            log.error("{} 메시지 처리 중 오류 발생: roomId={}, error={}",
+                chatResponse.getRoomType(), chatResponse.getRoomId(), e.getMessage(), e);
         }
     }
-    @GetMapping("/test")
-    public String test(Authentication authentication, Model model) {
+
+    @GetMapping("/groupChat")
+    public String groupChat(Authentication authentication, Model model) {
         String userEmail = authentication.getName();
         model.addAttribute("userEmail", userEmail);
-        return "chat/chatTest";
+        return "chat/groupChat";
+    }
+
+    @GetMapping("/personalChat")
+    public String PersonalChat(Authentication authentication, Model model) {
+        String userEmail = authentication.getName();
+        model.addAttribute("userEmail", userEmail);
+        return "chat/personalChat";
     }
 
     @ModelAttribute
     public void prepareContext(final Model model) {
-        model.addAttribute("roomValues", chatRoomRepository.findAll(Sort.by("id"))
+        model.addAttribute("roomValues", groupChatRoomRepository.findAll(Sort.by("id"))
                 .stream()
-                .collect(CustomCollectors.toSortedMap(ChatRoom::getId, ChatRoom::getId)));
-    }
-
-
-    @GetMapping
-    public String list(final Model model) {
-        model.addAttribute("chats", chatService.findAll());
-        return "chat/list";
+                .collect(CustomCollectors.toSortedMap(GroupChatRoom::getId, GroupChatRoom::getId)));
     }
 
     @GetMapping("/add")
     public String add(@ModelAttribute("chat") final ChatDTO chatDTO) {
         return "chat/add";
-    }
-
-    @PostMapping("/add")
-    public String add(@ModelAttribute("chat") @Valid final ChatDTO chatDTO,
-            final BindingResult bindingResult, final RedirectAttributes redirectAttributes) {
-        if (bindingResult.hasErrors()) {
-            return "chat/add";
-        }
-        chatService.create(chatDTO);
-        redirectAttributes.addFlashAttribute(WebUtils.MSG_SUCCESS, WebUtils.getMessage("chat.create.success"));
-        return "redirect:/chats";
-    }
-
-    @GetMapping("/edit/{id}")
-    public String edit(@PathVariable(name = "id") final Long id, final Model model) {
-        model.addAttribute("chat", chatService.get(id));
-        return "chat/edit";
-    }
-
-    @PostMapping("/edit/{id}")
-    public String edit(@PathVariable(name = "id") final Long id,
-            @ModelAttribute("chat") @Valid final ChatDTO chatDTO, final BindingResult bindingResult,
-            final RedirectAttributes redirectAttributes) {
-        if (bindingResult.hasErrors()) {
-            return "chat/edit";
-        }
-        chatService.update(id, chatDTO);
-        redirectAttributes.addFlashAttribute(WebUtils.MSG_SUCCESS, WebUtils.getMessage("chat.update.success"));
-        return "redirect:/chats";
     }
 
     @PostMapping("/delete/{id}")
