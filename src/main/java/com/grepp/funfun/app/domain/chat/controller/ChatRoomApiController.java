@@ -1,68 +1,51 @@
 package com.grepp.funfun.app.domain.chat.controller;
 
-import com.grepp.funfun.app.domain.chat.dto.ChatRoomDTO;
+import com.grepp.funfun.app.domain.chat.dto.payload.PersonalChatRoomResponse;
 import com.grepp.funfun.app.domain.chat.service.ChatRoomService;
-import com.grepp.funfun.app.delete.util.ReferencedException;
-import com.grepp.funfun.app.delete.util.ReferencedWarning;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import jakarta.validation.Valid;
+import com.grepp.funfun.app.infra.response.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-
 @RestController
+@RequiredArgsConstructor
 @RequestMapping(value = "/api/chatRooms", produces = MediaType.APPLICATION_JSON_VALUE)
 public class ChatRoomApiController {
 
     private final ChatRoomService chatRoomService;
 
-    public ChatRoomApiController(final ChatRoomService chatRoomService) {
-        this.chatRoomService = chatRoomService;
+    // 개인 채팅방 생성
+    @PostMapping("/personalRooms")
+    @Operation(summary = "개인 채팅방 생성", description = "사용자간 1:1 채팅방을 생성합니다.")
+    public ResponseEntity<ApiResponse<String>> createPersonalChatRoom(
+        @RequestParam String targetUserEmail,
+        Authentication authentication) {
+
+        String userEmail = authentication.getName();
+
+        chatRoomService.createPersonalChatRoom(userEmail, targetUserEmail);
+
+        return ResponseEntity.ok(ApiResponse.success("채팅방 생성이 완료되었습니다."));
     }
 
-    @GetMapping
-    public ResponseEntity<List<ChatRoomDTO>> getAllChatRooms() {
-        return ResponseEntity.ok(chatRoomService.findAll());
-    }
+    // 내 개인 채팅방 목록 조회
+    @GetMapping("/rooms/my")
+    @Operation(summary = "개인 채팅방 조회", description = "로그인 한 사용자의 개인 채팅방을 조회합니다.")
+    public ResponseEntity<ApiResponse<List<PersonalChatRoomResponse>>> getMyPersonalChatRooms(
+        Authentication authentication) {
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ChatRoomDTO> getChatRoom(@PathVariable(name = "id") final Long id) {
-        return ResponseEntity.ok(chatRoomService.get(id));
-    }
+        String userEmail = authentication.getName();
 
-    @PostMapping
-    @ApiResponse(responseCode = "201")
-    public ResponseEntity<Long> createChatRoom(@RequestBody @Valid final ChatRoomDTO chatRoomDTO) {
-        final Long createdId = chatRoomService.create(chatRoomDTO);
-        return new ResponseEntity<>(createdId, HttpStatus.CREATED);
-    }
+        List<PersonalChatRoomResponse> chatRooms = chatRoomService.getMyPersonalChatRooms(userEmail);
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Long> updateChatRoom(@PathVariable(name = "id") final Long id,
-            @RequestBody @Valid final ChatRoomDTO chatRoomDTO) {
-        chatRoomService.update(id, chatRoomDTO);
-        return ResponseEntity.ok(id);
+        return ResponseEntity.ok(ApiResponse.success(chatRooms));
     }
-
-    @DeleteMapping("/{id}")
-    @ApiResponse(responseCode = "204")
-    public ResponseEntity<Void> deleteChatRoom(@PathVariable(name = "id") final Long id) {
-        final ReferencedWarning referencedWarning = chatRoomService.getReferencedWarning(id);
-        if (referencedWarning != null) {
-            throw new ReferencedException(referencedWarning);
-        }
-        chatRoomService.delete(id);
-        return ResponseEntity.noContent().build();
-    }
-
 }

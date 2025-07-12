@@ -1,7 +1,7 @@
 package com.grepp.funfun.app.domain.group.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.grepp.funfun.app.domain.chat.entity.ChatRoom;
+import com.grepp.funfun.app.domain.chat.entity.GroupChatRoom;
 import com.grepp.funfun.app.domain.group.vo.GroupClassification;
 import com.grepp.funfun.app.domain.group.vo.GroupStatus;
 import com.grepp.funfun.app.domain.participant.entity.Participant;
@@ -60,6 +60,8 @@ public class Group extends BaseEntity {
 
     private Integer nowPeople;
 
+    private String imageUrl;
+
     @Enumerated(EnumType.STRING)
     private GroupStatus status;
 
@@ -79,9 +81,6 @@ public class Group extends BaseEntity {
 
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Participant> participants;
-
-    @OneToOne(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
-    private ChatRoom chatRoom;
 
     @OneToMany(mappedBy = "group",cascade = CascadeType.ALL)
     private List<GroupHashtag> hashtags;

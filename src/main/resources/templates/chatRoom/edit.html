@@ -2,21 +2,21 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
         layout:decorate="~{layout}">
     <head>
-        <title>[[#{chatRoom.edit.headline}]]</title>
+        <title>[[#{groupChatRoom.edit.headline}]]</title>
     </head>
     <body>
         <div layout:fragment="content">
             <div class="d-flex flex-wrap mb-4">
-                <h1 class="flex-grow-1">[[#{chatRoom.edit.headline}]]</h1>
+                <h1 class="flex-grow-1">[[#{groupChatRoom.edit.headline}]]</h1>
                 <div>
-                    <a th:href="@{/chatRooms}" class="btn btn-secondary">[[#{chatRoom.edit.back}]]</a>
+                    <a th:href="@{/groupChatRooms}" class="btn btn-secondary">[[#{groupChatRoom.edit.back}]]</a>
                 </div>
             </div>
-            <div th:replace="~{fragments/forms::globalErrors('chatRoom')}" />
+            <div th:replace="~{fragments/forms::globalErrors('groupChatRoom')}" />
             <form th:action="${requestUri}" method="post" novalidate="">
-                <div th:replace="~{fragments/forms::inputRow(object='chatRoom', field='id', disabled=true, type='number')}" />
-                <div th:replace="~{fragments/forms::inputRow(object='chatRoom', field='group', required=true, type='select')}" />
-                <input type="submit" th:value="#{chatRoom.edit.headline}" class="btn btn-primary mt-4" />
+                <div th:replace="~{fragments/forms::inputRow(object='groupChatRoom', field='id', disabled=true, type='number')}" />
+                <div th:replace="~{fragments/forms::inputRow(object='groupChatRoom', field='group', required=true, type='select')}" />
+                <input type="submit" th:value="#{groupChatRoom.edit.headline}" class="btn btn-primary mt-4" />
             </form>
         </div>
     </body>

@@ -1,5 +1,7 @@
 package com.grepp.funfun.app.domain.group.service;
 
+import com.grepp.funfun.app.domain.chat.entity.GroupChatRoom;
+import com.grepp.funfun.app.domain.chat.vo.ChatRoomType;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupMyResponse;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupRequest;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupResponse;
@@ -8,8 +10,7 @@ import com.grepp.funfun.app.domain.bookmark.repository.GroupBookmarkRepository;
 import com.grepp.funfun.app.domain.calendar.entity.Calendar;
 import com.grepp.funfun.app.domain.calendar.repository.CalendarRepository;
 import com.grepp.funfun.app.domain.calendar.service.CalendarService;
-import com.grepp.funfun.app.domain.chat.entity.ChatRoom;
-import com.grepp.funfun.app.domain.chat.repository.ChatRoomRepository;
+import com.grepp.funfun.app.domain.chat.repository.GroupChatRoomRepository;
 import com.grepp.funfun.app.domain.group.vo.GroupStatus;
 import com.grepp.funfun.app.domain.group.dto.GroupDTO;
 import com.grepp.funfun.app.domain.group.entity.Group;
@@ -22,6 +23,7 @@ import com.grepp.funfun.app.domain.participant.entity.Participant;
 import com.grepp.funfun.app.domain.participant.repository.ParticipantRepository;
 import com.grepp.funfun.app.domain.user.entity.User;
 import com.grepp.funfun.app.domain.user.repository.UserRepository;
+import com.grepp.funfun.app.domain.user.vo.UserStatus;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
 import com.grepp.funfun.app.delete.util.ReferencedWarning;
@@ -30,7 +32,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,10 +45,11 @@ public class GroupService {
     private final UserRepository userRepository;
     private final GroupBookmarkRepository groupBookmarkRepository;
     private final ParticipantRepository participantRepository;
-    private final ChatRoomRepository chatRoomRepository;
+    private final GroupChatRoomRepository groupChatRoomRepository;
     private final CalendarRepository calendarRepository;
     private final GroupHashtagRepository groupHashtagRepository;
     private final CalendarService calendarService;
+
 
     // 모든 모임 조회
     public List<GroupResponse> findAll() {
@@ -62,6 +64,7 @@ public class GroupService {
             .map(this::mapToResponse)
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
     }
+
     //모임 조회(최신순)
     @Transactional(readOnly = true)
     public List<GroupResponse> getRecentGroups(){
@@ -69,6 +72,7 @@ public class GroupService {
             .map(this::mapToResponse)
             .collect(Collectors.toList());
     }
+
     // 내가 속한 모임 조회
     @Transactional(readOnly = true)
     public List<GroupMyResponse> findMyGroups(String userEmail) {
@@ -77,15 +81,34 @@ public class GroupService {
             .collect(Collectors.toList());
     }
 
+    // 모임 조회(가까운 순)
+    @Transactional(readOnly = true)
+    public List<GroupMyResponse> findNearGroups(String userEmail) {
+
+        User user = userRepository.findByEmail(userEmail);
+        return groupRepository.findMyGroups(userEmail).stream()
+            .map(group -> convertToGroupMyResponse(group, userEmail))
+            .collect(Collectors.toList());
+    }
+
+    // 모임 조회(키워드)
+    @Transactional(readOnly = true)
+    public List<GroupResponse> findByKeyword(String keyword) {
+
+        return groupRepository.findGroupsByKeyword(keyword).stream()
+            .map(this::mapToResponse)
+            .collect(Collectors.toList());
+    }
+
     // 모임 생성
-    // todo : 모임 한 줄 소개 추가 request 받고 -> toEntity -> save 완료
     @Transactional
     public void create(String leaderEmail, GroupRequest request) {
 
         User leader = userRepository.findByEmail(leaderEmail);
 
-        if (leader == null || !leader.getActivated()) {
-            throw new CommonException(ResponseCode.NOT_FOUND);
+        if (leader == null) throw new CommonException(ResponseCode.NOT_FOUND);
+        if(leader.getStatus() == UserStatus.SUSPENDED || leader.getStatus() == UserStatus.BANNED) {
+            throw new CommonException(ResponseCode.UNAUTHORIZED);
         }
         Group savedGroup = groupRepository.save(request.toEntity(leader));
 
@@ -113,10 +136,13 @@ public class GroupService {
         participantRepository.save(leaderParticipant);
 
         // 모임 생성 시 자동으로 팀 채팅방 생성하기
-        ChatRoom chatRoom = new ChatRoom();
-        chatRoom.setGroup(savedGroup);
-        chatRoom.setName(savedGroup.getId() + "번 채팅방");
-        chatRoomRepository.save(chatRoom);
+        GroupChatRoom groupChatRoom = GroupChatRoom.builder()
+            .groupId(savedGroup.getId())
+            .status(ChatRoomType.GROUP_CHAT)
+            .name(savedGroup.getId()+"번 그룹 채팅방")
+            .build();
+
+        groupChatRoomRepository.save(groupChatRoom);
 
         // 모임 생성 시 리더의 캘린더에 자동으로 일정 추가하기
         calendarService.addGroupCalendar(leaderEmail, savedGroup);
@@ -215,13 +241,14 @@ public class GroupService {
         // 그룹 존재 확인
         Group group = groupRepository.findById(groupId)
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+
         // 리더인지 확인
         User leader = group.getLeader();
         if (!leader.getEmail().equals(leaderEmail)) {
             throw new CommonException(ResponseCode.UNAUTHORIZED);
         }
         // 사용자로 false (정지 당한 사람이 아닌지)
-        if (!leader.getActivated()) {
+        if (leader.getStatus() == UserStatus.SUSPENDED || leader.getStatus() == UserStatus.BANNED) {
             throw new CommonException(ResponseCode.UNAUTHORIZED);
         }
         return group;
@@ -253,6 +280,7 @@ public class GroupService {
             .userEmail(userEmail)
             .userNickname(userNickname)
             .status(myStatus)
+            .type(ChatRoomType.GROUP_CHAT)
             .participantEmails(participantEmails)
             .participantNicknames(participantNicknames)
             .build();
@@ -342,12 +370,6 @@ public class GroupService {
         if (groupParticipant != null) {
             referencedWarning.setKey("group.participant.group.referenced");
             referencedWarning.addParam(groupParticipant.getId());
-            return referencedWarning;
-        }
-        final ChatRoom groupChatRoom = chatRoomRepository.findFirstByGroup(group);
-        if (groupChatRoom != null) {
-            referencedWarning.setKey("group.chatRoom.group.referenced");
-            referencedWarning.addParam(groupChatRoom.getId());
             return referencedWarning;
         }
         final Calendar groupCalendar = calendarRepository.findFirstByGroup(group);

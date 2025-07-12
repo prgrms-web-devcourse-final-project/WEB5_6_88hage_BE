@@ -3,6 +3,7 @@ package com.grepp.funfun.app.delete.controller.web.participant;
 import com.grepp.funfun.app.domain.group.entity.Group;
 import com.grepp.funfun.app.domain.group.repository.GroupRepository;
 import com.grepp.funfun.app.domain.participant.dto.ParticipantDTO;
+import com.grepp.funfun.app.domain.participant.dto.payload.ParticipantResponse;
 import com.grepp.funfun.app.domain.participant.vo.ParticipantRole;
 import com.grepp.funfun.app.domain.participant.vo.ParticipantStatus;
 import com.grepp.funfun.app.domain.participant.service.ParticipantService;
@@ -59,41 +60,9 @@ public class ParticipantController {
         return "participant/add";
     }
 
-    @PostMapping("/add")
-    public String add(@ModelAttribute("participant") @Valid final ParticipantDTO participantDTO,
-            final BindingResult bindingResult, final RedirectAttributes redirectAttributes) {
-        if (bindingResult.hasErrors()) {
-            return "participant/add";
-        }
-        participantService.create(participantDTO);
-        redirectAttributes.addFlashAttribute(WebUtils.MSG_SUCCESS, WebUtils.getMessage("participant.create.success"));
-        return "redirect:/participants";
-    }
-
     @GetMapping("/edit/{id}")
     public String edit(@PathVariable(name = "id") final Long id, final Model model) {
         model.addAttribute("participant", participantService.get(id));
         return "participant/edit";
     }
-
-    @PostMapping("/edit/{id}")
-    public String edit(@PathVariable(name = "id") final Long id,
-            @ModelAttribute("participant") @Valid final ParticipantDTO participantDTO,
-            final BindingResult bindingResult, final RedirectAttributes redirectAttributes) {
-        if (bindingResult.hasErrors()) {
-            return "participant/edit";
-        }
-        participantService.update(id, participantDTO);
-        redirectAttributes.addFlashAttribute(WebUtils.MSG_SUCCESS, WebUtils.getMessage("participant.update.success"));
-        return "redirect:/participants";
-    }
-
-    @PostMapping("/delete/{id}")
-    public String delete(@PathVariable(name = "id") final Long id,
-            final RedirectAttributes redirectAttributes) {
-        participantService.delete(id);
-        redirectAttributes.addFlashAttribute(WebUtils.MSG_INFO, WebUtils.getMessage("participant.delete.success"));
-        return "redirect:/participants";
-    }
-
 }

@@ -7,10 +7,10 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.grepp.funfun.app.domain.chat.entity.GroupChatRoom;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupRequest;
 import com.grepp.funfun.app.domain.calendar.service.CalendarService;
-import com.grepp.funfun.app.domain.chat.entity.ChatRoom;
-import com.grepp.funfun.app.domain.chat.repository.ChatRoomRepository;
+import com.grepp.funfun.app.domain.chat.repository.GroupChatRoomRepository;
 import com.grepp.funfun.app.domain.group.vo.GroupClassification;
 import com.grepp.funfun.app.domain.group.entity.Group;
 import com.grepp.funfun.app.domain.group.repository.GroupHashtagRepository;
@@ -44,7 +44,7 @@ public class GroupServiceTest {
     private UserRepository userRepository;
 
     @Mock
-    private ChatRoomRepository chatRoomRepository;
+    private GroupChatRoomRepository groupChatRoomRepository;
 
     @Mock
     private GroupHashtagRepository groupHashtagRepository;
@@ -96,7 +96,7 @@ public class GroupServiceTest {
         verify(groupRepository).save(any(Group.class));
         verify(participantRepository).save(any(Participant.class));
         verify(groupHashtagRepository).saveAll(anyList());
-        verify(chatRoomRepository).save(any(ChatRoom.class));
+        verify(groupChatRoomRepository).save(any(GroupChatRoom.class));
 
         // assertThat : 잘 생성되었는지 값으로 확인
         assertThat(mockSavedGroup.getTitle()).isEqualTo("개발 스터디");

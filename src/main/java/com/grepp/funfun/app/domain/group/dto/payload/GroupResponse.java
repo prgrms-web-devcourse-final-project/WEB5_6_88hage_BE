@@ -19,6 +19,8 @@ public class GroupResponse {
     @Size(max = 255)
     private String explain;
 
+    private String simpleExplain;
+
     @Size(max = 255)
     private String placeName;
 
