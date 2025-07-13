@@ -64,16 +64,20 @@ public class FollowService {
         return followRepository.findFollowingsByFollowerEmail(email);
     }
 
-    public Long countFollowers(String email) {
+    public long countFollowers(String email) {
         return followRepository.countByFolloweeEmail(email);
     }
 
-    public Long countFollowings(String email) {
+    public long countFollowings(String email) {
         return followRepository.countByFollowerEmail(email);
     }
 
-    public boolean isFollowing(String followerEmail, String followeeEmail) {
-        return followRepository.existsByFollowerEmailAndFolloweeEmail(followerEmail, followeeEmail);
+    public boolean isFollowing(String myEmail, String targetEmail) {
+        return followRepository.existsByFollowerEmailAndFolloweeEmail(myEmail, targetEmail);
+    }
+
+    public boolean isFollower(String myEmail, String targetEmail) {
+        return followRepository.existsByFollowerEmailAndFolloweeEmail(targetEmail, myEmail);
     }
 
     public List<FollowDTO> findAll() {

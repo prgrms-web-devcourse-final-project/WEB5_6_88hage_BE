@@ -18,6 +18,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         config.setApplicationDestinationPrefixes("/send"); // 서버로 메시지 보낼 때 접두어
-        config.enableSimpleBroker("/room"); // 서버가 내보낼 때(구독자) 접두어
+        config.enableSimpleBroker("/group","/personal"); // 서버가 내보낼 때(구독자) 접두어
     }
 }

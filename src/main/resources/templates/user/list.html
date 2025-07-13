@@ -20,11 +20,18 @@
                             <th scope="col">[[#{user.email.label}]]</th>
                             <th scope="col">[[#{user.password.label}]]</th>
                             <th scope="col">[[#{user.nickname.label}]]</th>
-                            <th scope="col">[[#{user.age.label}]]</th>
+                            <th scope="col">BirthDate</th>
                             <th scope="col">[[#{user.gender.label}]]</th>
-                            <th scope="col">[[#{user.tel.label}]]</th>
                             <th scope="col">[[#{user.address.label}]]</th>
+                            <th scope="col">Latitude</th>
+                            <th scope="col">Longitude</th>
                             <th scope="col">[[#{user.role.label}]]</th>
+                            <th scope="col">[[#{user.status.label}]]</th>
+                            <th scope="col">[[#{user.dueDate.label}]]</th>
+                            <th scope="col">[[#{user.suspendDuration.label}]]</th>
+                            <th scope="col">[[#{user.dueReason.label}]]</th>
+                            <th scope="col">[[#{user.isVerified.label}]]</th>
+                            <th scope="col">[[#{user.isMarketingAgreed.label}]]</th>
                             <th><!-- --></th>
                         </tr>
                     </thead>
@@ -33,11 +40,18 @@
                             <td>[[${user.email}]]</td>
                             <td>[[${user.password}]]</td>
                             <td>[[${user.nickname}]]</td>
-                            <td>[[${user.age}]]</td>
+                            <td>[[${user.birthDate}]]</td>
                             <td>[[${user.gender}]]</td>
-                            <td>[[${user.tel}]]</td>
                             <td>[[${user.address}]]</td>
+                            <td>[[${user.latitude}]]</td>
+                            <td>[[${user.longitude}]]</td>
                             <td>[[${user.role}]]</td>
+                            <td>[[${user.status}]]</td>
+                            <td>[[${user.dueDate}]]</td>
+                            <td>[[${user.suspendDuration}]]</td>
+                            <td>[[${user.dueReason}]]</td>
+                            <td>[[${user.isVerified}]]</td>
+                            <td>[[${user.isMarketingAgreed}]]</td>
                             <td>
                                 <div class="float-end text-nowrap">
                                     <a th:href="@{/users/edit/{email}(email=${user.email})}" class="btn btn-sm btn-secondary">[[#{user.list.edit}]]</a>

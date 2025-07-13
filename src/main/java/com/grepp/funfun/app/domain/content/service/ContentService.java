@@ -1,10 +1,12 @@
 package com.grepp.funfun.app.domain.content.service;
 
+import com.grepp.funfun.app.domain.content.dto.ContentUrlDTO;
 import com.grepp.funfun.app.domain.content.dto.payload.ContentFilterRequest;
 import com.grepp.funfun.app.domain.bookmark.entity.ContentBookmark;
 import com.grepp.funfun.app.domain.bookmark.repository.ContentBookmarkRepository;
 import com.grepp.funfun.app.domain.calendar.entity.Calendar;
 import com.grepp.funfun.app.domain.calendar.repository.CalendarRepository;
+import com.grepp.funfun.app.domain.content.entity.ContentUrl;
 import com.grepp.funfun.app.domain.content.vo.ContentClassification;
 import com.grepp.funfun.app.domain.content.dto.ContentDTO;
 import com.grepp.funfun.app.domain.content.dto.ContentImageDTO;
@@ -17,6 +19,7 @@ import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
 import com.grepp.funfun.app.delete.util.ReferencedWarning;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,13 +43,41 @@ public class ContentService {
     private final ContentCategoryRepository contentCategoryRepository;
     private final ContentBookmarkRepository contentBookmarkRepository;
     private final CalendarRepository calendarRepository;
-    private final ModelMapper modelMapper;
 
-
-    public ContentDTO get(final Long id) {
+    public ContentDTO getContents(final Long id) {
         Content content = contentRepository.findByIdWithCategory(id)
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        return mapToDTO(content, new ContentDTO());
+        return ContentDTO.builder()
+                .id(content.getId())
+                .contentTitle(content.getContentTitle())
+                .age(content.getAge())
+                .startDate(content.getStartDate())
+                .endDate(content.getEndDate())
+                .fee(content.getFee())
+                .address(content.getAddress())
+                .guname(content.getGuname())
+                .time(content.getTime())
+                .runTime(content.getRunTime())
+                .startTime(content.getStartTime())
+                .poster(content.getPoster())
+                .description(content.getDescription())
+                .bookmarkCount(content.getBookmarkCount())
+                .eventType(content.getEventType())
+                .category(content.getCategory() != null ? content.getCategory().getCategory().name() : null)
+                .images(content.getImages().stream()
+                        .map(img -> ContentImageDTO.builder()
+                                .id(img.getId())
+                                .imageUrl(img.getImageUrl())
+                                .build())
+                        .toList())
+                .urls(content.getUrls().stream()            // 추가: URLs 매핑
+                        .map(url -> ContentUrlDTO.builder()
+                                .id(url.getId())
+                                .siteName(url.getSiteName())
+                                .url(url.getUrl())
+                                .build())
+                        .toList())
+                .build();
     }
 
     // 컨텐츠 필터링
@@ -54,7 +85,7 @@ public class ContentService {
     public Page<ContentDTO> findByFilters(ContentFilterRequest request, Pageable pageable) {
         Page<Content> contents = contentRepository.findFilteredContents(
                 request.getCategory(),
-                request.getGuName(),
+                request.getGuname(),
                 request.getStartDate(),
                 request.getEndDate(),
                 pageable
@@ -63,7 +94,7 @@ public class ContentService {
         if (contents.isEmpty()) {
             throw new CommonException(ResponseCode.NOT_FOUND);
         }
-        return contents.map(content -> mapToDTO(content, new ContentDTO()));
+        return contents.map(this::toDTO);
     }
 
     // 거리순 컨텐츠 노출
@@ -82,7 +113,7 @@ public class ContentService {
         List<Content> nearby = contentRepository.findNearby(lat, lng, radiusInKm, id, limit);
 
         return nearby.stream()
-                .map(c -> mapToDTO(c, new ContentDTO()))
+                .map(this::toDTO)
                 .toList();
 
     }
@@ -101,11 +132,44 @@ public class ContentService {
                 .filter(c -> !c.getId().equals(id)) // 자기 자신 제외
                 .collect(Collectors.toList());
 
-        Collections.shuffle(filtered);
         return filtered.stream()
                 .limit(limit)
-                .map(c -> mapToDTO(c, new ContentDTO()))
+                .map(this::toDTO)
                 .toList();
+    }
+
+    private ContentDTO toDTO(Content content) {
+        return ContentDTO.builder()
+                .id(content.getId())
+                .contentTitle(content.getContentTitle())
+                .age(content.getAge())
+                .startDate(content.getStartDate())
+                .endDate(content.getEndDate())
+                .fee(content.getFee())
+                .address(content.getAddress())
+                .guname(content.getGuname())
+                .time(content.getTime())
+                .runTime(content.getRunTime())
+                .startTime(content.getStartTime())
+                .poster(content.getPoster())
+                .description(content.getDescription())
+                .bookmarkCount(content.getBookmarkCount())
+                .eventType(content.getEventType())
+                .category(content.getCategory() != null ? content.getCategory().getCategory().name() : null)
+                .images(content.getImages().stream()
+                        .map(img -> ContentImageDTO.builder()
+                                .id(img.getId())
+                                .imageUrl(img.getImageUrl())
+                                .build())
+                        .toList())
+                .urls(content.getUrls().stream()            // 추가: URLs 매핑
+                        .map(url -> ContentUrlDTO.builder()
+                                .id(url.getId())
+                                .siteName(url.getSiteName())
+                                .url(url.getUrl())
+                                .build())
+                        .toList())
+                .build();
     }
 
     // view
@@ -113,6 +177,15 @@ public class ContentService {
     public List<Content> findAll() {
         return contentRepository.findAll(Sort.by(Sort.Direction.ASC, "startDate"));
     }
+
+    @Transactional(readOnly = true)
+    public ContentDTO get(final Long id) {
+        Content content = contentRepository.findById(id)
+                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+
+        return mapToDTO(content, new ContentDTO());
+    }
+
 
     @Transactional
     public void delete(final Long id) {
@@ -143,18 +216,17 @@ public class ContentService {
     private ContentDTO mapToDTO(final Content content, final ContentDTO contentDTO) {
         contentDTO.setId(content.getId());
         contentDTO.setContentTitle(content.getContentTitle());
+        contentDTO.setAge(content.getAge());
         contentDTO.setStartDate(content.getStartDate());
         contentDTO.setEndDate(content.getEndDate());
-        contentDTO.setStatus(content.getStatus());
         contentDTO.setFee(content.getFee());
         contentDTO.setAddress(content.getAddress());
-        contentDTO.setReservationUrl(content.getReservationUrl());
-        contentDTO.setGuName(content.getGuName());
+        contentDTO.setGuname(content.getGuname());
         contentDTO.setRunTime(content.getRunTime());
         contentDTO.setStartTime(content.getStartTime());
-        contentDTO.setEndTime(content.getEndTime());
+        contentDTO.setPoster(content.getPoster());
         contentDTO.setBookmarkCount(content.getBookmarkCount());
-        contentDTO.setCategory(content.getCategory() == null ? null : content.getCategory().getId());
+        contentDTO.setCategory(content.getCategory() != null ? content.getCategory().getCategory().name() : null);
 
         if (content.getImages() != null) {
             List<ContentImageDTO> imageDTOs = content.getImages().stream()
@@ -173,21 +245,19 @@ public class ContentService {
 
     private Content mapToEntity(final ContentDTO contentDTO, final Content content) {
         content.setContentTitle(contentDTO.getContentTitle());
+        content.setAge(contentDTO.getAge());
         content.setStartDate(contentDTO.getStartDate());
         content.setEndDate(contentDTO.getEndDate());
-        content.setStatus(contentDTO.getStatus());
         content.setFee(contentDTO.getFee());
         content.setAddress(contentDTO.getAddress());
-        content.setReservationUrl(contentDTO.getReservationUrl());
-        content.setGuName(contentDTO.getGuName());
+        content.setGuname(contentDTO.getGuname());
         content.setRunTime(contentDTO.getRunTime());
         content.setStartTime(contentDTO.getStartTime());
-        content.setEndTime(contentDTO.getEndTime());
+        content.setPoster(contentDTO.getPoster());
         content.setBookmarkCount(contentDTO.getBookmarkCount() != null ? contentDTO.getBookmarkCount() : 0);
-        final ContentCategory category = contentDTO.getCategory() == null ? null : contentCategoryRepository.findById(contentDTO.getCategory())
-                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        content.setCategory(category);
-
+        if (contentDTO.getCategory() != null) {
+            content.setCategory(null);
+        }
         if (contentDTO.getImages() != null) {
             List<ContentImage> imageEntities = contentDTO.getImages().stream()
                     .map(imgDto -> {

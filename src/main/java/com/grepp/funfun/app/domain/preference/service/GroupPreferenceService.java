@@ -8,21 +8,17 @@ import com.grepp.funfun.app.domain.user.repository.UserRepository;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 
 @Service
+@RequiredArgsConstructor
 public class GroupPreferenceService {
 
     private final GroupPreferenceRepository groupPreferenceRepository;
     private final UserRepository userRepository;
-
-    public GroupPreferenceService(final GroupPreferenceRepository groupPreferenceRepository,
-            final UserRepository userRepository) {
-        this.groupPreferenceRepository = groupPreferenceRepository;
-        this.userRepository = userRepository;
-    }
 
     public List<GroupPreferenceDTO> findAll() {
         final List<GroupPreference> groupPreferences = groupPreferenceRepository.findAll(Sort.by("id"));

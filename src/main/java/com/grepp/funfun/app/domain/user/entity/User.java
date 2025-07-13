@@ -16,10 +16,12 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 
@@ -27,6 +29,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @Table(name = "\"user\"")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class User extends BaseEntity {
 
     @Id
@@ -42,6 +47,10 @@ public class User extends BaseEntity {
     private Gender gender;
 
     private String address;
+
+    private Double latitude;
+
+    private Double longitude;
 
     @Enumerated(EnumType.STRING)
     private Role role;
@@ -64,10 +73,10 @@ public class User extends BaseEntity {
     private UserInfo info;
 
     @OneToMany(mappedBy = "user")
-    private Set<GroupPreference> groupPreferences = new HashSet<>();
+    private List<GroupPreference> groupPreferences = new ArrayList<>();
 
     @OneToMany(mappedBy = "user")
-    private Set<ContentPreference> contentPreferences = new HashSet<>();
+    private List<ContentPreference> contentPreferences = new ArrayList<>();
 
     public String getGroupPreferencesToString(){
         if(groupPreferences == null){

@@ -2,12 +2,14 @@ package com.grepp.funfun.app.domain.content.entity;
 
 import com.grepp.funfun.app.domain.content.dto.ContentImageDTO;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ContentImage {
 
     @Id

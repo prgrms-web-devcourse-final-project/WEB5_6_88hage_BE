@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
@@ -13,6 +14,9 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class OAuth2FailureHandler implements AuthenticationFailureHandler {
+
+    @Value("${front-server.domain}")
+    private String front;
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
@@ -26,6 +30,6 @@ public class OAuth2FailureHandler implements AuthenticationFailureHandler {
         }
 
         // NOTE : 프론트 측 URI 로 변경 필요
-        response.sendRedirect("/login/oauth2/error?reason=" + errorCode);
+        response.sendRedirect(front + "/login/oauth2/error?reason=" + errorCode);
     }
 }

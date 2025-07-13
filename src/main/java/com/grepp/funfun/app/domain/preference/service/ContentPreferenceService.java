@@ -8,21 +8,17 @@ import com.grepp.funfun.app.domain.user.repository.UserRepository;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 
 @Service
+@RequiredArgsConstructor
 public class ContentPreferenceService {
 
     private final ContentPreferenceRepository contentPreferenceRepository;
     private final UserRepository userRepository;
-
-    public ContentPreferenceService(final ContentPreferenceRepository contentPreferenceRepository,
-            final UserRepository userRepository) {
-        this.contentPreferenceRepository = contentPreferenceRepository;
-        this.userRepository = userRepository;
-    }
 
     public List<ContentPreferenceDTO> findAll() {
         final List<ContentPreference> contentPreferences = contentPreferenceRepository.findAll(Sort.by("id"));

@@ -293,8 +293,11 @@ public class UserService {
         userDTO.setEmail(user.getEmail());
         userDTO.setPassword(user.getPassword());
         userDTO.setNickname(user.getNickname());
+        userDTO.setBirthDate(user.getBirthDate());
         userDTO.setGender(user.getGender());
         userDTO.setAddress(user.getAddress());
+        userDTO.setLatitude(user.getLatitude());
+        userDTO.setLongitude(user.getLongitude());
         userDTO.setRole(user.getRole());
         userDTO.setStatus(user.getStatus());
         userDTO.setDueDate(user.getDueDate());

@@ -7,20 +7,18 @@ import com.grepp.funfun.app.domain.user.entity.QUser;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@RequiredArgsConstructor
 @Slf4j
 public class ParticipantRepositoryCustomImpl implements ParticipantRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
     private final QParticipant qParticipant = QParticipant.participant;
     private final QUser qUser = QUser.user;
-
-    public ParticipantRepositoryCustomImpl(JPAQueryFactory queryFactory) {
-        this.queryFactory = queryFactory;
-    }
 
     // 모임 참여 신청 대기자 조회
     @Override
@@ -54,22 +52,6 @@ public class ParticipantRepositoryCustomImpl implements ParticipantRepositoryCus
 
     @Override
     public Optional<Participant> findKickoutMember(Long groupId, String targetEmail){
-        log.info("=== findKickoutMember 호출 ===");
-        log.info("groupId: {}", groupId);
-        log.info("targetEmail: {}", targetEmail);
-
-        // 전체 조건 없이 먼저 확인
-        List<Participant> allParticipants = queryFactory
-            .selectFrom(qParticipant)
-            .where(qParticipant.group.id.eq(groupId))
-            .fetch();
-
-        log.info("해당 그룹의 전체 참가자 수: {}", allParticipants.size());
-        for(Participant p : allParticipants) {
-            log.info("참가자 - 이메일: {}, 상태: {}, 활성화: {}",
-                p.getUser().getEmail(), p.getStatus(), p.getActivated());
-        }
-
         Participant participant = queryFactory
             .selectFrom(qParticipant)
             .where(
@@ -80,7 +62,6 @@ public class ParticipantRepositoryCustomImpl implements ParticipantRepositoryCus
             )
             .fetchOne();
 
-        log.info("찾은 참가자: {}", participant != null ? participant.getId() : "null");
         return Optional.ofNullable(participant);
     }
 

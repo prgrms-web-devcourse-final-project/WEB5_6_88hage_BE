@@ -1,88 +1,100 @@
 package com.grepp.funfun.app.domain.chat.service;
 
 import com.grepp.funfun.app.domain.chat.dto.ChatRoomDTO;
+import com.grepp.funfun.app.domain.chat.dto.payload.PersonalChatRoomResponse;
 import com.grepp.funfun.app.domain.chat.entity.Chat;
-import com.grepp.funfun.app.domain.chat.entity.ChatRoom;
+import com.grepp.funfun.app.domain.chat.entity.GroupChatRoom;
+import com.grepp.funfun.app.domain.chat.entity.PersonalChatRoom;
 import com.grepp.funfun.app.domain.chat.repository.ChatRepository;
-import com.grepp.funfun.app.domain.chat.repository.ChatRoomRepository;
+import com.grepp.funfun.app.domain.chat.repository.GroupChatRoomRepository;
+import com.grepp.funfun.app.domain.chat.repository.PersonalChatRoomRepository;
+import com.grepp.funfun.app.domain.chat.vo.ChatRoomType;
 import com.grepp.funfun.app.domain.group.entity.Group;
 import com.grepp.funfun.app.domain.group.repository.GroupRepository;
+import com.grepp.funfun.app.domain.user.entity.User;
+import com.grepp.funfun.app.domain.user.repository.UserRepository;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
 import com.grepp.funfun.app.delete.util.ReferencedWarning;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class ChatRoomService {
 
-    private final ChatRoomRepository chatRoomRepository;
-    private final GroupRepository groupRepository;
-    private final ChatRepository chatRepository;
+    private final PersonalChatRoomRepository personalChatRoomRepository;
+    private final UserRepository userRepository;
 
-    public ChatRoomService(final ChatRoomRepository chatRoomRepository,
-            final GroupRepository groupRepository, final ChatRepository chatRepository) {
-        this.chatRoomRepository = chatRoomRepository;
-        this.groupRepository = groupRepository;
-        this.chatRepository = chatRepository;
-    }
+    // 개인 채팅방 생성
+    public void createPersonalChatRoom(String currentUserEmail, String targetUserEmail) {
 
-    public List<ChatRoomDTO> findAll() {
-        final List<ChatRoom> chatRooms = chatRoomRepository.findAll(Sort.by("id"));
-        return chatRooms.stream()
-                .map(chatRoom -> mapToDTO(chatRoom, new ChatRoomDTO()))
-                .toList();
-    }
+        String[] emails = {currentUserEmail, targetUserEmail};
+        Arrays.sort(emails);
 
-    public ChatRoomDTO get(final Long id) {
-        return chatRoomRepository.findById(id)
-                .map(chatRoom -> mapToDTO(chatRoom, new ChatRoomDTO()))
-                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-    }
+        Optional<PersonalChatRoom> existingRoom = personalChatRoomRepository
+            .findByUser1EmailAndUser2Email(emails[0], emails[1]);
 
-    public Long create(final ChatRoomDTO chatRoomDTO) {
-        final ChatRoom chatRoom = new ChatRoom();
-        mapToEntity(chatRoomDTO, chatRoom);
-        return chatRoomRepository.save(chatRoom).getId();
-    }
-
-    public void update(final Long id, final ChatRoomDTO chatRoomDTO) {
-        final ChatRoom chatRoom = chatRoomRepository.findById(id)
-                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        mapToEntity(chatRoomDTO, chatRoom);
-        chatRoomRepository.save(chatRoom);
-    }
-
-    public void delete(final Long id) {
-        chatRoomRepository.deleteById(id);
-    }
-
-    private ChatRoomDTO mapToDTO(final ChatRoom chatRoom, final ChatRoomDTO chatRoomDTO) {
-        chatRoomDTO.setId(chatRoom.getId());
-        chatRoomDTO.setGroup(chatRoom.getGroup() == null ? null : chatRoom.getGroup().getId());
-        return chatRoomDTO;
-    }
-
-    private ChatRoom mapToEntity(final ChatRoomDTO chatRoomDTO, final ChatRoom chatRoom) {
-        final Group group = chatRoomDTO.getGroup() == null ? null : groupRepository.findById(chatRoomDTO.getGroup())
-                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        chatRoom.setGroup(group);
-        return chatRoom;
-    }
-
-    public ReferencedWarning getReferencedWarning(final Long id) {
-        final ReferencedWarning referencedWarning = new ReferencedWarning();
-        final ChatRoom chatRoom = chatRoomRepository.findById(id)
-                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        final Chat roomChat = chatRepository.findFirstByRoom(chatRoom);
-        if (roomChat != null) {
-            referencedWarning.setKey("chatRoom.chat.room.referenced");
-            referencedWarning.addParam(roomChat.getId());
-            return referencedWarning;
+        if (existingRoom.isPresent()) {
+            throw new IllegalStateException("이미 존재하는 채팅방입니다");
         }
-        return null;
+
+        // 새 채팅방 생성
+        PersonalChatRoom personalChatRoom = PersonalChatRoom.builder()
+            .status(ChatRoomType.PERSONAL_CHAT)
+            .user1Email(emails[0])
+            .user2Email(emails[1])
+            .name(targetUserEmail + "님과의 채팅")
+            .build();
+
+        personalChatRoomRepository.save(personalChatRoom);
     }
 
+    // 개인 채팅방 조회
+    @Transactional(readOnly = true)
+    public List<PersonalChatRoomResponse> getMyPersonalChatRooms(String userEmail) {
+        log.info("개인 채팅방 목록 조회 for user: {}", userEmail);
+
+        List<PersonalChatRoom> chatRooms = personalChatRoomRepository
+            .findByUser1EmailOrUser2Email(userEmail, userEmail);
+
+        User currentuser = userRepository.findByEmail(userEmail);
+
+        List<PersonalChatRoomResponse> responses = chatRooms.stream()
+            .map(room -> {
+                // 상대방 이메일 결정
+                String targetUserEmail = room.getUser1Email().equals(userEmail)
+                    ? room.getUser2Email()
+                    : room.getUser1Email();
+
+                // 상대방 닉네임 조회
+                User targetUser = userRepository.findByEmail(targetUserEmail);
+                String targetNickname = (targetUser != null)
+                    ? targetUser.getNickname()
+                    : targetUserEmail.split("@")[0]; // 사용자가 없으면 이메일에서 추출
+
+                return PersonalChatRoomResponse.builder()
+                    .roomId(room.getId())
+                    .roomName(room.getName())
+                    .status(room.getStatus())
+                    .currentUserEmail(currentuser.getEmail())
+                    .currentUserNickname(currentuser.getNickname())
+                    .targetUserEmail(targetUserEmail)
+                    .targetUserEmail(targetNickname)
+                    .build();
+            })
+            .collect(Collectors.toList());
+
+        log.info("조회된 개인 채팅방 수: {}", responses.size());
+
+        return responses;
+    }
 }

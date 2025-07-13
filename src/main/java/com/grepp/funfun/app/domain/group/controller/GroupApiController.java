@@ -3,7 +3,6 @@ package com.grepp.funfun.app.domain.group.controller;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupMyResponse;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupRequest;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupResponse;
-import com.grepp.funfun.app.domain.group.dto.GroupDTO;
 import com.grepp.funfun.app.domain.group.service.GroupService;
 import com.grepp.funfun.app.infra.response.ApiResponse;
 import com.grepp.funfun.app.infra.response.ResponseCode;
@@ -33,27 +32,38 @@ public class GroupApiController {
 
     private final GroupService groupService;
 
-    @GetMapping("/{id}")
-    @Operation(summary = "특정 모임 조회", description = "특정 모임을 조회합니다.")
-    public ResponseEntity<GroupDTO> getGroup(@PathVariable(name = "id") final Long id) {
-        return ResponseEntity.ok(groupService.get(id));
+    // 모임 상세 조회
+    @GetMapping("/{groupId}")
+    @Operation(summary = "모임 상세 조회", description = "모임을 상세 조회합니다.")
+    public ResponseEntity<ApiResponse<GroupResponse>> getGroup(@PathVariable Long groupId) {
+        return ResponseEntity.ok(ApiResponse.success(groupService.get(groupId)));
     }
 
-    // 모든 모임 조회
-    @GetMapping
-    @Operation(summary = "모든 모임 조회", description = "모든 모임을 조회합니다.")
-    public ResponseEntity<List<GroupResponse>> getAllGroups() {
-        return ResponseEntity.ok(groupService.findByActivatedTrue());
+    // 모든 모임 조회(최신순)
+    @GetMapping("/getRecent")
+    @Operation(summary = "모든 모임 조회(최신순)", description = "모든 모임을 조회합니다.(최신순)")
+    public ResponseEntity<ApiResponse<List<GroupResponse>>> getAllRecentGroups() {
+        return ResponseEntity.ok(ApiResponse.success(groupService.getRecentGroups()));
     }
 
-    // 내가 속한 모임 조회
-    @GetMapping("/my")
-    @Operation(summary = "내가 속한 모임 조회", description = "내가 속한 모임을 조회합니다.")
-    public ResponseEntity<List<GroupMyResponse>> getMyGroups(
+    // 모든 모임 조회(가까운순)
+    @GetMapping("/getNearby")
+    @Operation(summary = "모든 모임 조회(거리순)", description = "모든 모임을 조회합니다.(거리순)")
+    public ResponseEntity<ApiResponse<List<GroupResponse>>> getAllNearbyGroups(
         Authentication authentication
     ) {
         String userEmail = authentication.getName();
-        return ResponseEntity.ok(groupService.findMyGroups(userEmail));
+        return ResponseEntity.ok(ApiResponse.success(groupService.findNearGroups(userEmail)));
+    }
+
+    // 내가 속한 모임 조회
+    @GetMapping("/getMy")
+    @Operation(summary = "내가 속한 모임 조회", description = "내가 속한 모임을 조회합니다.")
+    public ResponseEntity<ApiResponse<List<GroupMyResponse>>> getMyGroups(
+        Authentication authentication
+    ) {
+        String userEmail = authentication.getName();
+        return ResponseEntity.ok(ApiResponse.success(groupService.findMyGroups(userEmail)));
     }
 
     // 모임 생성

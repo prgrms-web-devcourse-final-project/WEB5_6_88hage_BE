@@ -26,6 +26,8 @@ public class UserDTO {
     @Size(max = 255)
     private String nickname;
 
+    private String birthDate;
+
     private Integer age;
 
     private Gender gender;
@@ -35,6 +37,10 @@ public class UserDTO {
 
     @Size(max = 255)
     private String address;
+
+    private Double latitude;
+
+    private Double longitude;
 
     private Role role;
 

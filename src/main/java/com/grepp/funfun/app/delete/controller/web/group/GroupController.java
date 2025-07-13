@@ -42,7 +42,7 @@ public class GroupController {
 
     @GetMapping
     public String list(final Model model) {
-        model.addAttribute("groups", groupService.findByActivatedTrue());
+        model.addAttribute("groups", groupService.getRecentGroups());
         return "group/list";
     }
 

@@ -12,9 +12,11 @@ import com.grepp.funfun.app.domain.participant.entity.Participant;
 import com.grepp.funfun.app.domain.participant.repository.ParticipantRepository;
 import com.grepp.funfun.app.domain.user.entity.User;
 import com.grepp.funfun.app.domain.user.repository.UserRepository;
+import com.grepp.funfun.app.domain.user.vo.UserStatus;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,12 +53,27 @@ public class ParticipantService {
             throw new CommonException(ResponseCode.BAD_REQUEST);
         }
 
-        // 중복 신청
-        boolean alreadyApplied = participantRepository.existsByUserAndGroup(user,group);
-        if(alreadyApplied){
-            throw new CommonException(ResponseCode.BAD_REQUEST);
+        // 기존 참여 이력 확인
+        Optional<Participant> existingParticipant = participantRepository.findByUserAndGroup(user, group);
+
+        if (existingParticipant.isPresent()) {
+            ParticipantStatus status = existingParticipant.get().getStatus();
+
+            switch (status) {
+                case PENDING ->
+                    throw new CommonException(ResponseCode.BAD_REQUEST, "이미 신청한 모임입니다.");
+                case APPROVED ->
+                    throw new CommonException(ResponseCode.BAD_REQUEST, "이미 참여 중인 모임입니다.");
+                case GROUP_KICKOUT ->
+                    throw new CommonException(ResponseCode.BAD_REQUEST, "강제퇴장으로 인해 참여할 수 없습니다.");
+                case LEAVE -> {
+                    existingParticipant.get().setStatus(ParticipantStatus.PENDING);
+                    return;
+                }
+            }
         }
 
+        // todo : 프론트 확인 필요
 //        // 모임 시간 체크
 //        if(group.getGroupDate().isBefore(LocalDateTime.now())){
 //            throw new CommonException(ResponseCode.BAD_REQUEST);
@@ -89,7 +106,11 @@ public class ParticipantService {
         // 리더 검증
         User leader = group.getLeader();
 
-        if (!leader.getEmail().equals(leaderEmail) || !leader.getActivated()) {
+        if (!leader.getEmail().equals(leaderEmail)) {
+            throw new CommonException(ResponseCode.UNAUTHORIZED);
+        }
+
+        if(leader.getStatus() == UserStatus.SUSPENDED || leader.getStatus() == UserStatus.BANNED){
             throw new CommonException(ResponseCode.UNAUTHORIZED);
         }
 
@@ -121,13 +142,13 @@ public class ParticipantService {
     //참여 거절
     @Transactional
     public void rejectParticipant(Long groupId, List<String> userEmails, String leaderEmail) {
-        // 1. 그룹 존재 확인
+        // 1. 모임 존재 확인
         Group group = groupRepository.findById(groupId)
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
 
         // 2. 활성화 상태 확인
         if (!group.getActivated()) {
-            throw new CommonException(ResponseCode.USER_SUSPENDED); // 또는 적절한 에러코드
+            throw new CommonException(ResponseCode.NOT_FOUND); // 또는 적절한 에러코드
         }
 
         // 3. 리더 검증
@@ -150,13 +171,13 @@ public class ParticipantService {
     //모임 강퇴
     @Transactional
     public void kickOut(Long groupId, String targetEmail, String leaderEmail) {
-        // 1. 그룹 존재 확인
+        // 1. 모임 존재 확인
         Group group = groupRepository.findById(groupId)
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
 
         // 2. 활성화 상태 확인
         if (!group.getActivated()) {
-            throw new CommonException(ResponseCode.USER_SUSPENDED); // 또는 적절한 에러코드
+            throw new CommonException(ResponseCode.NOT_FOUND);
         }
 
         // 3. 리더 검증
@@ -175,6 +196,10 @@ public class ParticipantService {
         participant.unActivated();
 
         group.setNowPeople(group.getNowPeople() - 1);
+
+        if(group.getMaxPeople()>group.getNowPeople()){
+            group.setStatus(GroupStatus.RECRUITING);
+        }
 
         participantRepository.save(participant);
 
@@ -199,6 +224,10 @@ public class ParticipantService {
 
         group.setNowPeople(group.getNowPeople() - 1);
 
+        if(group.getMaxPeople()>group.getNowPeople()){
+            group.setStatus(GroupStatus.RECRUITING);
+        }
+
         participantRepository.save(participant);
 
         // 나간 사용자의 캘린더 모임 일정 제거
@@ -214,7 +243,7 @@ public class ParticipantService {
 
         // 2. 활성화 상태 확인
         if (!group.getActivated()) {
-            throw new CommonException(ResponseCode.USER_SUSPENDED); // 또는 적절한 에러코드
+            throw new CommonException(ResponseCode.BAD_REQUEST);
         }
         List<Participant> participants = participantRepository.findTruePendingMembers(groupId);
 
@@ -232,7 +261,7 @@ public class ParticipantService {
 
         // 2. 활성화 상태 확인
         if (!group.getActivated()) {
-            throw new CommonException(ResponseCode.USER_SUSPENDED); // 또는 적절한 에러코드
+            throw new CommonException(ResponseCode.NOT_FOUND);
         }
 
         List<Participant> participants = participantRepository.findTrueApproveMembers(groupId);
@@ -241,59 +270,26 @@ public class ParticipantService {
             .map(ParticipantResponse::from)
             .collect(Collectors.toList());
     }
+
+    public long countJoinGroupByEmail(String email) {
+        return participantRepository.countByUserEmailAndRoleAndStatus(
+            email,
+            ParticipantRole.MEMBER,
+            ParticipantStatus.GROUP_COMPLETE
+        );
+    }
     // ------------------------------여기 까지 ------------------------------------
 
-    public List<ParticipantDTO> findAll() {
+    public List<ParticipantResponse> findAll() {
         final List<Participant> participants = participantRepository.findAll(Sort.by("id"));
         return participants.stream()
-                .map(participant -> mapToDTO(participant, new ParticipantDTO()))
-                .toList();
+            .map(ParticipantResponse::from)
+            .toList();
     }
 
-    public ParticipantDTO get(final Long id) {
+    public ParticipantResponse get(final Long id) {
         return participantRepository.findById(id)
-                .map(participant -> mapToDTO(participant, new ParticipantDTO()))
-                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+            .map(ParticipantResponse::from)
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
     }
-
-    public Long create(final ParticipantDTO participantDTO) {
-        final Participant participant = new Participant();
-        mapToEntity(participantDTO, participant);
-        return participantRepository.save(participant).getId();
-    }
-
-    public void update(final Long id, final ParticipantDTO participantDTO) {
-        final Participant participant = participantRepository.findById(id)
-                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        mapToEntity(participantDTO, participant);
-        participantRepository.save(participant);
-    }
-
-    public void delete(final Long id) {
-        participantRepository.deleteById(id);
-    }
-
-    private ParticipantDTO mapToDTO(final Participant participant,
-            final ParticipantDTO participantDTO) {
-        participantDTO.setId(participant.getId());
-        participantDTO.setRole(participant.getRole());
-        participantDTO.setStatus(participant.getStatus());
-        participantDTO.setUser(participant.getUser() == null ? null : participant.getUser().getEmail());
-        participantDTO.setGroup(participant.getGroup() == null ? null : participant.getGroup().getId());
-        return participantDTO;
-    }
-
-    private Participant mapToEntity(final ParticipantDTO participantDTO,
-            final Participant participant) {
-        participant.setRole(participantDTO.getRole());
-        participant.setStatus(participantDTO.getStatus());
-        final User user = participantDTO.getUser() == null ? null : userRepository.findById(participantDTO.getUser())
-                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        participant.setUser(user);
-        final Group group = participantDTO.getGroup() == null ? null : groupRepository.findById(participantDTO.getGroup())
-                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        participant.setGroup(group);
-        return participant;
-    }
-
 }
