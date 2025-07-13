@@ -1387,49 +1387,232 @@ VALUES (1, '네이버N예약', 'https://booking.naver.com/booking/12/bizes/60762
        (147, '인터파크', 'http://ticket.interpark.com/Ticket/Goods/GoodsInfo.asp?GoodsCode=25007446'),
        (148, '인터파크', 'http://ticket.interpark.com/Ticket/Goods/GoodsInfo.asp?GoodsCode=25007864');
 
--- User 테이블 예시 데이터
+-- UserInfo 테이블 데이터 삽입
+INSERT INTO user_info (email, image_url, introduction, activated, created_at, modified_at)
+VALUES
+    ('t1@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/c47297e9-fa17-4d7e-985e-26956b45fede.jpg', '안녕하세요, 김철수입니다.', true, NOW(), NOW()),
+    ('t2@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/c47297e9-fa17-4d7e-985e-26956b45fede.jpg', '문화 활동을 좋아합니다.', true, NOW(), NOW()),
+    ('t3@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/c47297e9-fa17-4d7e-985e-26956b45fede.jpg', '서울 서초구에 거주 중인 박민수입니다.', true, NOW(), NOW()),
+    ('t4@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/c47297e9-fa17-4d7e-985e-26956b45fede.jpg', '정수빈입니다. 반갑습니다!', true, NOW(), NOW()),
+    ('t5@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/c47297e9-fa17-4d7e-985e-26956b45fede.jpg', '최동욱입니다. 잠시 활동 정지 상태입니다.', true, NOW(), NOW()),
+    ('t6@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/c47297e9-fa17-4d7e-985e-26956b45fede.jpg', '장미라입니다.', true, NOW(), NOW()),
+    ('t7@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/c47297e9-fa17-4d7e-985e-26956b45fede.jpg', '안녕하세요, 안준호입니다.', true, NOW(), NOW()),
+    ('t8@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/c47297e9-fa17-4d7e-985e-26956b45fede.jpg', '오세영입니다. 서울에 살고 있어요.', true, NOW(), NOW()),
+    ('t9@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/c47297e9-fa17-4d7e-985e-26956b45fede.jpg', '관리자 유하늘입니다.', true, NOW(), NOW()),
+    ('t10@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/c47297e9-fa17-4d7e-985e-26956b45fede.jpg', '임소라입니다. 잘 부탁드립니다.', true, NOW(), NOW());
+
+-- User 테이블 데이터 삽입
 INSERT INTO "user" (email, password, nickname, birth_date, gender, address, latitude, longitude,
                     role, status, due_date, suspend_duration, due_reason, is_verified,
-                    is_marketing_agreed, info_id)
-VALUES ('t1@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '김철수',
-        '1990-03-15', 'MALE', '서울특별시 강남구 역삼동 테헤란로 123', 37.5009, 127.0360, 'ROLE_USER', 'ACTIVE',
-        NULL, NULL, NULL, true, true, NULL),
+                    is_marketing_agreed, info_id, activated, created_at, modified_at)
+VALUES
+    ('t1@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '김철수', '1990-03-15', 'MALE', '서울특별시 강남구 역삼동 테헤란로 123', 37.5009, 127.0360,
+     'ROLE_USER', 'ACTIVE', NULL, NULL, NULL, true, true, 't1@aaa.aaa', true, NOW(), NOW()),
 
-       ('t2@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '이영희',
-        '1985-07-22', 'FEMALE', '서울특별시 송파구 잠실동 올림픽로 456', 37.5133, 127.1028, 'ROLE_USER', 'ACTIVE',
-        NULL, NULL, NULL, true, false, NULL),
+    ('t2@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '이영희', '1985-07-22', 'FEMALE', '서울특별시 송파구 잠실동 올림픽로 456', 37.5133, 127.1028,
+     'ROLE_USER', 'ACTIVE', NULL, NULL, NULL, true, false, 't2@aaa.aaa', true, NOW(), NOW()),
 
-       ('t3@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '박민수',
-        '1992-11-08', 'MALE', '서울특별시 서초구 반포동 반포대로 789', 37.5047, 127.0089, 'ROLE_USER', 'ACTIVE',
-        NULL, NULL, NULL, true, true, NULL),
+    ('t3@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '박민수', '1992-11-08', 'MALE', '서울특별시 서초구 반포동 반포대로 789', 37.5047, 127.0089,
+     'ROLE_USER', 'ACTIVE', NULL, NULL, NULL, true, true, 't3@aaa.aaa', true, NOW(), NOW()),
 
-       ('t4@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '정수빈',
-        '1988-02-14', 'FEMALE', '서울특별시 마포구 상암동 월드컵북로 321', 37.5799, 126.8896, 'ROLE_USER', 'ACTIVE',
-        NULL, NULL, NULL, false, true, NULL),
+    ('t4@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '정수빈', '1988-02-14', 'FEMALE', '서울특별시 마포구 상암동 월드컵북로 321', 37.5799, 126.8896,
+     'ROLE_USER', 'ACTIVE', NULL, NULL, NULL, false, true, 't4@aaa.aaa', true, NOW(), NOW()),
 
-       ('t5@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '최동욱',
-        '1993-09-30', 'MALE', '서울특별시 용산구 한남동 한남대로 654', 37.5347, 126.9990, 'ROLE_USER', 'SUSPENDED',
-        '2025-08-15', 30, '부적절한 게시물', true, false, NULL),
+    ('t5@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '최동욱', '1993-09-30', 'MALE', '서울특별시 용산구 한남동 한남대로 654', 37.5347, 126.9990,
+     'ROLE_USER', 'SUSPENDED', '2025-08-15', 30, '부적절한 게시물', true, false, 't5@aaa.aaa', true, NOW(), NOW()),
 
-       ('t6@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '장미라',
-        '1987-05-03', 'FEMALE', '서울특별시 성동구 성수동 아차산로 147', 37.5447, 127.0557, 'ROLE_USER', 'ACTIVE',
-        NULL, NULL, NULL, true, true, NULL),
+    ('t6@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '장미라', '1987-05-03', 'FEMALE', '서울특별시 성동구 성수동 아차산로 147', 37.5447, 127.0557,
+     'ROLE_USER', 'ACTIVE', NULL, NULL, NULL, true, true, 't6@aaa.aaa', true, NOW(), NOW()),
 
-       ('t7@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '안준호',
-        '1991-12-25', 'MALE', '서울특별시 강북구 수유동 도봉로 258', 37.6369, 127.0253, 'ROLE_USER', 'ACTIVE',
-        NULL, NULL, NULL, true, true, NULL),
+    ('t7@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '안준호', '1991-12-25', 'MALE', '서울특별시 강북구 수유동 도봉로 258', 37.6369, 127.0253,
+     'ROLE_USER', 'ACTIVE', NULL, NULL, NULL, true, true, 't7@aaa.aaa', true, NOW(), NOW()),
 
-       ('t8@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '오세영',
-        '1989-08-17', 'FEMALE', '서울특별시 광진구 자양동 능동로 369', 37.5347, 127.0822, 'ROLE_USER', 'ACTIVE',
-        NULL, NULL, NULL, false, false, NULL),
+    ('t8@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '오세영', '1989-08-17', 'FEMALE', '서울특별시 광진구 자양동 능동로 369', 37.5347, 127.0822,
+     'ROLE_USER', 'ACTIVE', NULL, NULL, NULL, false, false, 't8@aaa.aaa', true, NOW(), NOW()),
 
-       ('t9@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '유하늘',
-        '1994-04-12', 'MALE', '서울특별시 중구 을지로 을지로3가 852', 37.5661, 126.9917, 'ROLE_ADMIN', 'ACTIVE',
-        NULL, NULL, NULL, true, true, NULL),
+    ('t9@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '유하늘', '1994-04-12', 'MALE', '서울특별시 중구 을지로 을지로3가 852', 37.5661, 126.9917,
+     'ROLE_ADMIN', 'ACTIVE', NULL, NULL, NULL, true, true, 't9@aaa.aaa', true, NOW(), NOW()),
 
-       ('t10@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa',
-        '임소라', '1986-01-28', 'FEMALE', '서울특별시 동작구 상도동 상도로 741', 37.5013, 126.9486, 'ROLE_USER',
-        'ACTIVE', NULL, NULL, NULL, true, true, NULL);
+    ('t10@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '임소라', '1986-01-28', 'FEMALE', '서울특별시 동작구 상도동 상도로 741', 37.5013, 126.9486,
+     'ROLE_USER', 'ACTIVE', NULL, NULL, NULL, true, true, 't10@aaa.aaa', true, NOW(), NOW());
+
+INSERT INTO user_hashtag (tag, info_id)
+VALUES
+-- t1
+('맛집탐방', 't1@aaa.aaa'),
+('여행', 't1@aaa.aaa'),
+
+-- t2
+('공연관람', 't2@aaa.aaa'),
+
+-- t3
+('전시회', 't3@aaa.aaa'),
+('야외활동', 't3@aaa.aaa'),
+('음악', 't3@aaa.aaa'),
+
+-- t4
+('독서', 't4@aaa.aaa'),
+('문화생활', 't4@aaa.aaa'),
+
+-- t5
+('카페투어', 't5@aaa.aaa'),
+
+-- t6
+('스포츠', 't6@aaa.aaa'),
+('음악', 't6@aaa.aaa'),
+
+-- t7
+('여행', 't7@aaa.aaa'),
+('공연관람', 't7@aaa.aaa'),
+
+-- t8
+('전시회', 't8@aaa.aaa'),
+
+-- t9
+('문화생활', 't9@aaa.aaa'),
+('맛집탐방', 't9@aaa.aaa'),
+('카페투어', 't9@aaa.aaa'),
+
+-- t10
+('야외활동', 't10@aaa.aaa'),
+('독서', 't10@aaa.aaa');
+
+-- GroupPreference 테이블 데이터 삽입
+INSERT INTO group_preference (category, user_id, activated, created_at, modified_at)
+VALUES
+-- t1
+('FOOD', 't1@aaa.aaa', true, NOW(), NOW()),
+('TRAVEL', 't1@aaa.aaa', true, NOW(), NOW()),
+
+-- t2
+('ART', 't2@aaa.aaa', true, NOW(), NOW()),
+('MOVIE', 't2@aaa.aaa', true, NOW(), NOW()),
+('CULTURE', 't2@aaa.aaa', true, NOW(), NOW()),
+
+-- t3
+('SPORT', 't3@aaa.aaa', true, NOW(), NOW()),
+('STUDY', 't3@aaa.aaa', true, NOW(), NOW()),
+
+-- t4
+('GAME', 't4@aaa.aaa', true, NOW(), NOW()),
+('FOOD', 't4@aaa.aaa', true, NOW(), NOW()),
+
+-- t5
+('ART', 't5@aaa.aaa', true, NOW(), NOW()),
+('TRAVEL', 't5@aaa.aaa', true, NOW(), NOW()),
+('SPORT', 't5@aaa.aaa', true, NOW(), NOW()),
+
+-- t6
+('STUDY', 't6@aaa.aaa', true, NOW(), NOW()),
+('MOVIE', 't6@aaa.aaa', true, NOW(), NOW()),
+
+-- t7
+('CULTURE', 't7@aaa.aaa', true, NOW(), NOW()),
+('FOOD', 't7@aaa.aaa', true, NOW(), NOW()),
+('TRAVEL', 't7@aaa.aaa', true, NOW(), NOW()),
+
+-- t8
+('GAME', 't8@aaa.aaa', true, NOW(), NOW()),
+('MOVIE', 't8@aaa.aaa', true, NOW(), NOW()),
+
+-- t9
+('SPORT', 't9@aaa.aaa', true, NOW(), NOW()),
+('STUDY', 't9@aaa.aaa', true, NOW(), NOW()),
+('ART', 't9@aaa.aaa', true, NOW(), NOW()),
+
+-- t10
+('FOOD', 't10@aaa.aaa', true, NOW(), NOW()),
+('CULTURE', 't10@aaa.aaa', true, NOW(), NOW());
+
+-- ContentPreference 테이블 데이터 삽입
+INSERT INTO content_preference (category, user_id, activated, created_at, modified_at)
+VALUES
+-- t1
+('THEATER', 't1@aaa.aaa', true, NOW(), NOW()),
+('MUSICAL', 't1@aaa.aaa', true, NOW(), NOW()),
+
+-- t2
+('POP_DANCE', 't2@aaa.aaa', true, NOW(), NOW()),
+('CLASSIC', 't2@aaa.aaa', true, NOW(), NOW()),
+('TOUR', 't2@aaa.aaa', true, NOW(), NOW()),
+
+-- t3
+('MAGIC', 't3@aaa.aaa', true, NOW(), NOW()),
+('GUKAK', 't3@aaa.aaa', true, NOW(), NOW()),
+
+-- t4
+('POP_MUSIC', 't4@aaa.aaa', true, NOW(), NOW()),
+('CULTURE', 't4@aaa.aaa', true, NOW(), NOW()),
+
+-- t5
+('MIX', 't5@aaa.aaa', true, NOW(), NOW()),
+('SPORTS', 't5@aaa.aaa', true, NOW(), NOW()),
+('THEATER', 't5@aaa.aaa', true, NOW(), NOW()),
+
+-- t6
+('TOUR', 't6@aaa.aaa', true, NOW(), NOW()),
+('CLASSIC', 't6@aaa.aaa', true, NOW(), NOW()),
+
+-- t7
+('DANCE', 't7@aaa.aaa', true, NOW(), NOW()),
+('GUKAK', 't7@aaa.aaa', true, NOW(), NOW()),
+('MAGIC', 't7@aaa.aaa', true, NOW(), NOW()),
+
+-- t8
+('MUSICAL', 't8@aaa.aaa', true, NOW(), NOW()),
+('CULTURE', 't8@aaa.aaa', true, NOW(), NOW()),
+
+-- t9
+('POP_DANCE', 't9@aaa.aaa', true, NOW(), NOW()),
+('POP_MUSIC', 't9@aaa.aaa', true, NOW(), NOW()),
+('SPORTS', 't9@aaa.aaa', true, NOW(), NOW()),
+
+-- t10
+('THEATER', 't10@aaa.aaa', true, NOW(), NOW()),
+('DANCE', 't10@aaa.aaa', true, NOW(), NOW());
+
+-- Follow 테이블 데이터 삽입
+INSERT INTO follow (follower_id, followee_id, activated, created_at, modified_at)
+VALUES
+-- t1 follows t2, t3
+('t1@aaa.aaa', 't2@aaa.aaa', true, NOW(), NOW()),
+('t1@aaa.aaa', 't3@aaa.aaa', true, NOW(), NOW()),
+
+-- t2 follows t3, t4
+('t2@aaa.aaa', 't3@aaa.aaa', true, NOW(), NOW()),
+('t2@aaa.aaa', 't4@aaa.aaa', true, NOW(), NOW()),
+
+-- t3 follows t1, t5, t6
+('t3@aaa.aaa', 't1@aaa.aaa', true, NOW(), NOW()),
+('t3@aaa.aaa', 't5@aaa.aaa', true, NOW(), NOW()),
+('t3@aaa.aaa', 't6@aaa.aaa', true, NOW(), NOW()),
+
+-- t4 follows t1
+('t4@aaa.aaa', 't1@aaa.aaa', true, NOW(), NOW()),
+
+-- t5 follows t1, t2
+('t5@aaa.aaa', 't1@aaa.aaa', true, NOW(), NOW()),
+('t5@aaa.aaa', 't2@aaa.aaa', true, NOW(), NOW()),
+
+-- t6 follows t3
+('t6@aaa.aaa', 't3@aaa.aaa', true, NOW(), NOW()),
+
+-- t7 follows t6, t4
+('t7@aaa.aaa', 't6@aaa.aaa', true, NOW(), NOW()),
+('t7@aaa.aaa', 't4@aaa.aaa', true, NOW(), NOW()),
+
+-- t8 follows t2, t3
+('t8@aaa.aaa', 't2@aaa.aaa', true, NOW(), NOW()),
+('t8@aaa.aaa', 't3@aaa.aaa', true, NOW(), NOW()),
+
+-- t9 follows t5, t6, t8
+('t9@aaa.aaa', 't5@aaa.aaa', true, NOW(), NOW()),
+('t9@aaa.aaa', 't6@aaa.aaa', true, NOW(), NOW()),
+('t9@aaa.aaa', 't8@aaa.aaa', true, NOW(), NOW()),
+
+-- t10 follows t1, t2
+('t10@aaa.aaa', 't1@aaa.aaa', true, NOW(), NOW()),
+('t10@aaa.aaa', 't2@aaa.aaa', true, NOW(), NOW());
 
 -- Group 테이블 데이터 삽입
 INSERT INTO "group" (title, explain, simple_explain, place_name, address, group_date,
@@ -1544,3 +1727,46 @@ INSERT INTO participant (role, status, user_id, group_id, created_at, modified_a
 ('LEADER', 'APPROVED', 't3@aaa.aaa', 8, NOW(), NOW()),  -- 영화 감상 모임
 ('LEADER', 'APPROVED', 't3@aaa.aaa', 9, NOW(), NOW()),  -- 요리 클래스 모임
 ('LEADER', 'APPROVED', 't3@aaa.aaa', 10, NOW(), NOW()); -- 사진 촬영 모임
+
+-- Calendar 테이블 데이터 삽입
+INSERT INTO calendar (email, selected_date, type, content_id, group_id, activated, created_at, modified_at)
+VALUES
+-- t1
+('t1@aaa.aaa', '2025-07-15 10:00:00', 'CONTENT', 3, NULL, true, NOW(), NOW()),
+('t1@aaa.aaa', NULL, 'GROUP', NULL, 1, true, NOW(), NOW()),
+
+-- t2
+('t2@aaa.aaa', '2025-07-02 14:00:00', 'CONTENT', 2, NULL, true, NOW(), NOW()),
+('t2@aaa.aaa', NULL, 'GROUP', NULL, 2, true, NOW(), NOW()),
+
+-- t3
+('t3@aaa.aaa', '2025-07-13 09:00:00', 'CONTENT', 5, NULL, true, NOW(), NOW()),
+('t3@aaa.aaa', NULL, 'GROUP', NULL, 3, true, NOW(), NOW()),
+
+-- t4
+('t4@aaa.aaa', '2025-07-05 11:00:00', 'CONTENT', 4, NULL, true, NOW(), NOW()),
+('t4@aaa.aaa', NULL, 'GROUP', NULL, 4, true, NOW(), NOW()),
+
+-- t5
+('t5@aaa.aaa', '2025-07-10 13:00:00', 'CONTENT', 1, NULL, true, NOW(), NOW()),
+('t5@aaa.aaa', NULL, 'GROUP', NULL, 5, true, NOW(), NOW()),
+
+-- t6
+('t6@aaa.aaa', '2025-07-10 17:00:00', 'CONTENT', 6, NULL, true, NOW(), NOW()),
+('t6@aaa.aaa', NULL, 'GROUP', NULL, 6, true, NOW(), NOW()),
+
+-- t7
+('t7@aaa.aaa', '2025-07-04 15:00:00', 'CONTENT', 7, NULL, true, NOW(), NOW()),
+('t7@aaa.aaa', NULL, 'GROUP', NULL, 7, true, NOW(), NOW()),
+
+-- t8
+('t8@aaa.aaa', '2025-07-16 10:30:00', 'CONTENT', 8, NULL, true, NOW(), NOW()),
+('t8@aaa.aaa', NULL, 'GROUP', NULL, 8, true, NOW(), NOW()),
+
+-- t9
+('t9@aaa.aaa', '2025-07-21 08:00:00', 'CONTENT', 9, NULL, true, NOW(), NOW()),
+('t9@aaa.aaa', NULL, 'GROUP', NULL, 9, true, NOW(), NOW()),
+
+-- t10
+('t10@aaa.aaa', '2025-07-18 19:00:00', 'CONTENT', 10, NULL, true, NOW(), NOW()),
+('t10@aaa.aaa', NULL, 'GROUP', NULL, 10, true, NOW(), NOW());
