@@ -12,6 +12,7 @@ import com.grepp.funfun.app.delete.util.WebUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -41,8 +42,10 @@ public class GroupController {
     }
 
     @GetMapping
-    public String list(final Model model) {
-        model.addAttribute("groups", groupService.getRecentGroups());
+    public String list(final Model model, Authentication authentication) {
+        String userEmail = authentication.getName();
+
+        model.addAttribute("groups", groupService.getGroups(null, null, null, userEmail));
         return "group/list";
     }
 
@@ -61,12 +64,6 @@ public class GroupController {
         groupService.create(leaderEmail,request);
         redirectAttributes.addFlashAttribute(WebUtils.MSG_SUCCESS, WebUtils.getMessage("group.create.success"));
         return "redirect:/groups";
-    }
-
-    @GetMapping("/edit/{id}")
-    public String edit(@PathVariable(name = "id") final Long id, final Model model) {
-        model.addAttribute("group", groupService.get(id));
-        return "group/edit";
     }
 
     @PostMapping("/edit/{id}")

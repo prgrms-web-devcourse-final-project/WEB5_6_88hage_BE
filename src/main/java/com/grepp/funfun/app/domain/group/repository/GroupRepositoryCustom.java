@@ -14,14 +14,8 @@ public interface GroupRepositoryCustom {
     // 내 모임 조회
     List<Group> findMyGroups(String userEmail);
 
-    // 최신순
-    List<Group> findActiveRecentGroups();
-
-    // 키워드 조회(검색)
-    List<Group> findGroupsByKeyword(String keyword);
-
-    // 가까운 순 조회
-    List<Group> findNearbyGroups(Double userLat, Double userLng);
+    // 모임 조회
+    List<Group> findGroups(String category, String keyword, String sortBy, String userEmail);
 
     // 모임 상세 조회
     Optional<Group> findByIdWithFullInfo(Long groupId);

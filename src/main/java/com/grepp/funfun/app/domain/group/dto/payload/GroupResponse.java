@@ -31,7 +31,11 @@ public class GroupResponse {
     @Size(max = 255)
     private String address;
 
+    private Integer viewCount;
+
     private LocalDateTime groupDate;
+
+    private LocalDateTime createdAt;
 
     private Integer maxPeople;
 
