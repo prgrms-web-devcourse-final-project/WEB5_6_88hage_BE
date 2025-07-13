@@ -31,7 +31,11 @@ public class GroupResponse {
     @Size(max = 255)
     private String address;
 
+    private Integer viewCount;
+
     private LocalDateTime groupDate;
+
+    private LocalDateTime createdAt;
 
     private Integer maxPeople;
 
@@ -49,7 +53,9 @@ public class GroupResponse {
 
     @NotNull
     @Size(max = 255)
-    private String leader;
+    private String leaderNickname;
+
+    private String leaderEmail;
 
     private List<String> hashTags;
 

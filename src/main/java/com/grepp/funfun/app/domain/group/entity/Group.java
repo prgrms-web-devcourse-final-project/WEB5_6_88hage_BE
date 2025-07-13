@@ -8,6 +8,7 @@ import com.grepp.funfun.app.domain.participant.entity.Participant;
 import com.grepp.funfun.app.domain.user.entity.User;
 import com.grepp.funfun.app.infra.entity.BaseEntity;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -45,6 +46,9 @@ public class Group extends BaseEntity {
 
     // 모임 소개
     private String explain;
+
+    // 모임 조회수
+    private Integer viewCount = 0;
 
     // 모임 한 줄 소개
     private String simpleExplain;
@@ -84,5 +88,14 @@ public class Group extends BaseEntity {
 
     @OneToMany(mappedBy = "group",cascade = CascadeType.ALL)
     private List<GroupHashtag> hashtags;
+
+    public void updateViewCount(Integer viewCount) {
+        this.viewCount = viewCount;
+    }
+
+    public void changeStatusAndActivated(GroupStatus status) {
+        this.unActivated();
+        this.status = status;
+    }
 
 }

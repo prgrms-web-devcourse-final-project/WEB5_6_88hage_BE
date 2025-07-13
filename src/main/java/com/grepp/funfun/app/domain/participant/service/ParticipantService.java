@@ -218,8 +218,7 @@ public class ParticipantService {
         Participant participant = participantRepository.findTrueMember(groupId,userEmail)
             .orElseThrow(()-> new CommonException(ResponseCode.NOT_FOUND));
 
-        // 3. 모임 나가기 : 비활성화 처리 + LEAVE 처리
-        participant.unActivated();
+        // 3. 모임 나가기 : LEAVE 처리
         participant.setStatus(ParticipantStatus.LEAVE);
 
         group.setNowPeople(group.getNowPeople() - 1);

@@ -6,10 +6,13 @@ import static com.grepp.funfun.app.domain.user.entity.QUser.user;
 import com.grepp.funfun.app.domain.group.entity.Group;
 import com.grepp.funfun.app.domain.group.entity.QGroup;
 import com.grepp.funfun.app.domain.group.entity.QGroupHashtag;
+import com.grepp.funfun.app.domain.group.vo.GroupClassification;
 import com.grepp.funfun.app.domain.group.vo.GroupStatus;
 import com.grepp.funfun.app.domain.participant.vo.ParticipantStatus;
+import com.grepp.funfun.app.domain.user.entity.User;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import java.util.Optional;
@@ -70,55 +73,8 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
             .fetch();
     }
 
-    // 모임 조회(최신순)
-    @Override
-    public List<Group> findActiveRecentGroups() {
-        return queryFactory
-            .selectFrom(group)
-            .join(group.hashtags, hashtag).fetchJoin()
-            .where(group.activated.eq(true))
-            .orderBy(group.createdAt.desc())
-            .fetch();
-    }
 
-    // 키워드 검색
-    @Override
-    public List<Group> findGroupsByKeyword(String keyword) {
-        return queryFactory
-            .selectFrom(group)
-            .join(group.hashtags, hashtag).fetchJoin()
-            .where(
-                group.activated.eq(true),
-                group.title.containsIgnoreCase(keyword)
-                    .or(group.simpleExplain.containsIgnoreCase(keyword))
-            )
-            .orderBy(group.createdAt.desc())
-            .fetch();
-    }
-
-    // 가까운 모임 찾기
-    @Override
-    public List<Group> findNearbyGroups(Double userLat, Double userLng) {
-        // 거리 계산 (하버사인 공식)
-        NumberExpression<Double> distance = Expressions.numberTemplate(Double.class,
-            "6371 * acos(" +
-                "cos(radians({0})) * cos(radians({1})) * " +
-                "cos(radians({2}) - radians({3})) + " +
-                "sin(radians({0})) * sin(radians({1}))" +
-                ")",
-            userLat, group.latitude, group.longitude, userLng);
-
-        return queryFactory
-            .selectFrom(group)
-            .where(
-                group.activated.eq(true),
-                group.latitude.isNotNull(),
-                group.longitude.isNotNull()
-            )
-            .orderBy(distance.asc())
-            .fetch();
-    }
-
+    // 모임 상세 조회
     @Override
     public Optional<Group> findByIdWithFullInfo(Long groupId) {
         return Optional.ofNullable(
@@ -133,6 +89,59 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
         );
 
     }
+    @Override
+    public List<Group> findGroups(
+        String category,
+        String keyword,
+        String sortBy,
+        String userEmail
+    ) {
+        // 공통 쿼리
+        JPAQuery<Group> baseQuery = queryFactory
+            .selectFrom(group)
+            .distinct()
+            .join(group.hashtags, hashtag).fetchJoin()
+            .where(
+                group.activated.eq(true),
+                category != null ? group.category.eq(GroupClassification.valueOf(category)) : null,
+                keyword != null ? group.title.containsIgnoreCase(keyword)
+                    .or(group.simpleExplain.containsIgnoreCase(keyword)) : null
+            );
 
+        // 정렬 (기본값: distance)
+        String sort = (sortBy != null) ? sortBy : "distance";
+
+        return switch (sort) {
+            case "recent" -> baseQuery.orderBy(group.createdAt.desc()).fetch();
+            case "viewCount" -> baseQuery.orderBy(group.viewCount.desc()).fetch();
+            default -> {
+                if (userEmail != null) {
+                    // default 거리순
+                    User currentUser = queryFactory
+                        .selectFrom(user)
+                        .where(user.email.eq(userEmail))
+                        .fetchOne();
+
+                    if (currentUser != null) {
+                        NumberExpression<Double> distance = Expressions.numberTemplate(Double.class,
+                            "6371 * acos(" +
+                                "cos(radians({0})) * cos(radians({1})) * " +
+                                "cos(radians({2}) - radians({3})) + " +
+                                "sin(radians({0})) * sin(radians({1}))" +
+                                ")",
+                            currentUser.getLatitude(), group.latitude, group.longitude,
+                            currentUser.getLongitude());
+
+                        yield baseQuery
+                            .where(group.latitude.isNotNull(), group.longitude.isNotNull())
+                            .orderBy(distance.asc())
+                            .fetch();
+                    }
+                }
+                // 사용자 못 찾으면 최신순
+                yield baseQuery.orderBy(group.createdAt.desc()).fetch();
+            }
+        };
+    }
 }
 

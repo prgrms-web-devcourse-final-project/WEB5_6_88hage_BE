@@ -16,11 +16,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 
@@ -35,25 +37,20 @@ public class GroupApiController {
     // 모임 상세 조회
     @GetMapping("/{groupId}")
     @Operation(summary = "모임 상세 조회", description = "모임을 상세 조회합니다.")
-    public ResponseEntity<ApiResponse<GroupResponse>> getGroup(@PathVariable Long groupId) {
-        return ResponseEntity.ok(ApiResponse.success(groupService.get(groupId)));
+    public ResponseEntity<ApiResponse<GroupResponse>> getGroup(@PathVariable Long groupId,
+        Authentication authentication) {
+        String userEmail = authentication != null ? authentication.getName() : null;
+        return ResponseEntity.ok(ApiResponse.success(groupService.get(groupId,userEmail)));
     }
 
-    // 모든 모임 조회(최신순)
-    @GetMapping("/getRecent")
-    @Operation(summary = "모든 모임 조회(최신순)", description = "모든 모임을 조회합니다.(최신순)")
-    public ResponseEntity<ApiResponse<List<GroupResponse>>> getAllRecentGroups() {
-        return ResponseEntity.ok(ApiResponse.success(groupService.getRecentGroups()));
-    }
-
-    // 모든 모임 조회(가까운순)
-    @GetMapping("/getNearby")
-    @Operation(summary = "모든 모임 조회(거리순)", description = "모든 모임을 조회합니다.(거리순)")
-    public ResponseEntity<ApiResponse<List<GroupResponse>>> getAllNearbyGroups(
+    // 내가 리더인 모임 조회
+    @GetMapping("/getLeaderMy")
+    @Operation(summary = "내가 리더 역할인 모임 조회", description = "내가 리더 역할인 모임을 조회합니다.")
+    public ResponseEntity<ApiResponse<List<GroupResponse>>> getLeaderMyGroups(
         Authentication authentication
-    ) {
+    ){
         String userEmail = authentication.getName();
-        return ResponseEntity.ok(ApiResponse.success(groupService.findNearGroups(userEmail)));
+        return ResponseEntity.ok(ApiResponse.success(groupService.findMyLeaderGroups(userEmail)));
     }
 
     // 내가 속한 모임 조회
@@ -66,10 +63,41 @@ public class GroupApiController {
         return ResponseEntity.ok(ApiResponse.success(groupService.findMyGroups(userEmail)));
     }
 
+
+    @GetMapping("/search")
+    @Operation(summary = "모임 검색 및 조회", description = """
+            아래와 형식으로 입력해주세요.
+            
+            • category(null 허용)
+            - ART, TRAVEL, FOOD,GAME,CULTURE,SPORT,STUDY,MOVIE
+            
+            • keyword(null 허용)
+            - 검색을 원하는 키워드
+           
+            • sortBy
+            - recent(최신순) , viewCount(조회수) , distance(거리순)
+            - 처음 접속했을 때 모든 기준 초기값 : 거리순
+            
+            ex)
+            ART / 모임 / recent
+            아무것도 넣지 않고, 검색하면 거리순
+            """
+    )
+    // 통합 모임 조회 - 검색/필터링/정렬(최신순,조회순,거리순) -> default 거리순
+    public ResponseEntity<ApiResponse<List<GroupResponse>>> searchGroups(
+        @RequestParam(required = false) String category,
+        @RequestParam(required = false) String keyword,
+        @RequestParam(defaultValue = "distance") String sortBy,
+        Authentication authentication
+    ) {
+        String userEmail = authentication != null ? authentication.getName() : null;
+        return ResponseEntity.ok(ApiResponse.success(groupService.getGroups(category, keyword, sortBy, userEmail)));
+    }
+
     // 모임 생성
-    @PostMapping("/create")
+    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "모임 생성", description = "모임을 생성합니다.")
-    public ResponseEntity<ApiResponse<String>> createGroup(@RequestBody @Valid GroupRequest request,
+    public ResponseEntity<ApiResponse<String>> createGroup(@ModelAttribute @Valid GroupRequest request,
         Authentication authentication) {
         try {
             String leaderEmail = authentication.getName();
@@ -83,10 +111,10 @@ public class GroupApiController {
     }
 
     // 모임 수정
-    @PutMapping("{groupId}")
+    @PutMapping(value = "/{groupId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "모임 수정", description = "모임을 수정합니다.")
     public ResponseEntity<ApiResponse<String>> updateGroup(@PathVariable Long groupId,
-        @RequestBody GroupRequest updateRequest, Authentication authentication) {
+        @ModelAttribute @Valid GroupRequest updateRequest, Authentication authentication) {
         try {
             String leaderEmail = authentication.getName();
             groupService.update(groupId, leaderEmail, updateRequest);
