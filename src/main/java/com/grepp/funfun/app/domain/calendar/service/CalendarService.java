@@ -42,6 +42,9 @@ public class CalendarService {
 
         Content content = contentRepository.findById(request.getActivityId())
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+        // bookmarkCount++;
+        content.increaseBookmark();
+
         calendar.setContent(content);
         calendar.setSelectedDate(request.getSelectedDate());
 
@@ -55,6 +58,12 @@ public class CalendarService {
 
         if(calendar.getType() == ActivityType.GROUP) {
             throw new CommonException(ResponseCode.BAD_REQUEST);
+        }
+
+        // bookmarkCount--;
+        Content content = calendar.getContent();
+        if (content != null) {
+            content.decreaseBookmark();
         }
 
         calendarRepository.delete(calendar);
