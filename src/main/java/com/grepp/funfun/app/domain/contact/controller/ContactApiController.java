@@ -1,6 +1,7 @@
 package com.grepp.funfun.app.domain.contact.controller;
 
 import com.grepp.funfun.app.domain.contact.dto.ContactDTO;
+import com.grepp.funfun.app.domain.contact.dto.payload.ContactDetailResponse;
 import com.grepp.funfun.app.domain.contact.dto.payload.ContactRequest;
 import com.grepp.funfun.app.domain.contact.service.ContactService;
 import com.grepp.funfun.app.infra.response.ApiResponse;
@@ -17,7 +18,6 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -34,9 +34,11 @@ public class ContactApiController {
         return ResponseEntity.ok(contactService.findAll());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ContactDTO> getContact(@PathVariable(name = "id") final Long id) {
-        return ResponseEntity.ok(contactService.get(id));
+    @GetMapping("/{contactId}")
+    @Operation(summary = "문의 상세 조회", description = "문의를 상세 조회합니다.")
+    public ResponseEntity<ApiResponse<ContactDetailResponse>> getContact(@PathVariable Long contactId, Authentication authentication) {
+        String email = authentication.getName();
+        return ResponseEntity.ok(ApiResponse.success(contactService.getDetail(contactId, email)));
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

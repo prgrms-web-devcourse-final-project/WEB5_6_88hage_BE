@@ -1,6 +1,7 @@
 package com.grepp.funfun.app.domain.contact.service;
 
 import com.grepp.funfun.app.domain.contact.dto.ContactDTO;
+import com.grepp.funfun.app.domain.contact.dto.payload.ContactDetailResponse;
 import com.grepp.funfun.app.domain.contact.dto.payload.ContactRequest;
 import com.grepp.funfun.app.domain.contact.entity.Contact;
 import com.grepp.funfun.app.domain.contact.entity.ContactImage;
@@ -103,6 +104,17 @@ public class ContactService {
         }
 
         contact.unActivated();
+    }
+
+    @Transactional(readOnly = true)
+    public ContactDetailResponse getDetail(Long contactId, String email) {
+        Contact contact = getContact(contactId);
+
+        if (!contact.getUser().getEmail().equals(email)) {
+            throw new CommonException(ResponseCode.BAD_REQUEST, "문의 작성자만 조회할 수 있습니다.");
+        }
+
+        return ContactDetailResponse.from(contact);
     }
 
     @Transactional(readOnly = true)
