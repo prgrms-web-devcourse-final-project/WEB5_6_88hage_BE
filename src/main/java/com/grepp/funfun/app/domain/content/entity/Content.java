@@ -73,4 +73,14 @@ public class Content extends BaseEntity {
     @Column(nullable = false)
     private Integer bookmarkCount = 0;
 
+    public void increaseBookmark() {
+        this.bookmarkCount++;
+    }
+
+    public void decreaseBookmark() {
+        if (this.bookmarkCount > 0) {
+            this.bookmarkCount--;
+        }
+    }
+
 }

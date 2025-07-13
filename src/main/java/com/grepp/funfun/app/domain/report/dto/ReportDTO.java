@@ -19,7 +19,7 @@ public class ReportDTO {
     private ReportType type;
 
     @Size(max = 255)
-    private String contentId;
+    private Long targetId;
 
     @NotNull
     @Size(max = 255)
