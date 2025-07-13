@@ -62,6 +62,20 @@ public class ContactService {
         contact.setContent(request.getContent());
     }
 
+    @Transactional
+    public void delete(Long contactId, String email) {
+        Contact contact = getContact(contactId);
+
+        if (!contact.getActivated()) {
+            throw new CommonException(ResponseCode.BAD_REQUEST, "이미 삭제한 문의입니다.");
+        }
+        if (!contact.getUser().getEmail().equals(email)) {
+            throw new CommonException(ResponseCode.BAD_REQUEST, "로그인한 사용자가 작성한 문의가 아닙니다.");
+        }
+
+        contact.unActivated();
+    }
+
     public List<ContactDTO> findAll() {
         final List<Contact> contacts = contactRepository.findAll(Sort.by("id"));
         return contacts.stream()

@@ -11,8 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -54,9 +54,11 @@ public class ContactApiController {
         return ResponseEntity.ok(ApiResponse.success("문의가 수정되었습니다."));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteContact(@PathVariable(name = "id") final Long id) {
-        contactService.delete(id);
+    @PatchMapping("/{contactId}")
+    @Operation(summary = "문의 삭제", description = "문의를 삭제(비활성화)합니다.")
+    public ResponseEntity<Void> deleteContact(@PathVariable Long contactId, Authentication authentication) {
+        String email = authentication.getName();
+        contactService.delete(contactId, email);
         return ResponseEntity.noContent().build();
     }
 
