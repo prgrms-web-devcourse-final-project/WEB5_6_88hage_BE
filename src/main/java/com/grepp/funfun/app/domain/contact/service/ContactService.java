@@ -3,6 +3,7 @@ package com.grepp.funfun.app.domain.contact.service;
 import com.grepp.funfun.app.domain.contact.dto.ContactDTO;
 import com.grepp.funfun.app.domain.contact.dto.payload.ContactDetailResponse;
 import com.grepp.funfun.app.domain.contact.dto.payload.ContactRequest;
+import com.grepp.funfun.app.domain.contact.dto.payload.ContactResponse;
 import com.grepp.funfun.app.domain.contact.entity.Contact;
 import com.grepp.funfun.app.domain.contact.entity.ContactImage;
 import com.grepp.funfun.app.domain.contact.repository.ContactRepository;
@@ -14,6 +15,8 @@ import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -115,6 +118,19 @@ public class ContactService {
         }
 
         return ContactDetailResponse.from(contact);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ContactResponse> findAll(String email, String status, Pageable pageable) {
+        ContactStatus contactStatus = switch (status.toLowerCase()) {
+            case "pending" -> ContactStatus.PENDING;
+            case "complete" -> ContactStatus.COMPLETE;
+            case "all" -> null;
+            default -> throw new CommonException(ResponseCode.BAD_REQUEST, "잘못된 상태값입니다.");
+        };
+
+        Page<Contact> contacts = contactRepository.findAllByEmailAndStatus(email, contactStatus, pageable);
+        return contacts.map(ContactResponse::from);
     }
 
     @Transactional(readOnly = true)
