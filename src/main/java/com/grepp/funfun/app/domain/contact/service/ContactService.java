@@ -3,8 +3,10 @@ package com.grepp.funfun.app.domain.contact.service;
 import com.grepp.funfun.app.domain.contact.dto.ContactDTO;
 import com.grepp.funfun.app.domain.contact.dto.payload.ContactRequest;
 import com.grepp.funfun.app.domain.contact.entity.Contact;
+import com.grepp.funfun.app.domain.contact.entity.ContactImage;
 import com.grepp.funfun.app.domain.contact.repository.ContactRepository;
 import com.grepp.funfun.app.domain.contact.vo.ContactStatus;
+import com.grepp.funfun.app.domain.s3.service.S3FileService;
 import com.grepp.funfun.app.domain.user.entity.User;
 import com.grepp.funfun.app.domain.user.repository.UserRepository;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
@@ -22,6 +24,7 @@ public class ContactService {
 
     private final ContactRepository contactRepository;
     private final UserRepository userRepository;
+    private final S3FileService s3FileService;
 
     private User getUser(String email) {
         return userRepository.findById(email)
@@ -41,8 +44,18 @@ public class ContactService {
             .user(user)
             .title(request.getTitle())
             .content(request.getContent())
+            .category(request.getCategory())
             .status(ContactStatus.PENDING)
             .build();
+
+        // 이미지 저장
+        List<String> imageUrls = s3FileService.upload(request.getImages(), "contact");
+        for (String url : imageUrls) {
+            contact.getImages().add(ContactImage.builder()
+                .imageUrl(url)
+                .contact(contact)
+                .build());
+        }
 
         contactRepository.save(contact);
     }
@@ -76,6 +89,7 @@ public class ContactService {
         contact.unActivated();
     }
 
+    @Transactional(readOnly = true)
     public List<ContactDTO> findAll() {
         final List<Contact> contacts = contactRepository.findAll(Sort.by("id"));
         return contacts.stream()
@@ -114,6 +128,8 @@ public class ContactService {
         contactDTO.setAnswer(contact.getAnswer());
         contactDTO.setAnsweredAt(contact.getAnsweredAt());
         contactDTO.setUser(contact.getUser() == null ? null : contact.getUser().getEmail());
+        contactDTO.setCategory(contact.getCategory());
+        contactDTO.setImageUrls(contact.getImages().stream().map(ContactImage::getImageUrl).toList());
         return contactDTO;
     }
 

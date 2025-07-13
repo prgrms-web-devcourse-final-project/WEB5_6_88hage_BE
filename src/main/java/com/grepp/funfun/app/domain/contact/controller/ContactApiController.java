@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,9 +39,30 @@ public class ContactApiController {
         return ResponseEntity.ok(contactService.get(id));
     }
 
-    @PostMapping
-    @Operation(summary = "문의 작성", description = "문의를 작성합니다.")
-    public ResponseEntity<ApiResponse<String>> createContact(@RequestBody @Valid ContactRequest request, Authentication authentication) {
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(
+        summary = "문의 작성",
+        description = """
+        아래와 같은 형식으로 multipart/form-data 요청을 전송해 주세요.
+        
+        • title: 문의 제목
+        
+        • content: 문의 내용
+        
+        • category: 문의 카테고리 (필수, ENUM 값 중 하나 선택)
+          - 예: GENERAL, REPORT
+        
+        • images: 문의 관련 이미지 파일들 (선택)
+          - 최대 5개까지 업로드 가능
+          - 각 파일은 3MB 이하의 파일만 업로드 가능합니다.
+          - 같은 키(images)로 여러 개 업로드해야 합니다.
+        
+        • imagesChanged: 이미지 변경 여부 (true/false)
+          - true: 이미지가 업로드되거나 삭제됩니다.
+          - false: 서버는 이미지 변경을 무시합니다.
+        """
+    )
+    public ResponseEntity<ApiResponse<String>> createContact(@ModelAttribute @Valid ContactRequest request, Authentication authentication) {
         String email = authentication.getName();
         contactService.create(email, request);
         return ResponseEntity.ok(ApiResponse.success("문의가 작성되었습니다."));

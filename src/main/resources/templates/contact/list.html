@@ -18,6 +18,8 @@
                     <thead>
                         <tr>
                             <th scope="col">[[#{contact.id.label}]]</th>
+                            <th scope="col">Category</th>
+                            <th scope="col">Images</th>
                             <th scope="col">[[#{contact.title.label}]]</th>
                             <th scope="col">[[#{contact.content.label}]]</th>
                             <th scope="col">[[#{contact.status.label}]]</th>
@@ -30,6 +32,12 @@
                     <tbody>
                         <tr th:each="contact : ${contacts}">
                             <td>[[${contact.id}]]</td>
+                            <td>[[${contact.category}]]</td>
+                            <td>
+                                <div th:each="url : ${contact.imageUrls}">
+                                    <img th:src="${url}" alt="문의 이미지" style="max-width: 100px; max-height: 100px; margin: 5px;" />
+                                </div>
+                            </td>
                             <td>[[${contact.title}]]</td>
                             <td>[[${contact.content}]]</td>
                             <td>[[${contact.status}]]</td>
