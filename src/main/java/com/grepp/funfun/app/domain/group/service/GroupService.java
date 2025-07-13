@@ -122,6 +122,14 @@ public class GroupService {
             .collect(Collectors.toList());
     }
 
+    // 내가 리더인 모임 조회
+    @Transactional(readOnly = true)
+    public List<GroupResponse> findMyLeaderGroups(String userEmail) {
+        return groupRepository.findByLeaderEmail(userEmail).stream()
+            .map(this::convertToGroupResponse)
+            .collect(Collectors.toList());
+    }
+
     // 모임 생성
     @Transactional
     public void create(String leaderEmail, GroupRequest request) {
@@ -342,7 +350,8 @@ public class GroupService {
             .during(group.getDuring())
             .category(group.getCategory())
             .activated(group.getActivated())
-            .leader(group.getLeader().getNickname())
+            .leaderNickname(group.getLeader().getNickname())
+            .leaderEmail(group.getLeader().getEmail())
             .hashTags(group.getHashtags().stream()
                 .map(GroupHashtag::getTag)
                 .collect(Collectors.toList()))

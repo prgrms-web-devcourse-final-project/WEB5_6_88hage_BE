@@ -43,6 +43,16 @@ public class GroupApiController {
         return ResponseEntity.ok(ApiResponse.success(groupService.get(groupId,userEmail)));
     }
 
+    // 내가 리더인 모임 조회
+    @GetMapping("/getLeaderMy")
+    @Operation(summary = "내가 리더 역할인 모임 조회", description = "내가 리더 역할인 모임을 조회합니다.")
+    public ResponseEntity<ApiResponse<List<GroupResponse>>> getLeaderMyGroups(
+        Authentication authentication
+    ){
+        String userEmail = authentication.getName();
+        return ResponseEntity.ok(ApiResponse.success(groupService.findMyLeaderGroups(userEmail)));
+    }
+
     // 내가 속한 모임 조회
     @GetMapping("/getMy")
     @Operation(summary = "내가 속한 모임 조회", description = "내가 속한 모임을 조회합니다.")

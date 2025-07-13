@@ -11,7 +11,7 @@ public interface GroupRepositoryCustom {
     // 모집중인 모임 조회
     Optional<Group> findActiveRecruitingGroup(Long groupId);
 
-    // 내 모임 조회
+    // 내 모임 조회(채팅용)
     List<Group> findMyGroups(String userEmail);
 
     // 모임 조회

@@ -53,7 +53,9 @@ public class GroupResponse {
 
     @NotNull
     @Size(max = 255)
-    private String leader;
+    private String leaderNickname;
+
+    private String leaderEmail;
 
     private List<String> hashTags;
 
