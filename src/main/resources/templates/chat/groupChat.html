@@ -694,7 +694,7 @@
       console.log('📤 메시지 전송:', chatData);
 
       // 메시지 전송 - 올바른 엔드포인트 사용
-      stompClient.send('/send/chat/message', {}, JSON.stringify(chatData));
+      stompClient.send('/send/chats/message', {}, JSON.stringify(chatData));
       messageInput.value = '';
     } else {
       console.error('❌ WebSocket 연결 또는 그룹 ID가 없음');

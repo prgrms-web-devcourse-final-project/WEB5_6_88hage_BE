@@ -7,20 +7,18 @@ import com.grepp.funfun.app.domain.user.entity.QUser;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@RequiredArgsConstructor
 @Slf4j
 public class ParticipantRepositoryCustomImpl implements ParticipantRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
     private final QParticipant qParticipant = QParticipant.participant;
     private final QUser qUser = QUser.user;
-
-    public ParticipantRepositoryCustomImpl(JPAQueryFactory queryFactory) {
-        this.queryFactory = queryFactory;
-    }
 
     // 모임 참여 신청 대기자 조회
     @Override

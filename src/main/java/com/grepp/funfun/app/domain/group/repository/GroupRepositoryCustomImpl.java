@@ -24,6 +24,7 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
     private final QGroup group = QGroup.group;
     QGroupHashtag hashtag = QGroupHashtag.groupHashtag;
 
+    // 모집중인 모임 조회
     @Override
     public Optional<Group> findActiveRecruitingGroup(Long groupId) {
         return Optional.ofNullable(
@@ -38,6 +39,7 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
         );
     }
 
+    // 내가 참여 중인 모임 조회(채팅)
     @Override
     public List<Group> findMyGroups(String userEmail) {
         // 내가 참여중인 그룹 ID
@@ -68,6 +70,7 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
             .fetch();
     }
 
+    // 모임 조회(최신순)
     @Override
     public List<Group> findActiveRecentGroups() {
         return queryFactory

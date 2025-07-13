@@ -55,13 +55,14 @@ public class GroupService {
     public List<GroupResponse> findAll() {
         final List<Group> groups = groupRepository.findAll();
         return groups.stream()
-            .map(this::mapToResponse)
+            .map(this::convertToGroupResponse)
             .toList();
     }
-    // 특정 모임 조회
+    // 모임 상세 조회
+    @Transactional(readOnly = true)
     public GroupResponse get(final Long groupId) {
         return groupRepository.findByIdWithFullInfo(groupId)
-            .map(this::mapToResponse)
+            .map(this::convertToGroupResponse)
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
     }
 
@@ -69,7 +70,7 @@ public class GroupService {
     @Transactional(readOnly = true)
     public List<GroupResponse> getRecentGroups(){
         return groupRepository.findActiveRecentGroups().stream()
-            .map(this::mapToResponse)
+            .map(this::convertToGroupResponse)
             .collect(Collectors.toList());
     }
 
@@ -83,20 +84,23 @@ public class GroupService {
 
     // 모임 조회(가까운 순)
     @Transactional(readOnly = true)
-    public List<GroupMyResponse> findNearGroups(String userEmail) {
+    public List<GroupResponse> findNearGroups(String userEmail) {
 
         User user = userRepository.findByEmail(userEmail);
-        return groupRepository.findMyGroups(userEmail).stream()
-            .map(group -> convertToGroupMyResponse(group, userEmail))
+        if (user == null) throw new CommonException(ResponseCode.NOT_FOUND);
+
+        return groupRepository.findNearbyGroups(user.getLatitude(),user.getLongitude()).stream()
+            .map(this::convertToGroupResponse)
             .collect(Collectors.toList());
     }
+
 
     // 모임 조회(키워드)
     @Transactional(readOnly = true)
     public List<GroupResponse> findByKeyword(String keyword) {
 
         return groupRepository.findGroupsByKeyword(keyword).stream()
-            .map(this::mapToResponse)
+            .map(this::convertToGroupResponse)
             .collect(Collectors.toList());
     }
 
@@ -286,54 +290,32 @@ public class GroupService {
             .build();
     }
 
-    private GroupResponse mapToResponse(final Group group) {
-        GroupResponse response = new GroupResponse();
-
-        response.setId(group.getId());
-        response.setTitle(group.getTitle());
-        response.setExplain(group.getExplain());
-        response.setPlaceName(group.getPlaceName());
-        response.setAddress(group.getAddress());
-        response.setGroupDate(group.getGroupDate());
-        response.setMaxPeople(group.getMaxPeople());
-        response.setNowPeople(group.getNowPeople());
-        response.setStatus(group.getStatus());
-        response.setLatitude(group.getLatitude());
-        response.setLongitude(group.getLongitude());
-        response.setDuring(group.getDuring());
-        response.setCategory(group.getCategory());
-        response.setLeader(group.getLeader() == null ? null : group.getLeader().getEmail());
-        response.setActivated(group.getActivated());
-
-        // 해시태그 변환
-        List<String> hashTags = group.getHashtags().stream()
-            .map(GroupHashtag::getTag)
-            .collect(Collectors.toList());
-        response.setHashTags(hashTags);
-
-        return response;
-    }
-
     public long countLeadGroupByEmail(String email) {
         return groupRepository.countByLeaderEmailAndStatus(email, GroupStatus.COMPLETED);
     }
 
-    private GroupDTO mapToDTO(final Group group, final GroupDTO groupDTO) {
-        groupDTO.setId(group.getId());
-        groupDTO.setTitle(group.getTitle());
-        groupDTO.setExplain(group.getExplain());
-        groupDTO.setPlaceName(group.getPlaceName());
-        groupDTO.setAddress(group.getAddress());
-        groupDTO.setGroupDate(group.getGroupDate());
-        groupDTO.setMaxPeople(group.getMaxPeople());
-        groupDTO.setNowPeople(group.getNowPeople());
-        groupDTO.setStatus(group.getStatus());
-        groupDTO.setLatitude(group.getLatitude());
-        groupDTO.setLongitude(group.getLongitude());
-        groupDTO.setDuring(group.getDuring());
-        groupDTO.setCategory(group.getCategory());
-        groupDTO.setLeader(group.getLeader() == null ? null : group.getLeader().getEmail());
-        return groupDTO;
+    private GroupResponse convertToGroupResponse(Group group) {
+        return GroupResponse.builder()
+            .id(group.getId())
+            .title(group.getTitle())
+            .explain(group.getExplain())
+            .simpleExplain(group.getSimpleExplain())
+            .placeName(group.getPlaceName())
+            .address(group.getAddress())
+            .groupDate(group.getGroupDate())
+            .maxPeople(group.getMaxPeople())
+            .nowPeople(group.getNowPeople())
+            .status(group.getStatus())
+            .latitude(group.getLatitude())
+            .longitude(group.getLongitude())
+            .during(group.getDuring())
+            .category(group.getCategory())
+            .activated(group.getActivated())
+            .leader(group.getLeader().getNickname())
+            .hashTags(group.getHashtags().stream()
+                .map(GroupHashtag::getTag)
+                .collect(Collectors.toList()))
+            .build();
     }
 
     private Group mapToEntity(final GroupDTO groupDTO, final Group group) {

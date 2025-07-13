@@ -692,7 +692,7 @@
 
       console.log('📤 메시지 전송:', chatData);
 
-      stompClient.send('/send/chat/message', {}, JSON.stringify(chatData));
+      stompClient.send('/send/chats/message', {}, JSON.stringify(chatData));
       messageInput.value = '';
     } else {
       console.error('❌ WebSocket 연결 또는 채팅방 ID가 없음');
