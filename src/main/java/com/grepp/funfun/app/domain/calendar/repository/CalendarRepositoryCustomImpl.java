@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.domain.calendar.repository;
 
+import com.grepp.funfun.app.domain.calendar.dto.payload.CalendarContentResponse;
 import com.grepp.funfun.app.domain.calendar.dto.payload.CalendarDailyResponse;
 import com.grepp.funfun.app.domain.calendar.dto.payload.CalendarMonthlyResponse;
 import com.grepp.funfun.app.domain.calendar.vo.ActivityType;
@@ -99,6 +100,25 @@ public class CalendarRepositoryCustomImpl implements CalendarRepositoryCustom{
             .where(calendar.email.eq(email),
                 calendar.type.eq(ActivityType.GROUP),
                 group.groupDate.between(start, end))
+            .fetch();
+    }
+
+    @Override
+    public List<CalendarContentResponse> findContentByEmail(String email) {
+        return queryFactory
+            .select(Projections.constructor(
+                CalendarContentResponse.class,
+                calendar.id,
+                content.id,
+                content.contentTitle,
+                content.category.category,
+                calendar.selectedDate
+            ))
+            .from(calendar)
+            .join(calendar.content, content)
+            .where(calendar.type.eq(ActivityType.CONTENT),
+                calendar.email.eq(email))
+            .orderBy(calendar.selectedDate.desc())
             .fetch();
     }
 }
