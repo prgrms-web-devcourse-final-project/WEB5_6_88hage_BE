@@ -2,34 +2,30 @@ package com.grepp.funfun.app.domain.content.service;
 
 import com.grepp.funfun.app.domain.content.dto.ContentUrlDTO;
 import com.grepp.funfun.app.domain.content.dto.payload.ContentFilterRequest;
-import com.grepp.funfun.app.domain.bookmark.entity.ContentBookmark;
-import com.grepp.funfun.app.domain.bookmark.repository.ContentBookmarkRepository;
 import com.grepp.funfun.app.domain.calendar.entity.Calendar;
 import com.grepp.funfun.app.domain.calendar.repository.CalendarRepository;
-import com.grepp.funfun.app.domain.content.entity.ContentUrl;
 import com.grepp.funfun.app.domain.content.vo.ContentClassification;
 import com.grepp.funfun.app.domain.content.dto.ContentDTO;
 import com.grepp.funfun.app.domain.content.dto.ContentImageDTO;
 import com.grepp.funfun.app.domain.content.entity.Content;
-import com.grepp.funfun.app.domain.content.entity.ContentCategory;
 import com.grepp.funfun.app.domain.content.entity.ContentImage;
 import com.grepp.funfun.app.domain.content.repository.ContentCategoryRepository;
 import com.grepp.funfun.app.domain.content.repository.ContentRepository;
+import com.grepp.funfun.app.domain.user.dto.UserDTO;
+import com.grepp.funfun.app.domain.user.service.UserService;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
 import com.grepp.funfun.app.delete.util.ReferencedWarning;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,9 +36,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class ContentService {
 
     private final ContentRepository contentRepository;
-    private final ContentCategoryRepository contentCategoryRepository;
-    private final ContentBookmarkRepository contentBookmarkRepository;
     private final CalendarRepository calendarRepository;
+    private final UserService userService;
 
     public ContentDTO getContents(final Long id) {
         Content content = contentRepository.findByIdWithCategory(id)
@@ -63,6 +58,8 @@ public class ContentService {
                 .description(content.getDescription())
                 .bookmarkCount(content.getBookmarkCount())
                 .eventType(content.getEventType())
+                .latitude(content.getLatitude())
+                .longitude(content.getLongitude())
                 .category(content.getCategory() != null ? content.getCategory().getCategory().name() : null)
                 .images(content.getImages().stream()
                         .map(img -> ContentImageDTO.builder()
@@ -82,19 +79,98 @@ public class ContentService {
 
     // 컨텐츠 필터링
     @Transactional(readOnly = true)
-    public Page<ContentDTO> findByFilters(ContentFilterRequest request, Pageable pageable) {
-        Page<Content> contents = contentRepository.findFilteredContents(
-                request.getCategory(),
-                request.getGuname(),
-                request.getStartDate(),
-                request.getEndDate(),
-                pageable
-        );
+    public Page<ContentDTO> findByFiltersWithSort(ContentFilterRequest request, Pageable pageable) {
+        Page<Content> contents;
+        if (request.isBookmarkSort()) {
+            contents = findByFiltersOrderByBookmark(request, pageable);
+        } else if (request.isStartDateSort()) {
+            contents = findByFiltersOrderByStartDate(request, pageable);
+        } else {
+            contents = findByFiltersOrderByDistance(request, pageable);
+        }
 
         if (contents.isEmpty()) {
             throw new CommonException(ResponseCode.NOT_FOUND);
         }
+
         return contents.map(this::toDTO);
+    }
+
+    // 북마크순 정렬
+    private Page<Content> findByFiltersOrderByBookmark(ContentFilterRequest request, Pageable pageable) {
+        Pageable sortedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "bookmarkCount")
+        );
+
+        return contentRepository.findFilteredContents(
+                request.getCategory(),
+                request.getGuname(),
+                request.getStartDate(),
+                request.getEndDate(),
+                sortedPageable
+        );
+    }
+
+    // 개최 임박순 정렬
+    private Page<Content> findByFiltersOrderByStartDate(ContentFilterRequest request, Pageable pageable) {
+        Pageable sortedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.ASC, "startDate")
+        );
+
+        return contentRepository.findFilteredContents(
+                request.getCategory(),
+                request.getGuname(),
+                request.getStartDate(),
+                request.getEndDate(),
+                sortedPageable
+        );
+    }
+
+    // 사용자 기본 위치 조회
+    private Double[] getUserDefaultLocation() {
+        try {
+            String currentUserEmail = SecurityContextHolder.getContext()
+                    .getAuthentication().getName();
+
+            UserDTO user = userService.get(currentUserEmail);
+            if (user != null && user.getLatitude() != null && user.getLongitude() != null) {
+                log.info("사용자 주소: lat={}, lng={}",
+                        user.getLatitude(), user.getLongitude());
+                return new Double[]{user.getLatitude(), user.getLongitude()};
+            } else {
+                log.warn("User default location not available");
+                return new Double[]{null, null};
+            }
+        } catch (Exception e) {
+            log.warn("Failed to get user default location: {}", e.getMessage());
+            return new Double[]{null, null};
+        }
+    }
+
+    // 가까운순 정렬
+    private Page<Content> findByFiltersOrderByDistance(ContentFilterRequest request, Pageable pageable) {
+        Double[] userLocation = getUserDefaultLocation();
+        Double userLat = userLocation[0];
+        Double userLng = userLocation[1];
+
+        if (userLat == null || userLng == null) {
+            log.warn("User default location not available. Falling back to startDate sort.");
+            return findByFiltersOrderByStartDate(request, pageable);
+        }
+
+        return contentRepository.findFilteredContentsByDistance(
+                request.getCategory(),
+                request.getGuname(),
+                request.getStartDate(),
+                request.getEndDate(),
+                userLat,
+                userLng,
+                pageable
+        );
     }
 
     // 거리순 컨텐츠 노출
@@ -153,8 +229,10 @@ public class ContentService {
                 .startTime(content.getStartTime())
                 .poster(content.getPoster())
                 .description(content.getDescription())
-                .bookmarkCount(content.getBookmarkCount())
+                .bookmarkCount(Optional.ofNullable(content.getBookmarkCount()).orElse(0))
                 .eventType(content.getEventType())
+                .latitude(content.getLatitude())
+                .longitude(content.getLongitude())
                 .category(content.getCategory() != null ? content.getCategory().getCategory().name() : null)
                 .images(content.getImages().stream()
                         .map(img -> ContentImageDTO.builder()
@@ -269,12 +347,6 @@ public class ContentService {
         final ReferencedWarning referencedWarning = new ReferencedWarning();
         final Content content = contentRepository.findById(id)
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        final ContentBookmark contentContentBookmark = contentBookmarkRepository.findFirstByContent(content);
-        if (contentContentBookmark != null) {
-            referencedWarning.setKey("content.contentBookmark.content.referenced");
-            referencedWarning.addParam(contentContentBookmark.getId());
-            return referencedWarning;
-        }
         final Calendar contentCalendar = calendarRepository.findFirstByContent(content);
         if (contentCalendar != null) {
             referencedWarning.setKey("content.calendar.content.referenced");

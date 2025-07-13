@@ -71,14 +71,54 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
     }
 
     @Override
+    public Page<Content> findFilteredContentsByDistance(
+            ContentClassification categoryParam,
+            String guname,
+            LocalDate startDate,
+            LocalDate endDate,
+            double userLat,
+            double userLng,
+            Pageable pageable) {
+
+        // 거리 계산(사용자의 위치 기준)
+        NumberExpression<Double> distance = createDistanceExpression(userLat, userLng);
+
+        long total = queryFactory
+                .selectFrom(content)
+                .join(content.category, category)
+                .where(
+                        categoryEq(categoryParam),
+                        gunameEq(guname),
+                        startDateGoe(startDate),
+                        endDateLoe(endDate),
+                        content.latitude.isNotNull(),
+                        content.longitude.isNotNull()
+                )
+                .fetchCount();
+
+        List<Content> results = queryFactory
+                .selectFrom(content)
+                .join(content.category, category)
+                .where(
+                        categoryEq(categoryParam),
+                        gunameEq(guname),
+                        startDateGoe(startDate),
+                        endDateLoe(endDate),
+                        content.latitude.isNotNull(),
+                        content.longitude.isNotNull()
+                )
+                .orderBy(distance.asc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        return new PageImpl<>(results, pageable, total);
+    }
+
+
+    @Override
     public List<Content> findNearby(double lat, double lng, double radiusInKm, Long excludeId, int limit) {
-        NumberExpression<Double> distance = Expressions.numberTemplate(Double.class,
-                "6371 * acos(" +
-                        "cos(radians({0})) * cos(radians({1})) * " +
-                        "cos(radians({2}) - radians({3})) + " +
-                        "sin(radians({0})) * sin(radians({1}))" +
-                        ")",
-                lat, content.latitude, content.longitude, lng);
+        NumberExpression<Double> distance = createDistanceExpression(lat, lng);
 
         return queryFactory
                 .selectFrom(content)
@@ -116,5 +156,15 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
 
     private BooleanExpression endDateLoe(LocalDate endDate) {
         return endDate != null ? content.endDate.loe(endDate) : null;
+    }
+
+    private NumberExpression<Double> createDistanceExpression(double baseLat, double baseLng) {
+        return Expressions.numberTemplate(Double.class,
+                "6371 * acos(" +
+                        "cos(radians({0})) * cos(radians({1})) * " +
+                        "cos(radians({2}) - radians({3})) + " +
+                        "sin(radians({0})) * sin(radians({1}))" +
+                        ")",
+                baseLat, content.latitude, content.longitude, baseLng);
     }
 }

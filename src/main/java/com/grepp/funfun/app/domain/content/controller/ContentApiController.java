@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -39,9 +40,9 @@ public class ContentApiController {
     )
     public ResponseEntity<ApiResponse<Page<ContentDTO>>> getAllContents(
             @Valid @ParameterObject ContentFilterRequest request,
-            @ParameterObject @PageableDefault(size = 10, sort = "startDate", direction = Sort.Direction.ASC) Pageable pageable) {
+            @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
 
-        Page<ContentDTO> contents = contentService.findByFilters(request, pageable);
+        Page<ContentDTO> contents = contentService.findByFiltersWithSort(request, pageable);
         return ResponseEntity.ok(ApiResponse.success(contents));
     }
 

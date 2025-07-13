@@ -22,6 +22,16 @@ public interface ContentRepositoryCustom {
             LocalDate endDate,
             Pageable pageable);
 
+    Page<Content> findFilteredContentsByDistance(
+            ContentClassification category,
+            String guname,
+            LocalDate startDate,
+            LocalDate endDate,
+            double userLat,
+            double userLng,
+            Pageable pageable
+    );
+
     List<Content> findNearby(double lat, double lng, double radiusInKm, Long excludeId, int limit);
 
     List<Content> findByCategoryCategory(ContentClassification category);
