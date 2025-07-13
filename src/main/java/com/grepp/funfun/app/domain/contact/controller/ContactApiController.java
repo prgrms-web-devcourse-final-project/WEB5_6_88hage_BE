@@ -46,11 +46,12 @@ public class ContactApiController {
         return ResponseEntity.ok(ApiResponse.success("문의가 작성되었습니다."));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Long> updateContact(@PathVariable(name = "id") final Long id,
-            @RequestBody @Valid final ContactDTO contactDTO) {
-        contactService.update(id, contactDTO);
-        return ResponseEntity.ok(id);
+    @PutMapping("/{contactId}")
+    @Operation(summary = "문의 수정", description = "답변 완료 상태가 아닌 문의를 수정합니다.")
+    public ResponseEntity<ApiResponse<String>> updateContact(@PathVariable Long contactId, @RequestBody @Valid ContactRequest request, Authentication authentication) {
+        String email = authentication.getName();
+        contactService.update(contactId, email, request);
+        return ResponseEntity.ok(ApiResponse.success("문의가 수정되었습니다."));
     }
 
     @DeleteMapping("/{id}")

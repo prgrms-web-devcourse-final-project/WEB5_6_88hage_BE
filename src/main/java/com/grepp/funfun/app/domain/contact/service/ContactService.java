@@ -28,6 +28,11 @@ public class ContactService {
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND, "존재하지 않는 사용자입니다: " + email));
     }
 
+    private Contact getContact(Long contactId) {
+        return contactRepository.findById(contactId)
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND, "존재하지 않는 문의입니다."));
+    }
+
     @Transactional
     public void create(String email, ContactRequest request) {
         User user = getUser(email);
@@ -40,6 +45,21 @@ public class ContactService {
             .build();
 
         contactRepository.save(contact);
+    }
+
+    @Transactional
+    public void update(Long contactId, String email, ContactRequest request) {
+        Contact contact = getContact(contactId);
+
+        if (contact.getStatus() == ContactStatus.COMPLETE) {
+            throw new CommonException(ResponseCode.BAD_REQUEST, "답변 완료된 문의는 수정할 수 없습니다.");
+        }
+        if (!contact.getUser().getEmail().equals(email)) {
+            throw new CommonException(ResponseCode.BAD_REQUEST, "로그인한 사용자가 작성한 문의가 아닙니다.");
+        }
+
+        contact.setTitle(request.getTitle());
+        contact.setContent(request.getContent());
     }
 
     public List<ContactDTO> findAll() {
