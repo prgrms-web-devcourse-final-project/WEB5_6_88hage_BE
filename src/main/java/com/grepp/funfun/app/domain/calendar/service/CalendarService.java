@@ -43,6 +43,15 @@ public class CalendarService {
 
         Content content = contentRepository.findById(request.getActivityId())
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+
+        // 중복 등록 방지
+        boolean exists = calendarRepository.existsByEmailAndContentIdAndSelectedDate(
+            email, content.getId(), request.getSelectedDate());
+
+        if (exists) {
+            throw new CommonException(ResponseCode.ALREADY_EXISTS, "이미 같은 날짜에 등록된 일정입니다.");
+        }
+
         // bookmarkCount++;
         content.increaseBookmark();
 

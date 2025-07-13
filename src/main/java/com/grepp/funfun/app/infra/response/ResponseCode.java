@@ -19,6 +19,7 @@ public enum ResponseCode {
     USER_BANNED("4022", HttpStatus.BAD_REQUEST, "영구정지된 사용자입니다."),
     USER_INACTIVE("4019", HttpStatus.BAD_REQUEST, "비활성화된 사용자입니다."),
     INVALID_AUTH_CODE("4020", HttpStatus.BAD_REQUEST, "잘못된 인증 코드입니다."),
+    ALREADY_EXISTS("4021", HttpStatus.BAD_REQUEST, "중복된 데이터가 존재합니다."),
     TOO_FAST_VERIFY_REQUEST("4021", HttpStatus.BAD_REQUEST, "인증 메일은 3분마다 발송할 수 있습니다."),
     INTERNAL_SERVER_ERROR("5000", HttpStatus.INTERNAL_SERVER_ERROR, "서버에러 입니다."),
     SECURITY_INCIDENT("6000", HttpStatus.OK, "비정상적인 로그인 시도가 감지되었습니다.");
