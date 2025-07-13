@@ -37,7 +37,7 @@ public class RecommendationConfig {
 
     // MongoDB 벡터 DB로 사용하기 위한 설정
     @Bean
-    public MongoDbEmbeddingStore embeddingStore(EmbeddingModel embeddingModel,
+    public MongoDbEmbeddingStore contentEmbeddingStore(EmbeddingModel embeddingModel,
         MongoClient mongoClient) {
 
         Boolean createIndex = true;
@@ -68,6 +68,39 @@ public class RecommendationConfig {
                                              .embeddingModel(embeddingModel)
                                              .maxResults(100)
                                              .minScore(0.7)
+                                             .build();
+    }
+
+    @Bean
+    public MongoDbEmbeddingStore groupEmbeddingStore(EmbeddingModel embeddingModel,
+        MongoClient mongoClient) {
+
+        Boolean createIndex = true;
+        IndexMapping indexMapping = IndexMapping.builder()
+                                                .dimension(embeddingModel.dimension())
+                                                .metadataFieldNames(new HashSet<>())
+                                                .build();
+
+        return MongoDbEmbeddingStore.builder()
+                                    .databaseName("funfun")
+                                    .collectionName("groups")
+                                    .createIndex(createIndex)
+                                    .indexName("vector_index")
+                                    .indexMapping(indexMapping)
+                                    .fromClient(mongoClient)
+                                    .build();
+    }
+
+    @Bean
+    EmbeddingStoreContentRetriever embeddingStoreGroupRetriever(
+        EmbeddingStore<TextSegment> embeddingStore,
+        EmbeddingModel embeddingModel
+    ){
+        return EmbeddingStoreContentRetriever.builder()
+                                             .embeddingStore(embeddingStore)
+                                             .embeddingModel(embeddingModel)
+                                             .maxResults(100)
+                                             .minScore(0.6)
                                              .build();
     }
 
