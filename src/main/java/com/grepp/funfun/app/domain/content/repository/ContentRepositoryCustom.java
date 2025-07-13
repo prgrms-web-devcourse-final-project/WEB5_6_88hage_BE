@@ -1,9 +1,11 @@
 package com.grepp.funfun.app.domain.content.repository;
 
+import com.grepp.funfun.app.domain.content.dto.ContentDTO;
 import com.grepp.funfun.app.domain.content.vo.ContentClassification;
 import com.grepp.funfun.app.domain.content.entity.Content;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -25,4 +27,7 @@ public interface ContentRepositoryCustom {
     List<Content> findNearby(double lat, double lng, double radiusInKm, Long excludeId, int limit);
 
     List<Content> findByCategoryCategory(ContentClassification category);
+
+    @Query("SELECT c FROM Content c LEFT JOIN FETCH c.images WHERE c.id IN  :ids")
+    List<Content> findByIds(List<Long> Ids);
 }

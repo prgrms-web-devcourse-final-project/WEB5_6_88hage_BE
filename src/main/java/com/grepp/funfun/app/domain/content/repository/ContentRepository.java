@@ -1,7 +1,9 @@
 package com.grepp.funfun.app.domain.content.repository;
 
+import com.grepp.funfun.app.domain.content.dto.ContentDTO;
 import com.grepp.funfun.app.domain.content.entity.Content;
 import com.grepp.funfun.app.domain.content.entity.ContentCategory;
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 

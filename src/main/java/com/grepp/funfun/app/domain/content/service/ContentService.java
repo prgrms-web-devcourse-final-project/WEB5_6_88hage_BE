@@ -133,6 +133,13 @@ public class ContentService {
         contentRepository.save(content);
     }
 
+    @Transactional(readOnly = true)
+    public List<Content> findByIds(List<Long> recommendIds) {
+        List<Content> contests = contentRepository.findByIds(recommendIds);
+
+        return contests;
+    }
+
     private ContentDTO mapToDTO(final Content content, final ContentDTO contentDTO) {
         contentDTO.setId(content.getId());
         contentDTO.setContentTitle(content.getContentTitle());
@@ -213,6 +220,7 @@ public class ContentService {
         }
         return null;
     }
+
 
 
 }

@@ -1,4 +1,4 @@
-package com.grepp.funfun.app.domain.content.service;
+package com.grepp.funfun.app.domain.recommend.service;
 
 
 import com.grepp.funfun.app.domain.recommend.dto.payload.RecommendResponse;
@@ -19,6 +19,7 @@ public interface ContentAiService {
 
     @SystemMessage("""
         너는 사용자의 여가시간과 장소를 고려하여 적절한 활동을 추천해주는 전문가야
+        사용자가 선호하는 활동들을 우선적으로 추천해줘.
         너는 데이터베이스에서 검색된 활동만 추천해야 해.
         절대로 너가 새롭게 만들어서 추천하지 마.
         검색된 문장 외에 다른 내용은 사용하지 마.

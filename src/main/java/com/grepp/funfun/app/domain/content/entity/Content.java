@@ -1,5 +1,7 @@
 package com.grepp.funfun.app.domain.content.entity;
 
+import com.grepp.funfun.app.domain.content.dto.ContentDTO;
+import com.grepp.funfun.app.domain.content.dto.payload.RecommendContentResponse;
 import com.grepp.funfun.app.infra.entity.BaseEntity;
 import jakarta.persistence.*;
 
@@ -8,8 +10,11 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
+
+import static com.fasterxml.jackson.databind.type.LogicalType.Collection;
 
 
 @Entity
@@ -73,5 +78,26 @@ public class Content extends BaseEntity {
             "에서 진행하고 행사 카테고리는" + category + "이야" +
             '}';
     }
+
+    public RecommendContentResponse toResponseWithImages() {
+        return RecommendContentResponse.builder()
+                                       .id(this.id)
+                                       .contentTitle(this.contentTitle)
+                                       .fee(this.fee)
+                                       .startDate(this.startDate)
+                                       .endDate(this.endDate)
+                                       .address(this.address)
+                                       .reservationUrl(this.reservationUrl)
+                                       .guName(this.guName)
+                                       .runTime(this.runTime)
+                                       .startTime(this.startTime)
+                                       .endTime(this.endTime)
+                                       .category(this.category.getCategory().getKoreanName())
+                                       .bookmarkCount(this.bookmarkCount)
+                                       .images(this.images.stream().map(ContentImage::getImageUrl).collect(Collectors.toList()))
+                                       .build();
+    }
+
+
 
 }
