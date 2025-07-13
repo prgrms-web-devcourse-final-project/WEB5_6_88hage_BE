@@ -73,6 +73,22 @@ public class ContactService {
 
         contact.setTitle(request.getTitle());
         contact.setContent(request.getContent());
+        contact.setCategory(request.getCategory());
+
+        // 이미지 변경 처리
+        if (request.isImagesChanged()) {
+            // 기존 이미지 삭제 (DB 에서만 삭제, S3 에는 그대로 있음)
+            contact.getImages().clear();
+
+            // 새 이미지 등록
+            List<String> imageUrls = s3FileService.upload(request.getImages(), "contact");
+            for (String url : imageUrls) {
+                contact.getImages().add(ContactImage.builder()
+                    .imageUrl(url)
+                    .contact(contact)
+                    .build());
+            }
+        }
     }
 
     @Transactional
