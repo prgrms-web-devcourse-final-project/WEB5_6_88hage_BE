@@ -1770,3 +1770,10 @@ VALUES
 -- t10
 ('t10@aaa.aaa', '2025-07-18 19:00:00', 'CONTENT', 10, NULL, true, NOW(), NOW()),
 ('t10@aaa.aaa', NULL, 'GROUP', NULL, 10, true, NOW(), NOW());
+
+-- Report 테이블 데이터 삽입 (모임 게시글 신고)
+INSERT INTO report (reason, type, target_id, reporting_user_id, reported_user_id, activated, created_at, modified_at)
+VALUES
+    ('비매너적인 모임 운영이에요', 'POST', 1, 't2@aaa.aaa', 't1@aaa.aaa', true, NOW(), NOW()),
+    ('허위 정보를 포함하고 있어요', 'POST', 6, 't3@aaa.aaa', 't2@aaa.aaa', true, NOW(), NOW()),
+    ('불쾌한 표현이 있어요', 'POST', 10, 't5@aaa.aaa', 't3@aaa.aaa', true, NOW(), NOW());
