@@ -405,4 +405,16 @@ public class UserService {
                 .map(user -> mapToDTO(user,new UserDTO()))
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
     }
+
+    // 유저 취향을 문자열로 반환
+    public String getUserPreferenceDescription(String email, String kind) {
+
+        if(kind.equals("CONTENT")){
+            User user = userRepository.findByEmailWithContentPreferences(email).orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+            return user.getContentPreferencesToString();
+        } else{
+            User user = userRepository.findByEmailWithGroupPreferences(email).orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+            return user.getGroupPreferencesToString();
+        }
+    }
 }

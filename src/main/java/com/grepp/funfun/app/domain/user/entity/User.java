@@ -18,6 +18,7 @@ import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -67,5 +68,29 @@ public class User extends BaseEntity {
 
     @OneToMany(mappedBy = "user")
     private Set<ContentPreference> contentPreferences = new HashSet<>();
+
+    public String getGroupPreferencesToString(){
+        if(groupPreferences == null){
+            return "나는 특별한 취향이 없습니다";
+        }
+
+        String preferences = groupPreferences.stream()
+            .map(preference -> preference.getCategory().getKoreanName())
+            .collect(Collectors.joining(", "));
+
+        return "나는" + preferences + "활동을 선호해.";
+    }
+
+    public String getContentPreferencesToString(){
+        if(groupPreferences == null){
+            return "나는 특별한 취향이 없습니다";
+        }
+
+        String preferences = contentPreferences.stream()
+                                             .map(preference -> preference.getCategory().getKoreanName())
+                                             .collect(Collectors.joining(", "));
+
+        return "나는" + preferences + "활동을 선호해.";
+    }
 
 }
