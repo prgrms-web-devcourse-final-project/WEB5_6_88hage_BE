@@ -12,9 +12,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ReportRequest {
 
-    @NotBlank(message = "신고자 이메일은 필수입니다.")
-    private String reportingUserEmail;
-
     @NotBlank(message = "신고 대상자 이메일은 필수입니다.")
     private String reportedUserEmail;
 
