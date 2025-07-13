@@ -1,13 +1,16 @@
 package com.grepp.funfun.app.domain.contact.controller;
 
 import com.grepp.funfun.app.domain.contact.dto.ContactDTO;
+import com.grepp.funfun.app.domain.contact.dto.payload.ContactRequest;
 import com.grepp.funfun.app.domain.contact.service.ContactService;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import com.grepp.funfun.app.infra.response.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import java.util.List;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,13 +23,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping(value = "/api/contacts", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequiredArgsConstructor
 public class ContactApiController {
 
     private final ContactService contactService;
-
-    public ContactApiController(final ContactService contactService) {
-        this.contactService = contactService;
-    }
 
     @GetMapping
     public ResponseEntity<List<ContactDTO>> getAllContacts() {
@@ -39,10 +39,11 @@ public class ContactApiController {
     }
 
     @PostMapping
-    @ApiResponse(responseCode = "201")
-    public ResponseEntity<Long> createContact(@RequestBody @Valid final ContactDTO contactDTO) {
-        final Long createdId = contactService.create(contactDTO);
-        return new ResponseEntity<>(createdId, HttpStatus.CREATED);
+    @Operation(summary = "문의 작성", description = "문의를 작성합니다.")
+    public ResponseEntity<ApiResponse<String>> createContact(@RequestBody @Valid ContactRequest request, Authentication authentication) {
+        String email = authentication.getName();
+        contactService.create(email, request);
+        return ResponseEntity.ok(ApiResponse.success("문의가 작성되었습니다."));
     }
 
     @PutMapping("/{id}")
@@ -53,7 +54,6 @@ public class ContactApiController {
     }
 
     @DeleteMapping("/{id}")
-    @ApiResponse(responseCode = "204")
     public ResponseEntity<Void> deleteContact(@PathVariable(name = "id") final Long id) {
         contactService.delete(id);
         return ResponseEntity.noContent().build();
