@@ -22,6 +22,7 @@ import com.grepp.funfun.app.domain.social.entity.Message;
 import com.grepp.funfun.app.domain.social.repository.FollowRepository;
 import com.grepp.funfun.app.domain.social.repository.MessageRepository;
 import com.grepp.funfun.app.domain.user.dto.UserDTO;
+import com.grepp.funfun.app.domain.user.dto.payload.UserInfoResponse;
 import com.grepp.funfun.app.domain.user.entity.User;
 import com.grepp.funfun.app.domain.user.entity.UserInfo;
 import com.grepp.funfun.app.domain.user.repository.UserInfoRepository;
@@ -79,6 +80,12 @@ public class UserService {
     public UserDTO get(final String email) {
         return userRepository.findById(email)
             .map(user -> mapToDTO(user, new UserDTO()))
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+    }
+
+    public UserInfoResponse getUserInfo(String email) {
+        return userRepository.findById(email)
+            .map(UserInfoResponse::from)
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
     }
 

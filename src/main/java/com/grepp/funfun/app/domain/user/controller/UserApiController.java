@@ -5,6 +5,7 @@ import com.grepp.funfun.app.domain.user.dto.payload.ChangePasswordRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.NicknameRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.OAuth2SignupRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.SignupRequest;
+import com.grepp.funfun.app.domain.user.dto.payload.UserInfoResponse;
 import com.grepp.funfun.app.domain.user.dto.payload.VerifyCodeRequest;
 import com.grepp.funfun.app.domain.auth.vo.AuthToken;
 import com.grepp.funfun.app.domain.auth.dto.TokenDto;
@@ -24,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -47,6 +49,13 @@ public class UserApiController {
     public ResponseEntity<ApiResponse<String>> createUser(@RequestBody @Valid SignupRequest request) {
         String createdEmail = userService.create(request);
         return ResponseEntity.ok(ApiResponse.success(createdEmail));
+    }
+
+    @GetMapping("/info")
+    @Operation(summary = "회원 정보 조회", description = "회원 정보를 조회합니다.")
+    public ResponseEntity<ApiResponse<UserInfoResponse>> getUser(Authentication authentication) {
+        String email = authentication.getName();
+        return ResponseEntity.ok(ApiResponse.success(userService.getUserInfo(email)));
     }
 
     @PatchMapping("/signup/oauth2")
