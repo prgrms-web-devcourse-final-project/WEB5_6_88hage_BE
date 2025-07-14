@@ -37,8 +37,8 @@ class ContentRepositoryTest {
     }
 
     @Test
-    void 개최임박순_정렬_테스트() {
-        Sort sort = Sort.by(Sort.Direction.ASC, "startDate");
+    void 마감임박순_정렬_테스트() {
+        Sort sort = Sort.by(Sort.Direction.ASC, "endDate");
         List<Content> result = contentRepository.findAll(sort);
 
         assertThat(result).isNotEmpty();
@@ -47,15 +47,15 @@ class ContentRepositoryTest {
             Content current = result.get(i);
             Content next = result.get(i + 1);
 
-            if (current.getStartDate() != null && next.getStartDate() != null) {
-                assertThat(current.getStartDate())
-                        .isBeforeOrEqualTo(next.getStartDate());
+            if (current.getEndDate() != null && next.getEndDate() != null) {
+                assertThat(current.getEndDate())
+                        .isBeforeOrEqualTo(next.getEndDate());
             }
         }
 
-        System.out.println("=== 개최 임박순 정렬 결과 ===");
+        System.out.println("=== 마감 임박순 정렬 결과 ===");
         result.forEach(content ->
-                System.out.println(content.getContentTitle() + " - 시작일: " + content.getStartDate())
+                System.out.println(content.getContentTitle() + " - 시작일: " + content.getEndDate())
         );
     }
 }

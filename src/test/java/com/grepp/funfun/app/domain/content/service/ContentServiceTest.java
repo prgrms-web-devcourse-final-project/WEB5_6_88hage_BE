@@ -83,7 +83,7 @@ class ContentServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Content> mockPage = new PageImpl<>(mockContents, pageable, mockContents.size());
         given(contentRepository.findFilteredContentsByDistance(
-                any(), any(), any(), any(), eq(37.4981), eq(127.0276), eq(pageable)))
+                any(), any(), any(), any(), eq(37.4981), eq(127.0276), eq(false), eq(pageable)))
                 .willReturn(mockPage);
 
         Page<ContentDTO> result = contentService.findByFiltersWithSort(request, pageable);
@@ -102,7 +102,7 @@ class ContentServiceTest {
         );
 
         verify(contentRepository).findFilteredContentsByDistance(
-                any(), any(), any(), any(), eq(37.4981), eq(127.0276), eq(pageable));
+                any(), any(), any(), any(), eq(37.4981), eq(127.0276), eq(false), eq(pageable));
     }
 
     @Test
@@ -119,7 +119,7 @@ class ContentServiceTest {
         Page<Content> mockPage = new PageImpl<>(danceContents, pageable, danceContents.size());
 
         given(contentRepository.findFilteredContentsByDistance(
-                eq(ContentClassification.DANCE), any(), any(), any(), eq(37.4981), eq(127.0276), eq(pageable)))
+                eq(ContentClassification.DANCE), any(), any(), any(), eq(37.4981), eq(127.0276), eq(false), eq(pageable)))
                 .willReturn(mockPage);
 
         Page<ContentDTO> result = contentService.findByFiltersWithSort(request, pageable);
@@ -152,7 +152,7 @@ class ContentServiceTest {
         Page<Content> mockPage = new PageImpl<>(gangnamContents, pageable, gangnamContents.size());
 
         given(contentRepository.findFilteredContentsByDistance(
-                any(), eq("강남구"), any(), any(), eq(37.4981), eq(127.0276), eq(pageable)))
+                any(), eq("강남구"), any(), any(), eq(37.4981), eq(127.0276), eq(false), eq(pageable)))
                 .willReturn(mockPage);
 
         Page<ContentDTO> result = contentService.findByFiltersWithSort(request, pageable);
@@ -182,7 +182,7 @@ class ContentServiceTest {
         Page<Content> mockPage = new PageImpl<>(mockContents, pageable, mockContents.size());
 
         given(contentRepository.findFilteredContentsByDistance(
-                any(), any(), any(), any(), eq(37.4981), eq(127.0276), eq(pageable)))
+                any(), any(), any(), any(), eq(37.4981), eq(127.0276),  eq(false),eq(pageable)))
                 .willReturn(mockPage);
 
         Page<ContentDTO> result = contentService.findByFiltersWithSort(request, pageable);
@@ -203,7 +203,7 @@ class ContentServiceTest {
         });
 
         verify(contentRepository).findFilteredContentsByDistance(
-                any(), any(), any(), any(), eq(37.4981), eq(127.0276), eq(pageable));
+                any(), any(), any(), any(), eq(37.4981), eq(127.0276),  eq(false),eq(pageable));
     }
 
     @Test
@@ -217,7 +217,7 @@ class ContentServiceTest {
         Page<Content> mockPage = new PageImpl<>(mockContents, pageable, mockContents.size());
 
         given(contentRepository.findFilteredContents(
-                any(), any(), any(), any(),
+                any(), any(), any(), any(), eq(false),
                 argThat(p -> p.getSort().equals(Sort.by(Sort.Direction.DESC, "bookmarkCount")))))
                 .willReturn(mockPage);
 
@@ -235,32 +235,32 @@ class ContentServiceTest {
         );
 
         verify(contentRepository).findFilteredContents(
-                any(), any(), any(), any(),
+                any(), any(), any(), any(), eq(false),
                 argThat(p -> {
                     Sort sort = p.getSort();
                     boolean isCorrectSort = sort.isSorted() &&
                             sort.getOrderFor("bookmarkCount") != null &&
                             sort.getOrderFor("bookmarkCount").getDirection() == Sort.Direction.DESC;
 
-                    System.out.println("✅ Service가 올바른 정렬 조건을 전달했는지: " + isCorrectSort);
+                    System.out.println("Service가 올바른 정렬 조건을 전달했는지: " + isCorrectSort);
                     return isCorrectSort;
                 }));
     }
 
     @Test
-    @DisplayName("3. 개최 임박순 정렬 테스트 (가까운 날짜 순)")
-    void testStartDateAscSort() {
+    @DisplayName("3. 마감 임박순 정렬 테스트 (가까운 날짜 순)")
+    void testEndDateAscSort() {
         ContentFilterRequest request = new ContentFilterRequest();
-        request.setSortBy("startDate");
+        request.setSortBy("endDate");  // startDate → endDate 변경
         Pageable pageable = PageRequest.of(0, 10);
 
-        List<Content> sortedByStartDate = mockContents.stream()
-                .sorted((c1, c2) -> c1.getStartDate().compareTo(c2.getStartDate()))
+        List<Content> sortedByEndDate = mockContents.stream()
+                .sorted((c1, c2) -> c1.getEndDate().compareTo(c2.getEndDate()))
                 .toList();
-        Page<Content> mockPage = new PageImpl<>(sortedByStartDate, pageable, sortedByStartDate.size());
+        Page<Content> mockPage = new PageImpl<>(sortedByEndDate, pageable, sortedByEndDate.size());
 
-        Pageable sortedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "startDate"));
-        given(contentRepository.findFilteredContents(any(), any(), any(), any(), eq(sortedPageable)))
+        Pageable sortedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "endDate"));  // endDate 정렬
+        given(contentRepository.findFilteredContents(any(), any(), any(), any(), eq(false), eq(sortedPageable)))
                 .willReturn(mockPage);
 
         Page<ContentDTO> result = contentService.findByFiltersWithSort(request, pageable);
@@ -269,19 +269,19 @@ class ContentServiceTest {
         assertThat(result.getContent()).isNotEmpty();
 
         for (int i = 0; i < result.getContent().size() - 1; i++) {
-            LocalDate current = result.getContent().get(i).getStartDate();
-            LocalDate next = result.getContent().get(i + 1).getStartDate();
+            LocalDate current = result.getContent().get(i).getEndDate();
+            LocalDate next = result.getContent().get(i + 1).getEndDate();
             assertThat(current).isBeforeOrEqualTo(next);
         }
 
-        System.out.println("========== 개최 임박순 정렬 (가까운 날짜 순) ==========");
+        System.out.println("========== 마감 임박순 정렬 (가까운 날짜 순) ==========");
         System.out.println("총 개수: " + result.getTotalElements());
         result.getContent().forEach(content ->
                 System.out.println(content.getContentTitle() +
-                        " - 시작일: " + content.getStartDate())
+                        " - 마감일: " + content.getEndDate())
         );
 
-        verify(contentRepository).findFilteredContents(any(), any(), any(), any(), any());
+        verify(contentRepository).findFilteredContents(any(), any(), any(), any(), eq(false), any());
     }
 
     @Test
@@ -293,7 +293,7 @@ class ContentServiceTest {
         Page<Content> mockPage = new PageImpl<>(mockContents.subList(0, 3), pageable, 3);
 
         given(contentRepository.findFilteredContentsByDistance(
-                any(), any(), any(), any(), eq(37.4981), eq(127.0276), eq(pageable)))
+                any(), any(), any(), any(), eq(37.4981), eq(127.0276),  eq(false),eq(pageable)))
                 .willReturn(mockPage);
 
         Page<ContentDTO> result = contentService.findByFiltersWithSort(request, pageable);
@@ -314,7 +314,7 @@ class ContentServiceTest {
         );
 
         verify(contentRepository).findFilteredContentsByDistance(
-                any(), any(), any(), any(), eq(37.4981), eq(127.0276), eq(pageable));
+                any(), any(), any(), any(), eq(37.4981), eq(127.0276),  eq(false),eq(pageable));
     }
 
     @Test
@@ -336,7 +336,7 @@ class ContentServiceTest {
         Page<Content> mockPage = new PageImpl<>(sortedByStartDate, pageable, sortedByStartDate.size());
 
         Pageable fallbackPageable = PageRequest.of(0, 5, Sort.by(Sort.Direction.ASC, "startDate"));
-        given(contentRepository.findFilteredContents(any(), any(), any(), any(), eq(fallbackPageable)))
+        given(contentRepository.findFilteredContents(any(), any(), any(), any(),  eq(false),eq(fallbackPageable)))
                 .willReturn(mockPage);
 
         Page<ContentDTO> result = contentService.findByFiltersWithSort(request, pageable);
@@ -358,9 +358,9 @@ class ContentServiceTest {
                         " - 시작일: " + content.getStartDate())
         );
 
-        verify(contentRepository).findFilteredContents(any(), any(), any(), any(), any());
+        verify(contentRepository).findFilteredContents(any(), any(), any(), any(), eq(false), any());
         verify(contentRepository, never()).findFilteredContentsByDistance(
-                any(), any(), any(), any(), anyDouble(), anyDouble(), any());
+                any(), any(), any(), any(), anyDouble(), anyDouble(), anyBoolean(), any());
     }
 
     private List<Content> createMockContents() {

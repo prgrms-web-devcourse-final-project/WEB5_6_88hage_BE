@@ -26,7 +26,7 @@ public class ContentFilterRequest {
     private LocalDate endDate;
 
     @Parameter(description = "정렬 기준",
-            schema = @Schema(allowableValues = {"bookmarkCount", "startDate", "distance"}))
+            schema = @Schema(allowableValues = {"bookmarkCount", "endDate", "distance"}))
     private String sortBy = "distance";
 
     public boolean isDistanceSort() {
@@ -37,8 +37,8 @@ public class ContentFilterRequest {
         return "bookmarkCount".equals(sortBy);
     }
 
-    public boolean isStartDateSort() {
-        return "startDate".equals(sortBy);
+    public boolean isEndDateSort() {
+        return "endDate".equals(sortBy);
     }
 
 }

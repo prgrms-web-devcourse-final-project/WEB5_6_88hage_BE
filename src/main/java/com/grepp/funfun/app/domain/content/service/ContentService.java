@@ -42,39 +42,7 @@ public class ContentService {
     public ContentDTO getContents(final Long id) {
         Content content = contentRepository.findByIdWithCategory(id)
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        return ContentDTO.builder()
-                .id(content.getId())
-                .contentTitle(content.getContentTitle())
-                .age(content.getAge())
-                .startDate(content.getStartDate())
-                .endDate(content.getEndDate())
-                .fee(content.getFee())
-                .address(content.getAddress())
-                .guname(content.getGuname())
-                .time(content.getTime())
-                .runTime(content.getRunTime())
-                .startTime(content.getStartTime())
-                .poster(content.getPoster())
-                .description(content.getDescription())
-                .bookmarkCount(content.getBookmarkCount())
-                .eventType(content.getEventType())
-                .latitude(content.getLatitude())
-                .longitude(content.getLongitude())
-                .category(content.getCategory() != null ? content.getCategory().getCategory().name() : null)
-                .images(content.getImages().stream()
-                        .map(img -> ContentImageDTO.builder()
-                                .id(img.getId())
-                                .imageUrl(img.getImageUrl())
-                                .build())
-                        .toList())
-                .urls(content.getUrls().stream()
-                        .map(url -> ContentUrlDTO.builder()
-                                .id(url.getId())
-                                .siteName(url.getSiteName())
-                                .url(url.getUrl())
-                                .build())
-                        .toList())
-                .build();
+        return toDTO(content);
     }
 
     // 컨텐츠 필터링
@@ -83,8 +51,8 @@ public class ContentService {
         Page<Content> contents;
         if (request.isBookmarkSort()) {
             contents = findByFiltersOrderByBookmark(request, pageable);
-        } else if (request.isStartDateSort()) {
-            contents = findByFiltersOrderByStartDate(request, pageable);
+        } else if (request.isEndDateSort()) {
+            contents = findByFiltersOrderByEndDate(request, pageable);
         } else {
             contents = findByFiltersOrderByDistance(request, pageable);
         }
@@ -109,16 +77,17 @@ public class ContentService {
                 request.getGuname(),
                 request.getStartDate(),
                 request.getEndDate(),
+                false,
                 sortedPageable
         );
     }
 
-    // 개최 임박순 정렬
-    private Page<Content> findByFiltersOrderByStartDate(ContentFilterRequest request, Pageable pageable) {
+    // 마감 임박순 정렬
+    private Page<Content> findByFiltersOrderByEndDate(ContentFilterRequest request, Pageable pageable) {
         Pageable sortedPageable = PageRequest.of(
                 pageable.getPageNumber(),
                 pageable.getPageSize(),
-                Sort.by(Sort.Direction.ASC, "startDate")
+                Sort.by(Sort.Direction.ASC, "endDate")
         );
 
         return contentRepository.findFilteredContents(
@@ -126,6 +95,7 @@ public class ContentService {
                 request.getGuname(),
                 request.getStartDate(),
                 request.getEndDate(),
+                false,
                 sortedPageable
         );
     }
@@ -158,8 +128,8 @@ public class ContentService {
         Double userLng = userLocation[1];
 
         if (userLat == null || userLng == null) {
-            log.warn("사용자 위치 정보를 확인할 수 없어 '개최 임박순'으로 정렬 방식을 변경합니다.");
-            return findByFiltersOrderByStartDate(request, pageable);
+            log.warn("사용자 위치 정보를 확인할 수 없어 '마감 임박순'으로 정렬 방식을 변경합니다.");
+            return findByFiltersOrderByEndDate(request, pageable);
         }
 
         return contentRepository.findFilteredContentsByDistance(
@@ -169,6 +139,7 @@ public class ContentService {
                 request.getEndDate(),
                 userLat,
                 userLng,
+                false,
                 pageable
         );
     }
@@ -253,7 +224,7 @@ public class ContentService {
     // view
     @Transactional(readOnly = true)
     public List<Content> findAll() {
-        return contentRepository.findAll(Sort.by(Sort.Direction.ASC, "startDate"));
+        return contentRepository.findAll(Sort.by(Sort.Direction.ASC, "endDate"));
     }
 
     @Transactional(readOnly = true)

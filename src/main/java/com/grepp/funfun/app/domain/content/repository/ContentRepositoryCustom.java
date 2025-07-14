@@ -20,6 +20,7 @@ public interface ContentRepositoryCustom {
             String guname,
             LocalDate startDate,
             LocalDate endDate,
+            boolean includeExpired,
             Pageable pageable);
 
     Page<Content> findFilteredContentsByDistance(
@@ -29,6 +30,7 @@ public interface ContentRepositoryCustom {
             LocalDate endDate,
             double userLat,
             double userLng,
+            boolean includeExpired,
             Pageable pageable
     );
 

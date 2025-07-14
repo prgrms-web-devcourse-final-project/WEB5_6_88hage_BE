@@ -50,6 +50,7 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
             String guname,
             LocalDate startDate,
             LocalDate endDate,
+            boolean includeExpired,
             Pageable pageable) {
 
         JPAQuery<Content> query = queryFactory
@@ -59,7 +60,8 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
                         categoryEq(categoryParam),
                         gunameEq(guname),
                         startDateGoe(startDate),
-                        endDateLoe(endDate)
+                        endDateLoe(endDate),
+                        includeExpired ? null : content.endDate.goe(LocalDate.now())
                 );
 
         long total = query.fetchCount();
@@ -75,11 +77,11 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
                     } else {
                         query.orderBy(content.bookmarkCount.desc());
                     }
-                } else if ("startDate".equals(property)) {
+                } else if ("endDate".equals(property)) {
                     if (direction == Sort.Direction.ASC) {
-                        query.orderBy(content.startDate.asc());
+                        query.orderBy(content.endDate.asc());
                     } else {
-                        query.orderBy(content.startDate.desc());
+                        query.orderBy(content.endDate.desc());
                     }
                 }
             }
@@ -101,6 +103,7 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
             LocalDate endDate,
             double userLat,
             double userLng,
+            boolean includeExpired,
             Pageable pageable) {
 
         // 거리 계산(사용자의 위치 기준)
@@ -115,7 +118,8 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
                         startDateGoe(startDate),
                         endDateLoe(endDate),
                         content.latitude.isNotNull(),
-                        content.longitude.isNotNull()
+                        content.longitude.isNotNull(),
+                        includeExpired ? null : content.endDate.goe(LocalDate.now())
                 )
                 .fetchCount();
 
@@ -128,7 +132,8 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
                         startDateGoe(startDate),
                         endDateLoe(endDate),
                         content.latitude.isNotNull(),
-                        content.longitude.isNotNull()
+                        content.longitude.isNotNull(),
+                        includeExpired ? null : content.endDate.goe(LocalDate.now())
                 )
                 .orderBy(distance.asc())
                 .offset(pageable.getOffset())
@@ -149,7 +154,8 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
                         content.id.ne(excludeId),
                         content.latitude.isNotNull(),
                         content.longitude.isNotNull(),
-                        distance.lt(radiusInKm)
+                        distance.lt(radiusInKm),
+                        content.endDate.goe(LocalDate.now())
                 )
                 .orderBy(distance.asc())
                 .limit(limit)
@@ -161,7 +167,10 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
         return queryFactory
                 .selectFrom(content)
                 .join(content.category, category).fetchJoin()
-                .where(category.category.eq(categoryParam))
+                .where(
+                        category.category.eq(categoryParam),
+                        content.endDate.goe(LocalDate.now())
+                )
                 .fetch();
     }
 
