@@ -1,9 +1,7 @@
 package com.grepp.funfun.app.domain.user.dto.payload;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.grepp.funfun.app.domain.auth.vo.Role;
 import com.grepp.funfun.app.domain.user.vo.Gender;
-import com.grepp.funfun.app.domain.user.entity.User;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -13,13 +11,16 @@ import java.time.format.DateTimeParseException;
 import lombok.Data;
 
 @Data
-public class OAuth2SignupRequest {
-
-    @NotBlank(message = "닉네임은 필수입니다.")
-    private String nickname;
+public class UserInfoRequest {
 
     @NotBlank(message = "주소는 필수입니다.")
     private String address;
+
+    @NotNull(message = "위도는 필수입니다.")
+    private Double latitude;
+
+    @NotNull(message = "경도는 필수입니다.")
+    private Double longitude;
 
     @NotBlank(message = "생년월일은 필수입니다.")
     private String birthDate;
@@ -40,13 +41,4 @@ public class OAuth2SignupRequest {
     @NotNull(message = "마케팅 수신 여부를 선택해주세요.")
     @JsonProperty("isMarketingAgreed")
     private Boolean isMarketingAgreed;
-
-    public void toEntity(User user) {
-        user.setNickname(nickname);
-        user.setAddress(address);
-        user.setBirthDate(birthDate);
-        user.setGender(gender);
-        user.setIsMarketingAgreed(isMarketingAgreed);
-        user.setRole(Role.ROLE_USER);
-    }
 }

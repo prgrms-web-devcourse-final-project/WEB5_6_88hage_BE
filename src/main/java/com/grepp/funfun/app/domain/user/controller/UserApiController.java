@@ -3,7 +3,7 @@ package com.grepp.funfun.app.domain.user.controller;
 import com.grepp.funfun.app.domain.auth.payload.TokenResponse;
 import com.grepp.funfun.app.domain.user.dto.payload.ChangePasswordRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.NicknameRequest;
-import com.grepp.funfun.app.domain.user.dto.payload.OAuth2SignupRequest;
+import com.grepp.funfun.app.domain.user.dto.payload.UserInfoRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.SignupRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.UserInfoResponse;
 import com.grepp.funfun.app.domain.user.dto.payload.VerifyCodeRequest;
@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -58,12 +59,12 @@ public class UserApiController {
         return ResponseEntity.ok(ApiResponse.success(userService.getUserInfo(email)));
     }
 
-    @PatchMapping("/signup/oauth2")
-    @Operation(summary = "OAuth2 회원가입", description = "소셜 로그인 대상의 추가 정보를 입력 받습니다.")
-    public ResponseEntity<ApiResponse<String>> updateOAuth2User(@RequestBody @Valid OAuth2SignupRequest request, Authentication authentication) {
+    @PutMapping("/info")
+    @Operation(summary = "회원 정보 수정", description = "회원 정보를 수정합니다.")
+    public ResponseEntity<ApiResponse<String>> updateUser(@RequestBody @Valid UserInfoRequest request, Authentication authentication) {
         String email = authentication.getName();
-        userService.updateOAuth2User(email, request);
-        return ResponseEntity.ok(ApiResponse.success(email));
+        userService.updateUserInfo(email, request);
+        return ResponseEntity.ok(ApiResponse.success("회원 정보 수정했습니다."));
     }
 
     @PatchMapping
