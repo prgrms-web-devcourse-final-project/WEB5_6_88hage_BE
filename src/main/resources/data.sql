@@ -1777,3 +1777,30 @@ VALUES
     ('비매너적인 모임 운영이에요', 'POST', 1, 't2@aaa.aaa', 't1@aaa.aaa', true, NOW(), NOW()),
     ('허위 정보를 포함하고 있어요', 'POST', 6, 't3@aaa.aaa', 't2@aaa.aaa', true, NOW(), NOW()),
     ('불쾌한 표현이 있어요', 'POST', 10, 't5@aaa.aaa', 't3@aaa.aaa', true, NOW(), NOW());
+
+-- Contact 테이블 데이터 삽입
+INSERT INTO contact (title, content, category, status, answer, answered_at, user_id, created_at, modified_at)
+VALUES
+    ('앱 사용 중 오류가 발생해요', '로그인 중 자꾸 튕깁니다.', 'GENERAL', 'PENDING', NULL, NULL, 't1@aaa.aaa', NOW(), NOW()),
+    ( '신고 기능 문의', '신고 버튼이 잘 안 눌려요.', 'REPORT', 'COMPLETE', '버그 수정 예정입니다.', NOW(), 't2@aaa.aaa', NOW(), NOW()),
+    ( '탈퇴 관련 질문', '탈퇴하면 정보가 모두 삭제되나요?', 'GENERAL', 'PENDING', NULL, NULL, 't3@aaa.aaa', NOW(), NOW()),
+    ( '특정 유저 신고합니다', '욕설을 자주 합니다.', 'REPORT', 'COMPLETE', '조치 완료했습니다.', NOW(), 't1@aaa.aaa', NOW(), NOW()),
+    ( '기능 개선 제안', '다크모드 추가해주세요.', 'GENERAL', 'PENDING', NULL, NULL, 't2@aaa.aaa', NOW(), NOW()),
+    ( '이미지 업로드 오류', '이미지 등록이 안 됩니다.', 'GENERAL', 'COMPLETE', '버그 패치 완료.', NOW(), 't3@aaa.aaa', NOW(), NOW()),
+    ( '광고 관련 문의', '광고가 너무 많이 나와요.', 'GENERAL', 'PENDING', NULL, NULL, 't1@aaa.aaa', NOW(), NOW()),
+    ( '유저 신고합니다', '계속 비방 메시지를 보내요.', 'REPORT', 'COMPLETE', '차단 처리 완료.', NOW(), 't2@aaa.aaa', NOW(), NOW()),
+    ( '앱 종료 현상', '홈에서 자꾸 꺼져요.', 'GENERAL', 'PENDING', NULL, NULL, 't3@aaa.aaa', NOW(), NOW()),
+    ( '허위 정보 신고', '모임 설명이 다릅니다.', 'REPORT', 'COMPLETE', '강제 수정 요청함.', NOW(), 't1@aaa.aaa', NOW(), NOW());
+
+INSERT INTO contact_image (image_url, contact_id)
+VALUES
+    ( 'https://example.com/image1.png', 1),
+    ( 'https://example.com/image2.png', 2),
+    ( 'https://example.com/image3.png', 3),
+    ( 'https://example.com/image4.png', 4),
+    ( 'https://example.com/image5.png', 5),
+    ( 'https://example.com/image6.png', 6),
+    ( 'https://example.com/image7.png', 7),
+    ( 'https://example.com/image8.png', 8),
+    ( 'https://example.com/image9.png', 9),
+    ( 'https://example.com/image10.png', 10);

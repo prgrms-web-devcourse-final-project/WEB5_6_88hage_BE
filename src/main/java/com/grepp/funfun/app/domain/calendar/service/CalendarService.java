@@ -1,12 +1,13 @@
 package com.grepp.funfun.app.domain.calendar.service;
 
+import com.grepp.funfun.app.domain.calendar.dto.CalendarDTO;
 import com.grepp.funfun.app.domain.calendar.dto.payload.CalendarContentRequest;
+import com.grepp.funfun.app.domain.calendar.dto.payload.CalendarContentResponse;
 import com.grepp.funfun.app.domain.calendar.dto.payload.CalendarDailyResponse;
 import com.grepp.funfun.app.domain.calendar.dto.payload.CalendarMonthlyResponse;
-import com.grepp.funfun.app.domain.calendar.vo.ActivityType;
-import com.grepp.funfun.app.domain.calendar.dto.CalendarDTO;
 import com.grepp.funfun.app.domain.calendar.entity.Calendar;
 import com.grepp.funfun.app.domain.calendar.repository.CalendarRepository;
+import com.grepp.funfun.app.domain.calendar.vo.ActivityType;
 import com.grepp.funfun.app.domain.content.entity.Content;
 import com.grepp.funfun.app.domain.content.repository.ContentRepository;
 import com.grepp.funfun.app.domain.group.entity.Group;
@@ -42,6 +43,15 @@ public class CalendarService {
 
         Content content = contentRepository.findById(request.getActivityId())
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+
+        // 중복 등록 방지
+        boolean exists = calendarRepository.existsByEmailAndContentIdAndSelectedDate(
+            email, content.getId(), request.getSelectedDate());
+
+        if (exists) {
+            throw new CommonException(ResponseCode.ALREADY_EXISTS, "이미 같은 날짜에 등록된 일정입니다.");
+        }
+
         // bookmarkCount++;
         content.increaseBookmark();
 
@@ -116,6 +126,11 @@ public class CalendarService {
         LocalDateTime end = start.plusDays(1).minusNanos(1);
 
         return calendarRepository.findDailyContentCalendars(email, start, end);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CalendarContentResponse> getContent(String email) {
+        return calendarRepository.findContentByEmail(email);
     }
 
     @Transactional

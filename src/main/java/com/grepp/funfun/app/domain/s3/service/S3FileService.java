@@ -4,6 +4,8 @@ import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
 import io.awspring.cloud.s3.S3Template;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +25,7 @@ public class S3FileService {
     private String s3BaseUrl;
 
     public String upload(MultipartFile file, String depth) {
-        if (file.isEmpty()) return null;
+        if (file == null || file.isEmpty()) return null;
 
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null) {
@@ -41,6 +43,22 @@ public class S3FileService {
         }
 
         return s3BaseUrl + fullPath;
+    }
+
+    // 다중 파일 업로드
+    public List<String> upload(List<MultipartFile> files, String depth) {
+        if (files == null || files.isEmpty()) return List.of();
+
+        List<String> uploadedUrls = new ArrayList<>();
+
+        for (MultipartFile file : files) {
+            if (file != null && !file.isEmpty()) {
+                String uploadedUrl = upload(file, depth);
+                uploadedUrls.add(uploadedUrl);
+            }
+        }
+
+        return uploadedUrls;
     }
 
     private String getExtension(String filename) {

@@ -1,6 +1,7 @@
 package com.grepp.funfun.app.domain.calendar.controller;
 
 import com.grepp.funfun.app.domain.calendar.dto.payload.CalendarContentRequest;
+import com.grepp.funfun.app.domain.calendar.dto.payload.CalendarContentResponse;
 import com.grepp.funfun.app.domain.calendar.dto.payload.CalendarDailyResponse;
 import com.grepp.funfun.app.domain.calendar.dto.payload.CalendarMonthlyResponse;
 import com.grepp.funfun.app.domain.calendar.dto.payload.CalendarUpdateRequest;
@@ -97,6 +98,14 @@ public class CalendarApiController {
         String email = authentication.getName();
         LocalDate date = LocalDate.of(year, month, day);
         List<CalendarDailyResponse> result = calendarService.getDailyForContent(email, date);
+        return ResponseEntity.ok(ApiResponse.success(result));
+    }
+
+    @GetMapping("/content")
+    @Operation(summary = "일정 등록한 컨텐츠 조회", description = "캘린더에 일정 등록한 컨텐츠를 조회합니다.")
+    public ResponseEntity<ApiResponse<List<CalendarContentResponse>>> getCalendarForContent(Authentication authentication) {
+        String email = authentication.getName();
+        List<CalendarContentResponse> result = calendarService.getContent(email);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 }
