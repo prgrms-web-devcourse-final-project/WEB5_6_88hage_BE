@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.infra.auth.oauth2;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grepp.funfun.app.domain.auth.service.AuthService;
 import com.grepp.funfun.app.domain.auth.vo.Role;
 import com.grepp.funfun.app.domain.auth.dto.TokenDto;
@@ -11,13 +12,14 @@ import com.grepp.funfun.app.domain.user.repository.UserInfoRepository;
 import com.grepp.funfun.app.domain.user.repository.UserRepository;
 import com.grepp.funfun.app.infra.auth.jwt.TokenCookieFactory;
 import com.grepp.funfun.app.infra.auth.oauth2.user.CustomOAuth2User;
+import com.grepp.funfun.app.infra.response.ApiResponse;
+import com.grepp.funfun.app.infra.response.ResponseCode;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -34,9 +36,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final ContentPreferenceRepository contentPreferenceRepository;
     private final GroupPreferenceRepository groupPreferenceRepository;
     private final PasswordEncoder passwordEncoder;
-
-    @Value("${front-server.domain}")
-    private String front;
+    private final ObjectMapper objectMapper;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -65,12 +65,9 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             log.info("OAuth2 사용자 기본 정보 저장: {}", email);
 
             TokenDto tokenDto = authService.processTokenSignin(email, newUser.getRole().name(), false);
-
             TokenCookieFactory.setAllAuthCookies(response, tokenDto);
 
-            // NOTE : 프론트 측 URI 로 변경 필요
-            response.sendRedirect(front + "/users/oauth2/signup");
-
+            writeJsonResponse(response, ApiResponse.error(ResponseCode.USER_GUEST));
         } else {
             User user = userRepository.findById(email).orElse(null);
 
@@ -80,18 +77,22 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 TokenCookieFactory.setAllAuthCookies(response, tokenDto);
 
                 if (user.getRole().equals(Role.ROLE_GUEST)) {
-                    // NOTE : 프론트 측 URI 로 변경 필요
-                    response.sendRedirect(front + "/users/oauth2/signup");
+                    writeJsonResponse(response, ApiResponse.error(ResponseCode.USER_GUEST));
                     return;
                 }
 
                 if (groupPreferenceRepository.findByUserEmail(email).isEmpty() || contentPreferenceRepository.findByUserEmail(email).isEmpty()) {
-                    // NOTE : 프론트 측 URI 로 변경 필요
-                    response.sendRedirect(front + "/users/preference");
+                    writeJsonResponse(response, ApiResponse.error(ResponseCode.USER_PREFERENCE_NOT_SET));
                 } else {
-                    response.sendRedirect(front + "/");
+                    writeJsonResponse(response, ApiResponse.success("기존 OAuth2 사용자 로그인 성공"));
                 }
             }
         }
+    }
+
+    private void writeJsonResponse(HttpServletResponse response, ApiResponse<?> result) throws IOException {
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write(objectMapper.writeValueAsString(result));
     }
 }
