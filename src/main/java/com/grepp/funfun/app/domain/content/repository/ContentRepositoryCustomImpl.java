@@ -13,6 +13,7 @@ import jakarta.persistence.EntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 import org.springframework.stereotype.Repository;
 
@@ -63,8 +64,30 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
 
         long total = query.fetchCount();
 
-        List<Content> results = getQuerydsl()
-                .applyPagination(pageable, query)
+        if (pageable.getSort().isSorted()) {
+            for (Sort.Order order : pageable.getSort()) {
+                String property = order.getProperty();
+                Sort.Direction direction = order.getDirection();
+
+                if ("bookmarkCount".equals(property)) {
+                    if (direction == Sort.Direction.ASC) {
+                        query.orderBy(content.bookmarkCount.asc());
+                    } else {
+                        query.orderBy(content.bookmarkCount.desc());
+                    }
+                } else if ("startDate".equals(property)) {
+                    if (direction == Sort.Direction.ASC) {
+                        query.orderBy(content.startDate.asc());
+                    } else {
+                        query.orderBy(content.startDate.desc());
+                    }
+                }
+            }
+        }
+
+        List<Content> results = query
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
                 .fetch();
 
         return new PageImpl<>(results, pageable, total);

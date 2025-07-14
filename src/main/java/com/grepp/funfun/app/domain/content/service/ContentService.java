@@ -138,15 +138,15 @@ public class ContentService {
 
             UserDTO user = userService.get(currentUserEmail);
             if (user != null && user.getLatitude() != null && user.getLongitude() != null) {
-                log.info("사용자 주소: lat={}, lng={}",
+                log.info("사용자 기본 위치 조회 : 위도={}, 경도={}",
                         user.getLatitude(), user.getLongitude());
                 return new Double[]{user.getLatitude(), user.getLongitude()};
             } else {
-                log.warn("User default location not available");
+                log.warn("사용자의 기본 위치 정보가 존재하지 않습니다.");
                 return new Double[]{null, null};
             }
         } catch (Exception e) {
-            log.warn("Failed to get user default location: {}", e.getMessage());
+            log.warn("사용자 기본 위치 조회 중 오류 발생: {}", e.getMessage());
             return new Double[]{null, null};
         }
     }
@@ -158,7 +158,7 @@ public class ContentService {
         Double userLng = userLocation[1];
 
         if (userLat == null || userLng == null) {
-            log.warn("User default location not available. Falling back to startDate sort.");
+            log.warn("사용자 위치 정보를 확인할 수 없어 '개최 임박순'으로 정렬 방식을 변경합니다.");
             return findByFiltersOrderByStartDate(request, pageable);
         }
 

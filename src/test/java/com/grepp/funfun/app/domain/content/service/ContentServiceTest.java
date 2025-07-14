@@ -207,7 +207,7 @@ class ContentServiceTest {
     }
 
     @Test
-    @DisplayName("2. 북마크순 정렬 테스트 (많은 순)")
+    @DisplayName("2. 북마크순 정렬 테스트")
     void testBookmarkCountDescSort() {
         // given
         ContentFilterRequest request = new ContentFilterRequest();
@@ -226,13 +226,8 @@ class ContentServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getContent()).isNotEmpty();
 
-        for (int i = 0; i < result.getContent().size() - 1; i++) {
-            Integer current = result.getContent().get(i).getBookmarkCount();
-            Integer next = result.getContent().get(i + 1).getBookmarkCount();
-            assertThat(current).isGreaterThanOrEqualTo(next);
-        }
-
-        System.out.println("========== 북마크순 정렬 (많은 순) ==========");
+        System.out.println("========== 북마크순 정렬 테스트 (Service 로직 검증) ==========");
+        System.out.println("Service가 Repository에 전달한 정렬 조건 확인");
         System.out.println("총 개수: " + result.getTotalElements());
         result.getContent().forEach(content ->
                 System.out.println(content.getContentTitle() +
@@ -243,9 +238,12 @@ class ContentServiceTest {
                 any(), any(), any(), any(),
                 argThat(p -> {
                     Sort sort = p.getSort();
-                    return sort.isSorted() &&
+                    boolean isCorrectSort = sort.isSorted() &&
                             sort.getOrderFor("bookmarkCount") != null &&
                             sort.getOrderFor("bookmarkCount").getDirection() == Sort.Direction.DESC;
+
+                    System.out.println("✅ Service가 올바른 정렬 조건을 전달했는지: " + isCorrectSort);
+                    return isCorrectSort;
                 }));
     }
 
