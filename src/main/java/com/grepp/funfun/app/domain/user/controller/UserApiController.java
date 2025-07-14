@@ -126,7 +126,7 @@ public class UserApiController {
     }
 
     @PatchMapping("/change/nickname")
-    @Operation(summary = "닉네임 변경", description = "인증 코드로 인증된 사용자에 한해서 닉네임 변경을 진행합니다.")
+    @Operation(summary = "닉네임 변경", description = "닉네임 변경을 합니다.")
     public ResponseEntity<ApiResponse<String>> changeNickname(@RequestBody @Valid
     NicknameRequest request, Authentication authentication) {
         String email = authentication.getName();
