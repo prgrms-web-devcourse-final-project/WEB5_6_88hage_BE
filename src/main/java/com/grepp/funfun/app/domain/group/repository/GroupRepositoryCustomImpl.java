@@ -8,6 +8,7 @@ import com.grepp.funfun.app.domain.group.entity.QGroup;
 import com.grepp.funfun.app.domain.group.entity.QGroupHashtag;
 import com.grepp.funfun.app.domain.group.vo.GroupStatus;
 import com.grepp.funfun.app.domain.participant.vo.ParticipantStatus;
+import com.grepp.funfun.app.domain.user.entity.QUser;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -23,6 +24,7 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
     private final JPAQueryFactory queryFactory;
     private final QGroup group = QGroup.group;
     QGroupHashtag hashtag = QGroupHashtag.groupHashtag;
+    private final QUser leader = QUser.user;
 
     // 모집중인 모임 조회
     @Override
@@ -132,6 +134,16 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
                 .fetchOne()
         );
 
+    }
+
+    @Override
+    public List<Group> findGroupsByIdsWithAllRelations(List<Long> ids) {
+        return queryFactory
+            .selectFrom(group)
+            .leftJoin(group.leader, leader).fetchJoin()
+            .where(group.id.in(ids)) // 주어진 ID 목록으로 필터링
+            .distinct()
+            .fetch();
     }
 
 }

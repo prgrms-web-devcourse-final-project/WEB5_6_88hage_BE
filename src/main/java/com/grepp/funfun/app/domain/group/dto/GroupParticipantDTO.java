@@ -1,6 +1,7 @@
 package com.grepp.funfun.app.domain.group.dto;
 
-import jakarta.validation.constraints.Size;
+import com.grepp.funfun.app.domain.participant.vo.ParticipantRole;
+import com.grepp.funfun.app.domain.participant.vo.ParticipantStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,13 +14,12 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GroupHashtagDTO {
+public class GroupParticipantDTO {
 
     private Long id;
 
-    @Size(max = 255)
-    private String tag;
+    private ParticipantRole role;
 
-    private Long group;
+    private ParticipantStatus status;
 
 }
