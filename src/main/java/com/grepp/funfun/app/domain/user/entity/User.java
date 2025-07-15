@@ -78,4 +78,8 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user")
     private List<ContentPreference> contentPreferences = new ArrayList<>();
 
+    public boolean isAdmin() {
+        return this.role == Role.ROLE_ADMIN;
+    }
+
 }
