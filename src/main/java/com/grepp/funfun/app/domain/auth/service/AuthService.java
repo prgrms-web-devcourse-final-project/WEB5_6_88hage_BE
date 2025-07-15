@@ -1,7 +1,7 @@
 package com.grepp.funfun.app.domain.auth.service;
 
 import com.grepp.funfun.app.domain.auth.domain.Principal;
-import com.grepp.funfun.app.domain.auth.payload.LoginRequest;
+import com.grepp.funfun.app.domain.auth.dto.payload.LoginRequest;
 import com.grepp.funfun.app.domain.auth.dto.TokenDto;
 import com.grepp.funfun.app.domain.auth.token.RefreshTokenService;
 import com.grepp.funfun.app.domain.auth.token.UserBlackListRepository;

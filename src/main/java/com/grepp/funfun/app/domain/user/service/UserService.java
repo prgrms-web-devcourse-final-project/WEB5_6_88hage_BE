@@ -244,13 +244,18 @@ public class UserService {
     }
 
     @Transactional
-    public void updateOAuth2User(String email, OAuth2SignupRequest request) {
+    public TokenDto updateOAuth2User(Authentication authentication, OAuth2SignupRequest request) {
+        String email = authentication.getName();
         User user = userRepository.findById(email).orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+
         // 닉네임 중복 검사
         if (userRepository.existsByNickname(request.getNickname())) {
             throw new CommonException(ResponseCode.USER_NICKNAME_DUPLICATE);
         }
+
         user.updateOAuth2User(request);
+
+        return authService.reissueAccessToken(authentication, request.getNickname(), user.getRole().name());
     }
 
     @Transactional
