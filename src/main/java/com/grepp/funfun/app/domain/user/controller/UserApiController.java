@@ -145,13 +145,17 @@ public class UserApiController {
     }
 
     @PatchMapping("/change/nickname")
-    @Operation(summary = "닉네임 변경", description = "닉네임 변경을 합니다.")
-    public ResponseEntity<ApiResponse<String>> changeNickname(@RequestBody @Valid
-    NicknameRequest request, Authentication authentication) {
-        String email = authentication.getName();
-        userService.changeNickname(email, request.getNickname());
+    @Operation(summary = "닉네임 변경", description = "닉네임 변경을 합니다.<br>액세스 토큰을 재발급합니다.")
+    public ResponseEntity<ApiResponse<TokenResponse>> changeNickname(@RequestBody @Valid
+    NicknameRequest request, Authentication authentication, HttpServletResponse response) {
+        TokenDto tokenDto = userService.changeNickname(authentication, request.getNickname());
+        TokenCookieFactory.setAllAuthCookies(response, tokenDto);
 
-        return ResponseEntity.ok(ApiResponse.success("닉네임 변경이 완료되었습니다."));
+        return ResponseEntity.ok(ApiResponse.success(TokenResponse.builder().
+            accessToken(tokenDto.getAccessToken())
+            .grantType(tokenDto.getGrantType())
+            .expiresIn(tokenDto.getExpiresIn())
+            .build()));
     }
 
     @PostMapping("/verify/nickname")

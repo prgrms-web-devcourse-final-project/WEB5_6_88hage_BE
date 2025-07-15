@@ -42,6 +42,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -253,7 +254,8 @@ public class UserService {
     }
 
     @Transactional
-    public void changeNickname(String email, String nickname) {
+    public TokenDto changeNickname(Authentication authentication, String nickname) {
+        String email = authentication.getName();
         User user = userRepository.findById(email).orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
 
         // 닉네임 중복 검사
@@ -263,6 +265,8 @@ public class UserService {
 
         user.setNickname(nickname);
         userRepository.save(user);
+
+        return authService.reissueAccessToken(authentication, nickname, user.getRole().name());
     }
 
     public void verifyNickname(String nickname) {
