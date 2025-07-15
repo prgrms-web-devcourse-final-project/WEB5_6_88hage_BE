@@ -39,7 +39,7 @@ public class LogoutFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         Claims claims  = jwtTokenProvider.getClaims(accessToken);
         
-        if(path.equals("/auth/logout")){
+        if(path.equals("/api/auth/logout")){
             refreshTokenService.deleteByAccessTokenId(claims.getId());
             TokenCookieFactory.setAllExpiredCookies(response);
             // NOTE: 프론트 측 URI 로 변경 필요
