@@ -12,6 +12,10 @@ import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -86,14 +90,16 @@ public class GroupApiController {
     )
     //todo: 페이지 네이션 필요
     // 통합 모임 조회 - 검색/필터링/정렬(최신순,조회순,거리순) -> default 거리순
-    public ResponseEntity<ApiResponse<List<GroupListResponse>>> searchGroups(
+    public ResponseEntity<ApiResponse<Page<GroupListResponse>>> searchGroups(
         @RequestParam(required = false) String category,
         @RequestParam(required = false) String keyword,
         @RequestParam(defaultValue = "distance") String sortBy,
-        Authentication authentication
+        @PageableDefault(size = 10)
+        @ParameterObject Pageable pageable,
+    Authentication authentication
     ) {
         String userEmail = authentication != null ? authentication.getName() : null;
-        return ResponseEntity.ok(ApiResponse.success(groupService.getGroups(category, keyword, sortBy, userEmail)));
+        return ResponseEntity.ok(ApiResponse.success(groupService.getGroups(category, keyword, sortBy, userEmail,pageable)));
     }
 
     // 모임 생성

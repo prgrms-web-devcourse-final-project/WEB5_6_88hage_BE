@@ -38,6 +38,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 
 @Service
@@ -104,15 +106,17 @@ public class GroupService {
 
     // 모임 조회
     @Transactional(readOnly = true)
-    public List<GroupListResponse> getGroups(
+    public Page<GroupListResponse> getGroups(
         String category,
         String keyword,
         String sortBy,
-        String userEmail
+        String userEmail,
+        Pageable pageable
     ) {
-        return groupRepository.findGroups(category, keyword, sortBy, userEmail).stream()
-            .map(GroupListResponse::convertToGroupList)
-            .collect(Collectors.toList());
+        Page<Group> groupPage = groupRepository.findGroups(category, keyword, sortBy, userEmail, pageable);
+
+        return groupPage.map(GroupListResponse::convertToGroupList);
+
     }
 
     // 내가 속한 모임 조회

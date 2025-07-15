@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.domain.group.repository;
 
+import static com.grepp.funfun.app.domain.group.entity.QGroupHashtag.groupHashtag;
 import static com.grepp.funfun.app.domain.participant.entity.QParticipant.participant;
 import static com.grepp.funfun.app.domain.user.entity.QUser.user;
 
@@ -9,14 +10,20 @@ import com.grepp.funfun.app.domain.group.entity.QGroupHashtag;
 import com.grepp.funfun.app.domain.group.vo.GroupClassification;
 import com.grepp.funfun.app.domain.group.vo.GroupStatus;
 import com.grepp.funfun.app.domain.participant.vo.ParticipantStatus;
+import com.grepp.funfun.app.domain.user.entity.QUser;
 import com.grepp.funfun.app.domain.user.entity.User;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -25,7 +32,8 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
     private final QGroup group = QGroup.group;
-    QGroupHashtag hashtag = QGroupHashtag.groupHashtag;
+    private final QUser user = QUser.user;
+    QGroupHashtag hashtag = groupHashtag;
 
     // 모집중인 모임 조회
     @Override
@@ -91,30 +99,41 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
     }
 
     @Override
-    public List<Group> findGroups(
+    public Page<Group> findGroups(
         String category,
         String keyword,
         String sortBy,
-        String userEmail
+        String userEmail,
+        Pageable pageable
     ) {
+        // 키워드 조건 구성
+        BooleanExpression keywordCondition = null;
+        if (keyword != null) {
+            keywordCondition = group.title.containsIgnoreCase(keyword)
+                .or(group.simpleExplain.containsIgnoreCase(keyword))
+                .or(JPAExpressions.selectOne()
+                    .from(groupHashtag)
+                    .where(groupHashtag.group.eq(group)
+                        .and(groupHashtag.tag.containsIgnoreCase(keyword)))
+                    .exists());
+        }
+
         JPAQuery<Group> baseQuery = queryFactory
             .selectFrom(group)
             .where(
                 group.activated.eq(true),
                 category != null ? group.category.eq(GroupClassification.valueOf(category)) : null,
-                keyword != null ? group.title.containsIgnoreCase(keyword)
-                    .or(group.simpleExplain.containsIgnoreCase(keyword)) : null
+                keywordCondition
             );
 
-        // 정렬 (기본값: distance)
         String sort = (sortBy != null) ? sortBy : "distance";
 
-        return switch (sort) {
-            case "recent" -> baseQuery.orderBy(group.createdAt.desc()).fetch();
-            case "viewCount" -> baseQuery.orderBy(group.viewCount.desc()).fetch();
+        // 정렬 적용
+        JPAQuery<Group> orderedQuery = switch (sort) {
+            case "recent" -> baseQuery.orderBy(group.createdAt.desc());
+            case "viewCount" -> baseQuery.orderBy(group.viewCount.desc());
             default -> {
                 if (userEmail != null) {
-                    // default 거리순
                     User currentUser = queryFactory
                         .selectFrom(user)
                         .where(user.email.eq(userEmail))
@@ -126,23 +145,40 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
 
                         NumberExpression<Double> distance = Expressions.numberTemplate(Double.class,
                             "6371 * acos(" +
+                                "LEAST(1.0, GREATEST(-1.0, " +
                                 "cos(radians({0})) * cos(radians({1})) * " +
                                 "cos(radians({2}) - radians({3})) + " +
                                 "sin(radians({0})) * sin(radians({1}))" +
+                                "))" +
                                 ")",
-                            currentUser.getLatitude(), group.latitude, group.longitude,
-                            currentUser.getLongitude());
+                            currentUser.getLatitude(), group.latitude,
+                            currentUser.getLongitude(), group.longitude);
 
                         yield baseQuery
                             .where(group.latitude.isNotNull(), group.longitude.isNotNull())
-                            .orderBy(distance.asc())
-                            .fetch();
+                            .orderBy(distance.asc());
                     }
                 }
-                // 사용자 못 찾거나 위치 정보 없으면 최신순
-                yield baseQuery.orderBy(group.createdAt.desc()).fetch();
+                yield baseQuery.orderBy(group.createdAt.desc());
             }
         };
+
+        // 페이징된 컨텐츠 조회
+        List<Group> content = orderedQuery
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize())
+            .fetch();
+
+        // 카운트 쿼리
+        JPAQuery<Long> countQuery = queryFactory
+            .select(group.count())
+            .from(group)
+            .where(
+                group.activated.eq(true),
+                category != null ? group.category.eq(GroupClassification.valueOf(category)) : null,
+                keywordCondition
+            );
+
+        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
     }
 }
-
