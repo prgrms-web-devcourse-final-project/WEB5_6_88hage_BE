@@ -40,7 +40,7 @@ public class ChatController {
         try {
             // roomType 설정 (프론트에서 보내지 않는 경우 대비)
             if (chatResponse.getRoomType() == null) {
-                throw new IllegalArgumentException("roomType이 필요합니다.");
+                throw new IllegalArgumentException("roomType 이 필요합니다.");
             }
 
             Long chatRoomId = chatResponse.getRoomId();
