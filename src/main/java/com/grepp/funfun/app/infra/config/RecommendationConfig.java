@@ -11,6 +11,7 @@ import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.mongodb.IndexMapping;
 import dev.langchain4j.store.embedding.mongodb.MongoDbEmbeddingStore;
 import java.util.HashSet;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -60,7 +61,7 @@ public class RecommendationConfig {
     // RAG 방식 검색, 추천 시스템, 유사 문장 검색 활용하기 위한 컴포넌트
     @Bean
     EmbeddingStoreContentRetriever embeddingStoreContentRetriever(
-        EmbeddingStore<TextSegment> embeddingStore,
+        @Qualifier("contentEmbeddingStore") EmbeddingStore<TextSegment> embeddingStore,
         EmbeddingModel embeddingModel
     ){
         return EmbeddingStoreContentRetriever.builder()
@@ -93,7 +94,7 @@ public class RecommendationConfig {
 
     @Bean
     EmbeddingStoreContentRetriever embeddingStoreGroupRetriever(
-        EmbeddingStore<TextSegment> embeddingStore,
+        @Qualifier("groupEmbeddingStore") EmbeddingStore<TextSegment> embeddingStore,
         EmbeddingModel embeddingModel
     ){
         return EmbeddingStoreContentRetriever.builder()
