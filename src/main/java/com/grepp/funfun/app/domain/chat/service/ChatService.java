@@ -43,14 +43,14 @@ public class ChatService {
             .build();
 
         Chat savedChat = chatRepository.save(chat);
-        log.info("메시지 저장 완료, chatId: {}", savedChat.getId());
+        log.info("message save , chatId: {}", savedChat.getId());
 
         return savedChat;
     }
 
     @Transactional(readOnly = true)
     public List<ChatResponse> getChatHistory(Long roomId, ChatRoomType roomType) {
-        log.debug("Getting chat history for teamId: {}", roomId);
+        log.debug("Getting chat history for roomId: {}", roomId);
         List<Chat> chatList = chatRepository.findByRoomIdAndRoomTypeOrderByCreatedAt(roomId, roomType);
 
         return chatList.stream()

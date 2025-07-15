@@ -75,11 +75,8 @@ public class ChatRoomService {
                     ? room.getUser2Email()
                     : room.getUser1Email();
 
-                // 상대방 닉네임 조회
+                // 상대방 조회
                 User targetUser = userRepository.findByEmail(targetUserEmail);
-                String targetNickname = (targetUser != null)
-                    ? targetUser.getNickname()
-                    : targetUserEmail.split("@")[0]; // 사용자가 없으면 이메일에서 추출
 
                 return PersonalChatRoomResponse.builder()
                     .roomId(room.getId())
@@ -88,7 +85,7 @@ public class ChatRoomService {
                     .currentUserEmail(currentuser.getEmail())
                     .currentUserNickname(currentuser.getNickname())
                     .targetUserEmail(targetUserEmail)
-                    .targetUserEmail(targetNickname)
+                    .targetUserNickname(targetUser.getNickname())
                     .build();
             })
             .collect(Collectors.toList());
