@@ -2,21 +2,20 @@ package com.grepp.funfun.app.domain.content.dto;
 
 import com.grepp.funfun.app.domain.content.vo.EventType;
 import jakarta.validation.constraints.NotNull;
-
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
-
-import lombok.*;
-
-
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ContentDTO {
+public class ContentWithReasonDTO {
 
     private Long id;
 
@@ -55,8 +54,6 @@ public class ContentDTO {
 
     private Integer bookmarkCount;
 
-    private Double latitude;
-
-    private Double longitude;
+    private String reason;
 
 }

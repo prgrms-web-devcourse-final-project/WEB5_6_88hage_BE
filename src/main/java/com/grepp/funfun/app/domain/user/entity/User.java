@@ -19,6 +19,7 @@ import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -91,5 +92,33 @@ public class User extends BaseEntity {
         if (this.role == Role.ROLE_GUEST) {
             this.role = Role.ROLE_USER;
         }
+    }
+
+    public boolean isAdmin() {
+        return this.role == Role.ROLE_ADMIN;
+    }
+
+    public String getGroupPreferencesToString(){
+        if(groupPreferences == null){
+            return "나는 특별한 취향이 없습니다";
+        }
+
+        String preferences = groupPreferences.stream()
+            .map(preference -> preference.getCategory().getKoreanName())
+            .collect(Collectors.joining(", "));
+
+        return "나는" + preferences + "활동을 선호해.";
+    }
+
+    public String getContentPreferencesToString(){
+        if(groupPreferences == null){
+            return "나는 특별한 취향이 없습니다";
+        }
+
+        String preferences = contentPreferences.stream()
+                                             .map(preference -> preference.getCategory().getKoreanName())
+                                             .collect(Collectors.joining(", "));
+
+        return "나는" + preferences + "활동을 선호해.";
     }
 }

@@ -18,6 +18,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 
 @Entity
 @Getter
@@ -46,4 +48,9 @@ public class Report extends BaseEntity {
     @JoinColumn(name = "reported_user_id", nullable = false)
     private User reportedUser;
 
+    private boolean resolved = false;
+
+    private String adminComment;
+
+    private LocalDateTime resolvedAt;
 }
