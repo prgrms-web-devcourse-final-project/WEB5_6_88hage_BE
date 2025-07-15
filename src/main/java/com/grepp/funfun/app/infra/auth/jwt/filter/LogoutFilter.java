@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -23,6 +24,10 @@ public class LogoutFilter extends OncePerRequestFilter {
     private final RefreshTokenService refreshTokenService;
     private final JwtTokenProvider jwtTokenProvider;
     private final ObjectMapper objectMapper;
+
+    @Value("${front-server.domain}")
+    private String front;
+
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -47,7 +52,7 @@ public class LogoutFilter extends OncePerRequestFilter {
 
             ApiResponse<String> result = ApiResponse.success("로그아웃 성공");
             response.getWriter().write(objectMapper.writeValueAsString(result));
-
+            response.sendRedirect(front + "/");
             return;
         }
 
