@@ -1,6 +1,6 @@
 package com.grepp.funfun.app.domain.user.service;
 
-import com.grepp.funfun.app.domain.user.dto.payload.OAuth2SignupRequest;
+import com.grepp.funfun.app.domain.user.dto.payload.UserInfoRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.SignupRequest;
 import com.grepp.funfun.app.domain.auth.service.AuthService;
 import com.grepp.funfun.app.domain.auth.dto.TokenDto;
@@ -22,6 +22,7 @@ import com.grepp.funfun.app.domain.social.entity.Message;
 import com.grepp.funfun.app.domain.social.repository.FollowRepository;
 import com.grepp.funfun.app.domain.social.repository.MessageRepository;
 import com.grepp.funfun.app.domain.user.dto.UserDTO;
+import com.grepp.funfun.app.domain.user.dto.payload.UserInfoResponse;
 import com.grepp.funfun.app.domain.user.entity.User;
 import com.grepp.funfun.app.domain.user.entity.UserInfo;
 import com.grepp.funfun.app.domain.user.repository.UserInfoRepository;
@@ -79,6 +80,12 @@ public class UserService {
     public UserDTO get(final String email) {
         return userRepository.findById(email)
             .map(user -> mapToDTO(user, new UserDTO()))
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+    }
+
+    public UserInfoResponse getUserInfo(String email) {
+        return userRepository.findById(email)
+            .map(UserInfoResponse::from)
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
     }
 
@@ -228,25 +235,15 @@ public class UserService {
     }
 
     @Transactional
-    public void updateOAuth2User(String email, OAuth2SignupRequest request) {
+    public void updateUserInfo(String email, UserInfoRequest request) {
         User user = userRepository.findById(email).orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        // 닉네임 중복 검사
-        if (userRepository.existsByNickname(request.getNickname())) {
-            throw new CommonException(ResponseCode.USER_NICKNAME_DUPLICATE);
-        }
-        request.toEntity(user);
-        userRepository.save(user);
+
+        user.updateFromRequest(request);
     }
 
     @Transactional
     public void changeNickname(String email, String nickname) {
-        String verifiedKey = "auth-code:verified:" +  email;
-        String coolDownKey = "auth-cooldown:code:" +  email;
         User user = userRepository.findById(email).orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-
-        if (!redisTemplate.hasKey(verifiedKey)) {
-            throw new CommonException(ResponseCode.BAD_REQUEST);
-        }
 
         // 닉네임 중복 검사
         if (userRepository.existsByNickname(nickname)) {
@@ -255,11 +252,6 @@ public class UserService {
 
         user.setNickname(nickname);
         userRepository.save(user);
-
-        // 레디스 인증 키 삭제
-        redisTemplate.delete(verifiedKey);
-        // 레디스 메일 쿨타임 키 삭제
-        redisTemplate.delete(coolDownKey);
     }
 
     public void verifyNickname(String nickname) {

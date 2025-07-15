@@ -1522,34 +1522,34 @@ INSERT INTO "user" (email, password, nickname, birth_date, gender, address, lati
                     role, status, due_date, suspend_duration, due_reason, is_verified,
                     is_marketing_agreed, info_id, activated, created_at, modified_at)
 VALUES
-    ('t1@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '김철수', '1990-03-15', 'MALE', '서울특별시 강남구 역삼동 테헤란로 123', 37.5009, 127.0360,
+    ('t1@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '김철수', '19900315', 'MALE', '서울특별시 강남구 역삼동 테헤란로 123', 37.5009, 127.0360,
      'ROLE_USER', 'ACTIVE', NULL, NULL, NULL, true, true, 't1@aaa.aaa', true, NOW(), NOW()),
 
-    ('t2@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '이영희', '1985-07-22', 'FEMALE', '서울특별시 송파구 잠실동 올림픽로 456', 37.5133, 127.1028,
+    ('t2@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '이영희', '19850722', 'FEMALE', '서울특별시 송파구 잠실동 올림픽로 456', 37.5133, 127.1028,
      'ROLE_USER', 'ACTIVE', NULL, NULL, NULL, true, false, 't2@aaa.aaa', true, NOW(), NOW()),
 
-    ('t3@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '박민수', '1992-11-08', 'MALE', '서울특별시 서초구 반포동 반포대로 789', 37.5047, 127.0089,
+    ('t3@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '박민수', '19921108', 'MALE', '서울특별시 서초구 반포동 반포대로 789', 37.5047, 127.0089,
      'ROLE_USER', 'ACTIVE', NULL, NULL, NULL, true, true, 't3@aaa.aaa', true, NOW(), NOW()),
 
-    ('t4@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '정수빈', '1988-02-14', 'FEMALE', '서울특별시 마포구 상암동 월드컵북로 321', 37.5799, 126.8896,
+    ('t4@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '정수빈', '19880214', 'FEMALE', '서울특별시 마포구 상암동 월드컵북로 321', 37.5799, 126.8896,
      'ROLE_USER', 'ACTIVE', NULL, NULL, NULL, false, true, 't4@aaa.aaa', true, NOW(), NOW()),
 
-    ('t5@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '최동욱', '1993-09-30', 'MALE', '서울특별시 용산구 한남동 한남대로 654', 37.5347, 126.9990,
+    ('t5@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '최동욱', '19930930', 'MALE', '서울특별시 용산구 한남동 한남대로 654', 37.5347, 126.9990,
      'ROLE_USER', 'SUSPENDED', '2025-08-15', 30, '부적절한 게시물', true, false, 't5@aaa.aaa', true, NOW(), NOW()),
 
-    ('t6@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '장미라', '1987-05-03', 'FEMALE', '서울특별시 성동구 성수동 아차산로 147', 37.5447, 127.0557,
+    ('t6@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '장미라', '19870503', 'FEMALE', '서울특별시 성동구 성수동 아차산로 147', 37.5447, 127.0557,
      'ROLE_USER', 'ACTIVE', NULL, NULL, NULL, true, true, 't6@aaa.aaa', true, NOW(), NOW()),
 
-    ('t7@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '안준호', '1991-12-25', 'MALE', '서울특별시 강북구 수유동 도봉로 258', 37.6369, 127.0253,
+    ('t7@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '안준호', '19911225', 'MALE', '서울특별시 강북구 수유동 도봉로 258', 37.6369, 127.0253,
      'ROLE_USER', 'ACTIVE', NULL, NULL, NULL, true, true, 't7@aaa.aaa', true, NOW(), NOW()),
 
-    ('t8@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '오세영', '1989-08-17', 'FEMALE', '서울특별시 광진구 자양동 능동로 369', 37.5347, 127.0822,
+    ('t8@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '오세영', '19890817', 'FEMALE', '서울특별시 광진구 자양동 능동로 369', 37.5347, 127.0822,
      'ROLE_USER', 'ACTIVE', NULL, NULL, NULL, false, false, 't8@aaa.aaa', true, NOW(), NOW()),
 
-    ('t9@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '유하늘', '1994-04-12', 'MALE', '서울특별시 중구 을지로 을지로3가 852', 37.5661, 126.9917,
+    ('t9@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '유하늘', '19940412', 'MALE', '서울특별시 중구 을지로 을지로3가 852', 37.5661, 126.9917,
      'ROLE_ADMIN', 'ACTIVE', NULL, NULL, NULL, true, true, 't9@aaa.aaa', true, NOW(), NOW()),
 
-    ('t10@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '임소라', '1986-01-28', 'FEMALE', '서울특별시 동작구 상도동 상도로 741', 37.5013, 126.9486,
+    ('t10@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '임소라', '19860128', 'FEMALE', '서울특별시 동작구 상도동 상도로 741', 37.5013, 126.9486,
      'ROLE_USER', 'ACTIVE', NULL, NULL, NULL, true, true, 't10@aaa.aaa', true, NOW(), NOW());
 
 INSERT INTO user_hashtag (tag, info_id)
