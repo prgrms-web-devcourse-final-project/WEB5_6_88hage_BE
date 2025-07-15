@@ -1,25 +1,24 @@
 package com.grepp.funfun.app.infra.auth.oauth2;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.grepp.funfun.app.infra.response.ApiResponse;
-import com.grepp.funfun.app.infra.response.ResponseCode;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class OAuth2FailureHandler implements AuthenticationFailureHandler {
+public class OAuth2FailureHandler extends SimpleUrlAuthenticationFailureHandler {
 
-    private final ObjectMapper objectMapper;
+    @Value("${front-server.domain}")
+    String front;
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
@@ -36,10 +35,7 @@ public class OAuth2FailureHandler implements AuthenticationFailureHandler {
             log.warn("OAuth2 로그인 실패 - 예외: {}", exception.getMessage());
         }
 
-        ApiResponse<Void> errorResponse = ApiResponse.error(ResponseCode.OAUTH2_AUTHENTICATION_FAILED, description);
-
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
+        // NOTE : 프론트 경로로 변경 필요
+        getRedirectStrategy().sendRedirect(request, response, front + "/login?error=" + errorCode + "&from=oauth2");
     }
 }
