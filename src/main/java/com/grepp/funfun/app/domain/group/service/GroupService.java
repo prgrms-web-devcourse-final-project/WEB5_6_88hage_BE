@@ -9,6 +9,7 @@ import com.grepp.funfun.app.domain.calendar.service.CalendarService;
 import com.grepp.funfun.app.domain.chat.entity.GroupChatRoom;
 import com.grepp.funfun.app.domain.chat.repository.GroupChatRoomRepository;
 import com.grepp.funfun.app.domain.chat.vo.ChatRoomType;
+import com.grepp.funfun.app.domain.group.dto.payload.GroupListResponse;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupMyResponse;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupRequest;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupResponse;
@@ -103,14 +104,14 @@ public class GroupService {
 
     // 모임 조회
     @Transactional(readOnly = true)
-    public List<GroupResponse> getGroups(
+    public List<GroupListResponse> getGroups(
         String category,
         String keyword,
         String sortBy,
         String userEmail
     ) {
         return groupRepository.findGroups(category, keyword, sortBy, userEmail).stream()
-            .map(this::convertToGroupResponse)
+            .map(GroupListResponse::convertToGroupList)
             .collect(Collectors.toList());
     }
 

@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.domain.group.controller;
 
+import com.grepp.funfun.app.domain.group.dto.payload.GroupListResponse;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupMyResponse;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupRequest;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupResponse;
@@ -83,8 +84,9 @@ public class GroupApiController {
             아무것도 넣지 않고, 검색하면 거리순
             """
     )
+    //todo: 페이지 네이션 필요
     // 통합 모임 조회 - 검색/필터링/정렬(최신순,조회순,거리순) -> default 거리순
-    public ResponseEntity<ApiResponse<List<GroupResponse>>> searchGroups(
+    public ResponseEntity<ApiResponse<List<GroupListResponse>>> searchGroups(
         @RequestParam(required = false) String category,
         @RequestParam(required = false) String keyword,
         @RequestParam(defaultValue = "distance") String sortBy,
