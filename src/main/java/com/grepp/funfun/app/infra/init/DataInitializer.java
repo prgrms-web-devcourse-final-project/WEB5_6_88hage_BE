@@ -11,9 +11,9 @@ public class DataInitializer {
 
     private final DataInitializeService dataInitializeService;
 
-    @EventListener(ApplicationReadyEvent.class)
-    public void init(){
-        dataInitializeService.initializeVector();
-    }
+//    @EventListener(ApplicationReadyEvent.class)
+//    public void init(){
+//        dataInitializeService.initializeVector();
+//    }
 
 }
