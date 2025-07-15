@@ -89,6 +89,7 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
         );
 
     }
+
     @Override
     public List<Group> findGroups(
         String category,
@@ -96,11 +97,8 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
         String sortBy,
         String userEmail
     ) {
-        // 공통 쿼리
         JPAQuery<Group> baseQuery = queryFactory
             .selectFrom(group)
-            .distinct()
-            .join(group.hashtags, hashtag).fetchJoin()
             .where(
                 group.activated.eq(true),
                 category != null ? group.category.eq(GroupClassification.valueOf(category)) : null,
@@ -122,7 +120,10 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
                         .where(user.email.eq(userEmail))
                         .fetchOne();
 
-                    if (currentUser != null) {
+                    if (currentUser != null &&
+                        currentUser.getLatitude() != null &&
+                        currentUser.getLongitude() != null) {
+
                         NumberExpression<Double> distance = Expressions.numberTemplate(Double.class,
                             "6371 * acos(" +
                                 "cos(radians({0})) * cos(radians({1})) * " +
@@ -138,7 +139,7 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
                             .fetch();
                     }
                 }
-                // 사용자 못 찾으면 최신순
+                // 사용자 못 찾거나 위치 정보 없으면 최신순
                 yield baseQuery.orderBy(group.createdAt.desc()).fetch();
             }
         };
