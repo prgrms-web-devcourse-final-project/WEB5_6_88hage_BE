@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -36,7 +37,7 @@ public class ParticipantApiController {
         return ResponseEntity.ok(ApiResponse.success(participants));
     }
 
-    // APPROVE MEMBER 사용자 데려오기
+    // APPROVE MEMBER 사용자 데려오기[강제퇴장을 위한]
     @GetMapping("/{groupId}/approve")
     @Operation(summary = "모임 승인 사용자 조회", description = "특정 GROUP 의 TRUE/APPROVE 상태의 사용자 조회")
     public ResponseEntity<ApiResponse<List<ParticipantResponse>>> approveParticipant(
@@ -53,14 +54,11 @@ public class ParticipantApiController {
         @PathVariable Long groupId,
         Authentication authentication) {
 
-        log.info("모임 신청 요청 - groupId: {}, user: {}", groupId, authentication.getName());
-
         try {
             String userEmail = authentication.getName();
             participantService.apply(groupId, userEmail);
             return ResponseEntity.ok(ApiResponse.success("모임 신청 완료되었습니다."));
         } catch (Exception e) {
-            log.error("모임 신청 실패: ", e);
             return ResponseEntity.badRequest()
                 .body(ApiResponse.error(ResponseCode.BAD_REQUEST, e.getMessage()));
         }
@@ -80,7 +78,6 @@ public class ParticipantApiController {
 
             return ResponseEntity.ok(ApiResponse.success("모임 승인 완료되었습니다."));
         } catch (Exception e) {
-            log.error("모임 승인 실패: ", e);
             return ResponseEntity.badRequest()
                 .body(ApiResponse.error(ResponseCode.BAD_REQUEST, e.getMessage()));
         }
@@ -101,7 +98,6 @@ public class ParticipantApiController {
 
             return ResponseEntity.ok(ApiResponse.success("모임 거절 완료되었습니다."));
         } catch (Exception e) {
-            log.error("모임 거절 실패: ", e);
             return ResponseEntity.badRequest()
                 .body(ApiResponse.error(ResponseCode.BAD_REQUEST, e.getMessage()));
         }
@@ -109,20 +105,19 @@ public class ParticipantApiController {
     }
 
     // 참여자 강퇴
-    @PostMapping("/{groupId}/{userEmail}/kickout")
+    @PostMapping("/{groupId}/kickout")
     @Operation(summary = "모임 참여자 강퇴", description = "모임 참여자를 강제퇴장")
     public ResponseEntity<ApiResponse<String>> kickoutParticipant(@PathVariable Long groupId,
-        @PathVariable String userEmail,
+        @RequestParam String targetEmail,
         Authentication authentication) {
 
         try {
             String leaderEmail = authentication.getName();
 
-            participantService.kickOut(groupId, userEmail, leaderEmail);
+            participantService.kickOut(groupId, targetEmail, leaderEmail);
 
             return ResponseEntity.ok(ApiResponse.success("모임 강제퇴장이 완료되었습니다."));
         } catch (Exception e) {
-            log.error("모임 강제퇴장 실패: ", e);
             return ResponseEntity.badRequest()
                 .body(ApiResponse.error(ResponseCode.BAD_REQUEST, e.getMessage()));
         }
@@ -141,7 +136,6 @@ public class ParticipantApiController {
 
             return ResponseEntity.ok(ApiResponse.success("모임 나가기가 완료되었습니다."));
         } catch (Exception e) {
-            log.error("모임 나가기 실패: ", e);
             return ResponseEntity.badRequest()
                 .body(ApiResponse.error(ResponseCode.BAD_REQUEST, e.getMessage()));
         }
