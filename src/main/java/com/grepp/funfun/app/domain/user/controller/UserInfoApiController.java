@@ -58,11 +58,10 @@ public class UserInfoApiController {
             - nickname: 닉네임<br>
             - introduction: 한 줄 소개<br>
             - imageUrl: 프로필 이미지 URL<br>
-            - hashtags: 해시태그 리스트<br>
+            - contentPreferences: 컨텐츠 취향<br>
+            - groupPreferences: 모임 취향<br>
             - followerCount: 팔로워 수<br>
             - followingCount: 팔로잉 수<br>
-            - groupLeadCount: 본인이 주최한 완료된 모임 수<br>
-            - groupJoinCount: 본인이 참여한 완료된 모임 수 (리더 제외)
             """
     )
     public ResponseEntity<ApiResponse<UserDetailResponse>> getUserDetail(

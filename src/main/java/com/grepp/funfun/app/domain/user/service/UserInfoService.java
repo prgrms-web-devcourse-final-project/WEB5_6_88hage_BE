@@ -1,8 +1,8 @@
 package com.grepp.funfun.app.domain.user.service;
 
 import com.grepp.funfun.app.delete.util.ReferencedWarning;
-import com.grepp.funfun.app.domain.group.service.GroupService;
-import com.grepp.funfun.app.domain.participant.service.ParticipantService;
+import com.grepp.funfun.app.domain.preference.dto.payload.PreferenceResponse;
+import com.grepp.funfun.app.domain.preference.service.PreferenceService;
 import com.grepp.funfun.app.domain.s3.service.S3FileService;
 import com.grepp.funfun.app.domain.social.service.FollowService;
 import com.grepp.funfun.app.domain.user.dto.UserInfoDTO;
@@ -15,7 +15,6 @@ import com.grepp.funfun.app.domain.user.repository.UserRepository;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -30,8 +29,7 @@ public class UserInfoService {
     private final UserRepository userRepository;
     private final S3FileService s3FileService;
     private final FollowService followService;
-    private final GroupService groupService;
-    private final ParticipantService participantService;
+    private final PreferenceService preferenceService;
 
     private User getUser(String email) {
         return userRepository.findById(email)
@@ -67,19 +65,17 @@ public class UserInfoService {
 
         long followerCount = followService.countFollowers(email);
         long followingCount = followService.countFollowings(email);
-
-        long groupLeadCount = groupService.countLeadGroupByEmail(email);
-        long groupJoinCount = participantService.countJoinGroupByEmail(email);
+        PreferenceResponse preferenceResponse = preferenceService.get(email);
 
         return UserDetailResponse.builder()
             .email(userInfo.getEmail())
             .nickname(user.getNickname())
             .introduction(userInfo.getIntroduction())
             .imageUrl(userInfo.getImageUrl())
+            .contentPreferences(preferenceResponse.getContentPreferences())
+            .groupPreferences(preferenceResponse.getGroupPreferences())
             .followerCount(followerCount)
             .followingCount(followingCount)
-            .groupLeadCount(groupLeadCount)
-            .groupJoinCount(groupJoinCount)
             .build();
     }
 
@@ -119,11 +115,6 @@ public class UserInfoService {
         userInfoDTO.setEmail(userInfo.getEmail());
         userInfoDTO.setImageUrl(userInfo.getImageUrl());
         userInfoDTO.setIntroduction(userInfo.getIntroduction());
-//        userInfoDTO.setHashtags(
-//            userInfo.getHashtags().stream()
-//                .map(UserHashtag::getTag)
-//                .toList()
-//        );
         return userInfoDTO;
     }
 
