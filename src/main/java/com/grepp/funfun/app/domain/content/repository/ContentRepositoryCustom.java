@@ -28,6 +28,5 @@ public interface ContentRepositoryCustom {
 
     List<Content> findByCategoryCategory(ContentClassification category);
 
-    @Query("SELECT c FROM Content c LEFT JOIN FETCH c.images WHERE c.id IN  :ids")
-    List<Content> findByIds(List<Long> Ids);
+    List<Content> findContentsByIdsWithAllRelations(List<Long> recommendIds);
 }

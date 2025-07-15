@@ -1,6 +1,7 @@
 package com.grepp.funfun.app.domain.content.service;
 
 import com.grepp.funfun.app.domain.content.dto.ContentUrlDTO;
+import com.grepp.funfun.app.domain.content.dto.ContentWithReasonDTO;
 import com.grepp.funfun.app.domain.content.dto.payload.ContentFilterRequest;
 import com.grepp.funfun.app.domain.bookmark.entity.ContentBookmark;
 import com.grepp.funfun.app.domain.bookmark.repository.ContentBookmarkRepository;
@@ -207,11 +208,47 @@ public class ContentService {
     }
 
     @Transactional(readOnly = true)
-    public List<Content> findByIds(List<Long> recommendIds) {
-        List<Content> contests = contentRepository.findByIds(recommendIds);
+    public List<ContentWithReasonDTO> findByIds(List<Long> recommendIds) {
+        List<Content> contents = contentRepository.findContentsByIdsWithAllRelations(recommendIds);
 
-        return contests;
+        return contents.stream().map(this::toReasonDTO).toList();
+
     }
+
+    private ContentWithReasonDTO toReasonDTO(Content content) {
+        return ContentWithReasonDTO.builder()
+                         .id(content.getId())
+                         .contentTitle(content.getContentTitle())
+                         .age(content.getAge())
+                         .startDate(content.getStartDate())
+                         .endDate(content.getEndDate())
+                         .fee(content.getFee())
+                         .address(content.getAddress())
+                         .guname(content.getGuname())
+                         .time(content.getTime())
+                         .runTime(content.getRunTime())
+                         .startTime(content.getStartTime())
+                         .poster(content.getPoster())
+                         .description(content.getDescription())
+                         .bookmarkCount(content.getBookmarkCount())
+                         .eventType(content.getEventType())
+                         .category(content.getCategory() != null ? content.getCategory().getCategory().name() : null)
+                         .images(content.getImages().stream()
+                                        .map(img -> ContentImageDTO.builder()
+                                                                   .id(img.getId())
+                                                                   .imageUrl(img.getImageUrl())
+                                                                   .build())
+                                        .toList())
+                         .urls(content.getUrls().stream()            // 추가: URLs 매핑
+                                      .map(url -> ContentUrlDTO.builder()
+                                                               .id(url.getId())
+                                                               .siteName(url.getSiteName())
+                                                               .url(url.getUrl())
+                                                               .build())
+                                      .toList())
+                         .build();
+    }
+
 
     private ContentDTO mapToDTO(final Content content, final ContentDTO contentDTO) {
         contentDTO.setId(content.getId());

@@ -1,3 +1,3 @@
 package com.grepp.funfun.app.domain.recommend.dto;
 
-public record RecommendDTO(String id, String title) {}
+public record RecommendDTO(String id, String title, String reason) {}
