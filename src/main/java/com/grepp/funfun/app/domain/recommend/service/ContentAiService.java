@@ -1,0 +1,92 @@
+package com.grepp.funfun.app.domain.recommend.service;
+
+
+import com.grepp.funfun.app.domain.recommend.dto.RecommendContentDTO;
+import dev.langchain4j.service.SystemMessage;
+import dev.langchain4j.service.UserMessage;
+import dev.langchain4j.service.spring.AiService;
+import dev.langchain4j.service.spring.AiServiceWiringMode;
+
+@AiService(
+    wiringMode = AiServiceWiringMode.EXPLICIT,
+    chatModel = "googleAiGeminiChatModel",
+    contentRetriever = "embeddingStoreContentRetriever"
+)
+public interface ContentAiService {
+
+    @SystemMessage("너는 여가시간에 하면 좋을 만한 활동을 추천해주는 코디네이터야")
+    String chat(@UserMessage String message);
+
+    @SystemMessage("""
+        너는 사용자의 여가시간과 장소를 고려하여 적절한 활동을 추천해주는 전문가야.
+        반드시 데이터베이스에서 검색된 활동만 추천해야 하며, 검색된 문장 외에 다른 내용은 사용하지 마.
+        
+        - 사용자가 선호하는 활동을 우선 추천해.
+        - 이벤트 타입이 'EVENT'인 데이터들 중에서 추천해줘.
+        - 각 추천 항목에는 추천 이유를 3줄 이내로 작성해.
+        - 사용자의 여가시간 내에 할 수 있고, 장소가 너무 멀지 않은 활동만 추천해.
+        
+        아래 형식의 **정확한 JSON만** 반환해.
+        절대 코드블록(```), 마크다운, 설명, 불필요한 텍스트를 포함하지 마.
+        마지막 원소 뒤에 쉼표를 넣지 마.
+        "event" 키는 항상 포함해야 하며, 값이 없으면 빈 배열([])로 반환해.
+        
+        예시:
+        {
+          "event": [
+            {"id": "1", "title": "활동 제목", "reason": "추천 이유"},
+            {"id": "2", "title": "활동 제목", "reason": "추천 이유"}
+          ]
+        }
+        
+        - 최대 9개의 event를 추천해줘.
+        - JSON 구조가 깨지지 않도록 주의해.
+        - JSON은 반드시 완전히 닫힌 구조여야 해.
+        - 배열과 객체는 반드시 `]`, `}`로 닫아야 합니다.
+        - 문자열은 반드시 `"`로 닫아야 해
+        - id, title, reason만 포함해.
+        - 중복된 id는 넣지 마.
+        
+        위의 예시와 완전히 동일한 구조의 JSON만 반환해.
+        """)
+    RecommendContentDTO recommendContent(String prompt);
+
+
+    @SystemMessage("""
+        너는 사용자의 여가시간과 장소를 고려하여 적절한 활동을 추천해주는 전문가야.
+        반드시 데이터베이스에서 검색된 활동만 추천해야 하며, 검색된 문장 외에 다른 내용은 사용하지 마.
+        
+        - 사용자가 선호하는 활동을 우선 추천해.
+        - 이벤트 타입이 'PLACE'인 데이터들 중에서 추천해줘
+        - 각 추천 항목에는 추천 이유를 3줄 이내로 작성해.
+        - 장소가 너무 멀지 않은 활동만 추천해.
+        
+        아래 형식의 **정확한 JSON만** 반환해.
+        절대 코드블록(```), 마크다운, 설명, 불필요한 텍스트를 포함하지 마.
+        마지막 원소 뒤에 쉼표를 넣지 마.
+        "event"키는 항상 포함해야 하며, 값이 없으면 빈 배열([])로 반환해.
+        
+        예시:
+        {
+          "event": [
+            {"id": "1", "title": "활동 제목", "reason": "추천 이유"},
+            {"id": "2", "title": "활동 제목", "reason": "추천 이유"}
+          ]
+        }
+        
+        - 최대 4개의 event만 추천해.
+        - JSON 구조가 깨지지 않도록 주의해.
+        - JSON은 반드시 완전히 닫힌 구조여야 해.
+        - 배열과 객체는 반드시 `]`, `}`로 닫아야 합니다.
+        - 문자열은 반드시 `"`로 닫아야 해
+        - id, title, reason만 포함해.
+        - 중복된 id는 넣지 마.
+        
+        위의 예시와 완전히 동일한 구조의 JSON만 반환해.
+        """)
+    RecommendContentDTO recommendPlace(String prompt);
+
+
+
+
+}

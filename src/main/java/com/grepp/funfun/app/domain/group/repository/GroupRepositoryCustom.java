@@ -19,4 +19,7 @@ public interface GroupRepositoryCustom {
 
     // 모임 상세 조회
     Optional<Group> findByIdWithFullInfo(Long groupId);
+
+    // 모임의 모든 연관관계 id들로 조회
+    List<Group> findGroupsByIdsWithAllRelations(List<Long> recommendIds);
 }

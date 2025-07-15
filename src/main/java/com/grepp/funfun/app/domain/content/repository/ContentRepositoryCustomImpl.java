@@ -1,5 +1,7 @@
 package com.grepp.funfun.app.domain.content.repository;
 
+import com.grepp.funfun.app.domain.content.entity.QContentImage;
+import com.grepp.funfun.app.domain.content.entity.QContentUrl;
 import com.grepp.funfun.app.domain.content.vo.ContentClassification;
 import com.grepp.funfun.app.domain.content.entity.Content;
 import com.grepp.funfun.app.domain.content.entity.QContent;
@@ -101,6 +103,18 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
                 .where(category.category.eq(categoryParam))
                 .fetch();
     }
+
+    @Override
+    public List<Content> findContentsByIdsWithAllRelations(List<Long> ids) {
+        return queryFactory
+            .selectFrom(content)
+            // @BatchSize 어노테이션이 LAZY 로딩 시 N+1 문제를 최적화
+            .leftJoin(content.category, category).fetchJoin() // ManyToOne인 category만 fetchJoin
+            .where(content.id.in(ids))
+            .distinct() // Content 엔티티 자체의 중복 제거
+            .fetch();
+    }
+
 
     private BooleanExpression categoryEq(ContentClassification categoryParam) {
         return categoryParam != null ? content.category.category.eq(categoryParam) : null;

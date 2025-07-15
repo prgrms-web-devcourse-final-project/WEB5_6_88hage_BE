@@ -1,7 +1,6 @@
 package com.grepp.funfun.app.domain.group.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.grepp.funfun.app.domain.chat.entity.GroupChatRoom;
 import com.grepp.funfun.app.domain.group.vo.GroupClassification;
 import com.grepp.funfun.app.domain.group.vo.GroupStatus;
 import com.grepp.funfun.app.domain.participant.entity.Participant;
@@ -19,7 +18,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,6 +26,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 
 @Entity
 @Getter
@@ -83,10 +82,12 @@ public class Group extends BaseEntity {
     @JoinColumn(name = "leader_id", nullable = false)
     private User leader;
 
+    @BatchSize(size = 10)
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Participant> participants;
 
-    @OneToMany(mappedBy = "group",cascade = CascadeType.ALL)
+    @BatchSize(size = 10)
+    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL)
     private List<GroupHashtag> hashtags;
 
     public void updateViewCount(Integer viewCount) {
@@ -98,4 +99,17 @@ public class Group extends BaseEntity {
         this.status = status;
     }
 
+    @Override
+    public String toString() {
+        return "Group{" +
+            "id=" + id +
+            ", 모임 주제는 '" + title + '\'' +
+            "이고 '" + explain + '\'' +
+            ", 모임 장소는 '" + placeName + '\'' +
+            "이고 정확한 주소는 '" + address + '\'' +
+            "입니다. 모임 진행 날짜와 시간은 " + groupDate +
+            "이며 모임은 " + during +
+            "분동안 활동을 진행하고 category는 " + category.getKoreanName() + "입니다." +
+            '}';
+    }
 }

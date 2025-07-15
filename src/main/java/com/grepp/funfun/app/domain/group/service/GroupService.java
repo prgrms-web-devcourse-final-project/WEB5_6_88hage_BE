@@ -1,6 +1,15 @@
 package com.grepp.funfun.app.domain.group.service;
 
 import com.grepp.funfun.app.delete.util.ReferencedWarning;
+import com.grepp.funfun.app.domain.chat.entity.GroupChatRoom;
+import com.grepp.funfun.app.domain.chat.vo.ChatRoomType;
+import com.grepp.funfun.app.domain.content.entity.Content;
+import com.grepp.funfun.app.domain.group.dto.GroupHashtagDTO;
+import com.grepp.funfun.app.domain.group.dto.GroupParticipantDTO;
+import com.grepp.funfun.app.domain.group.dto.GroupWithReasonDTO;
+import com.grepp.funfun.app.domain.group.dto.payload.GroupMyResponse;
+import com.grepp.funfun.app.domain.group.dto.payload.GroupRequest;
+import com.grepp.funfun.app.domain.group.dto.payload.GroupResponse;
 import com.grepp.funfun.app.domain.bookmark.entity.GroupBookmark;
 import com.grepp.funfun.app.domain.bookmark.repository.GroupBookmarkRepository;
 import com.grepp.funfun.app.domain.calendar.entity.Calendar;
@@ -389,4 +398,45 @@ public class GroupService {
         return null;
     }
 
+    @Transactional(readOnly = true)
+    public List<GroupWithReasonDTO> findByIds(List<Long> recommendIds) {
+        List<Group> groups = groupRepository.findGroupsByIdsWithAllRelations(recommendIds);
+
+        return groups.stream().map(this::mapToDTO).toList();
+    }
+
+    private GroupWithReasonDTO mapToDTO(final Group group) {
+        return GroupWithReasonDTO.builder()
+                            .id(group.getId())
+                            .title(group.getTitle())
+                            .explain(group.getExplain())
+                            .simpleExplain(group.getSimpleExplain())
+                            .placeName(group.getPlaceName())
+                            .address(group.getAddress())
+                            .groupDate(group.getGroupDate())
+                            .maxPeople(group.getMaxPeople())
+                            .nowPeople(group.getNowPeople())
+                            .imageUrl(group.getImageUrl())
+                            .status(group.getStatus())
+                            .latitude(group.getLatitude())
+                            .longitude(group.getLongitude())
+                            .during(group.getDuring())
+                            .category(group.getCategory())
+                            .leader(group.getLeader().getNickname())
+                                 .participants(group.getParticipants().stream()
+                                                    .map(participant -> GroupParticipantDTO.builder()
+                                                                                           .id(participant.getId())
+                                                                                           .role(participant.getRole())
+                                                                                           .status(participant.getStatus())
+                                                                                           .build())
+                                                    .collect(Collectors.toList()))
+                                 .hashtags(group.getHashtags().stream()
+                                                .map(hashtag -> GroupHashtagDTO.builder()
+                                                                               .id(hashtag.getId())
+                                                                               .tag(hashtag.getTag())
+                                                                               .group(hashtag.getGroup().getId()) // Group 엔티티의 ID
+                                                                               .build())
+                                                .collect(Collectors.toList()))
+                            .build();
+    }
 }
