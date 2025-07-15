@@ -39,9 +39,6 @@ public class UserInfoApiController {
               - false: 서버는 이미지 변경을 무시합니다.
             
             • introduction: 사용자 한 줄 소개 텍스트
-            
-            • hashTags: 같은 키로 여러 번 전달해야 합니다.
-              - 예시: hashTags=여행, hashTags=음악, hashTags=커피
             """
     )
     public ResponseEntity<ApiResponse<String>> updateProfile(

@@ -1,7 +1,6 @@
 package com.grepp.funfun.app.domain.user.dto.payload;
 
 import jakarta.validation.constraints.NotNull;
-import java.util.List;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,6 +13,4 @@ public class ProfileRequest {
     private boolean imageChanged;
 
     private String introduction;
-
-    private List<String> hashTags;
 }

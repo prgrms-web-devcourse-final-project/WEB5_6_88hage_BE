@@ -9,9 +9,7 @@ import com.grepp.funfun.app.domain.user.dto.UserInfoDTO;
 import com.grepp.funfun.app.domain.user.dto.payload.ProfileRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.UserDetailResponse;
 import com.grepp.funfun.app.domain.user.entity.User;
-import com.grepp.funfun.app.domain.user.entity.UserHashtag;
 import com.grepp.funfun.app.domain.user.entity.UserInfo;
-import com.grepp.funfun.app.domain.user.repository.UserHashtagRepository;
 import com.grepp.funfun.app.domain.user.repository.UserInfoRepository;
 import com.grepp.funfun.app.domain.user.repository.UserRepository;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
@@ -30,7 +28,6 @@ public class UserInfoService {
 
     private final UserInfoRepository userInfoRepository;
     private final UserRepository userRepository;
-    private final UserHashtagRepository userHashtagRepository;
     private final S3FileService s3FileService;
     private final FollowService followService;
     private final GroupService groupService;
@@ -50,15 +47,7 @@ public class UserInfoService {
         // 1. 소개글 변경
         userInfo.setIntroduction(request.getIntroduction());
 
-        // 2. 해시태그 변경 (전체 삭제 후 재등록)
-        userHashtagRepository.deleteByInfoEmail(email);
-        List<UserHashtag> newTags = Optional.ofNullable(request.getHashTags())
-            .orElse(List.of()).stream()
-            .map(tag -> UserHashtag.builder().info(userInfo).tag(tag).build())
-            .toList();
-        userHashtagRepository.saveAll(newTags);
-
-        // 3. 이미지 처리
+        // 2. 이미지 처리
         if (request.isImageChanged()) {
             if (request.getImage() != null && !request.getImage().isEmpty()) {
                 // 새 이미지 업로드
@@ -87,7 +76,6 @@ public class UserInfoService {
             .nickname(user.getNickname())
             .introduction(userInfo.getIntroduction())
             .imageUrl(userInfo.getImageUrl())
-            .hashtags(userInfo.getHashtags().stream().map(UserHashtag::getTag).toList())
             .followerCount(followerCount)
             .followingCount(followingCount)
             .groupLeadCount(groupLeadCount)
@@ -131,11 +119,11 @@ public class UserInfoService {
         userInfoDTO.setEmail(userInfo.getEmail());
         userInfoDTO.setImageUrl(userInfo.getImageUrl());
         userInfoDTO.setIntroduction(userInfo.getIntroduction());
-        userInfoDTO.setHashtags(
-            userInfo.getHashtags().stream()
-                .map(UserHashtag::getTag)
-                .toList()
-        );
+//        userInfoDTO.setHashtags(
+//            userInfo.getHashtags().stream()
+//                .map(UserHashtag::getTag)
+//                .toList()
+//        );
         return userInfoDTO;
     }
 
