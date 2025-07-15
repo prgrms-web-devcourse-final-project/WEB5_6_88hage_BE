@@ -31,9 +31,9 @@
                             <td>[[${report.id}]]</td>
                             <td>[[${report.reason}]]</td>
                             <td>[[${report.type}]]</td>
-                            <td>[[${report.contentId}]]</td>
-                            <td>[[${report.reportingMember}]]</td>
-                            <td>[[${report.reportedMember}]]</td>
+                            <td>[[${report.targetId}]]</td>
+                            <td>[[${report.reportingUser}]]</td>
+                            <td>[[${report.reportedUser}]]</td>
                             <td>
                                 <div class="float-end text-nowrap">
                                     <a th:href="@{/reports/edit/{id}(id=${report.id})}" class="btn btn-sm btn-secondary">[[#{report.list.edit}]]</a>

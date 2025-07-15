@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.domain.group.service;
 
+import com.grepp.funfun.app.delete.util.ReferencedWarning;
 import com.grepp.funfun.app.domain.chat.entity.GroupChatRoom;
 import com.grepp.funfun.app.domain.chat.vo.ChatRoomType;
 import com.grepp.funfun.app.domain.content.entity.Content;
@@ -14,28 +15,35 @@ import com.grepp.funfun.app.domain.bookmark.repository.GroupBookmarkRepository;
 import com.grepp.funfun.app.domain.calendar.entity.Calendar;
 import com.grepp.funfun.app.domain.calendar.repository.CalendarRepository;
 import com.grepp.funfun.app.domain.calendar.service.CalendarService;
+import com.grepp.funfun.app.domain.chat.entity.GroupChatRoom;
 import com.grepp.funfun.app.domain.chat.repository.GroupChatRoomRepository;
-import com.grepp.funfun.app.domain.group.vo.GroupStatus;
-import com.grepp.funfun.app.domain.group.dto.GroupDTO;
+import com.grepp.funfun.app.domain.chat.vo.ChatRoomType;
+import com.grepp.funfun.app.domain.group.dto.payload.GroupMyResponse;
+import com.grepp.funfun.app.domain.group.dto.payload.GroupRequest;
+import com.grepp.funfun.app.domain.group.dto.payload.GroupResponse;
 import com.grepp.funfun.app.domain.group.entity.Group;
 import com.grepp.funfun.app.domain.group.entity.GroupHashtag;
 import com.grepp.funfun.app.domain.group.repository.GroupHashtagRepository;
 import com.grepp.funfun.app.domain.group.repository.GroupRepository;
-import com.grepp.funfun.app.domain.participant.vo.ParticipantRole;
-import com.grepp.funfun.app.domain.participant.vo.ParticipantStatus;
+import com.grepp.funfun.app.domain.group.vo.GroupStatus;
 import com.grepp.funfun.app.domain.participant.entity.Participant;
 import com.grepp.funfun.app.domain.participant.repository.ParticipantRepository;
+import com.grepp.funfun.app.domain.participant.vo.ParticipantRole;
+import com.grepp.funfun.app.domain.participant.vo.ParticipantStatus;
+import com.grepp.funfun.app.domain.s3.service.S3FileService;
 import com.grepp.funfun.app.domain.user.entity.User;
 import com.grepp.funfun.app.domain.user.repository.UserRepository;
 import com.grepp.funfun.app.domain.user.vo.UserStatus;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
-import com.grepp.funfun.app.delete.util.ReferencedWarning;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,6 +61,8 @@ public class GroupService {
     private final CalendarRepository calendarRepository;
     private final GroupHashtagRepository groupHashtagRepository;
     private final CalendarService calendarService;
+    private final RedisTemplate<String, String> redisTemplate;
+    private final S3FileService s3FileService;
 
 
     // 모든 모임 조회
@@ -62,18 +72,53 @@ public class GroupService {
             .map(this::convertToGroupResponse)
             .toList();
     }
+
     // 모임 상세 조회
     @Transactional(readOnly = true)
-    public GroupResponse get(final Long groupId) {
+    public GroupResponse get(final Long groupId, String userEmail) {
+        increaseViewCountIfNotCounted(groupId, userEmail);
         return groupRepository.findByIdWithFullInfo(groupId)
             .map(this::convertToGroupResponse)
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
     }
 
-    //모임 조회(최신순)
+    //조회수 redis[중복 방지]
+    public void increaseViewCountIfNotCounted(Long groupId, String userEmail) {
+
+        if (userEmail == null || userEmail.trim().isEmpty()) {
+            return;
+        }
+
+        String key = "group:viewCount:" + groupId + ":user:" + userEmail;
+
+        boolean isCounted = redisTemplate.hasKey(key);
+        if (!isCounted) {
+            // 조회수 증가
+            redisTemplate.opsForValue().increment("group:" + groupId + ":viewCount");
+
+            // 현재 시간
+            LocalDateTime now = LocalDateTime.now();
+
+            // 다음 자정
+            LocalDateTime nextMidnight = now.toLocalDate().plusDays(1).atStartOfDay();
+
+            // 자정까지 남은 초
+            long secondsUntilMidnight = Duration.between(now, nextMidnight).getSeconds();
+
+            // 자정까지 TTL 설정
+            redisTemplate.opsForValue().set(key, "1", Duration.ofSeconds(secondsUntilMidnight));
+        }
+    }
+
+    // 모임 조회
     @Transactional(readOnly = true)
-    public List<GroupResponse> getRecentGroups(){
-        return groupRepository.findActiveRecentGroups().stream()
+    public List<GroupResponse> getGroups(
+        String category,
+        String keyword,
+        String sortBy,
+        String userEmail
+    ) {
+        return groupRepository.findGroups(category, keyword, sortBy, userEmail).stream()
             .map(this::convertToGroupResponse)
             .collect(Collectors.toList());
     }
@@ -86,24 +131,10 @@ public class GroupService {
             .collect(Collectors.toList());
     }
 
-    // 모임 조회(가까운 순)
+    // 내가 리더인 모임 조회
     @Transactional(readOnly = true)
-    public List<GroupResponse> findNearGroups(String userEmail) {
-
-        User user = userRepository.findByEmail(userEmail);
-        if (user == null) throw new CommonException(ResponseCode.NOT_FOUND);
-
-        return groupRepository.findNearbyGroups(user.getLatitude(),user.getLongitude()).stream()
-            .map(this::convertToGroupResponse)
-            .collect(Collectors.toList());
-    }
-
-
-    // 모임 조회(키워드)
-    @Transactional(readOnly = true)
-    public List<GroupResponse> findByKeyword(String keyword) {
-
-        return groupRepository.findGroupsByKeyword(keyword).stream()
+    public List<GroupResponse> findMyLeaderGroups(String userEmail) {
+        return groupRepository.findByLeaderEmail(userEmail).stream()
             .map(this::convertToGroupResponse)
             .collect(Collectors.toList());
     }
@@ -112,19 +143,19 @@ public class GroupService {
     @Transactional
     public void create(String leaderEmail, GroupRequest request) {
 
-        User leader = userRepository.findByEmail(leaderEmail);
-
-        if (leader == null) throw new CommonException(ResponseCode.NOT_FOUND);
-        if(leader.getStatus() == UserStatus.SUSPENDED || leader.getStatus() == UserStatus.BANNED) {
-            throw new CommonException(ResponseCode.UNAUTHORIZED);
+        User leader = validateUser(leaderEmail);
+        // S3에 이미지 업로드
+        String imageUrl = null;
+        if (request.getImage() != null && !request.getImage().isEmpty()) {
+            imageUrl = s3FileService.upload(request.getImage(), "groups");
         }
-        Group savedGroup = groupRepository.save(request.toEntity(leader));
+
+        Group savedGroup = groupRepository.save(request.mapToCreate(leader, imageUrl));
 
         // 해시태그
         if (request.getHashTags() != null && !request.getHashTags().isEmpty()) {
             List<GroupHashtag> hashTags = request.getHashTags().stream()
                 .map(tagName -> {
-                    System.out.println("저장할 태그: '" + tagName + "'"); // 이것도 추가
                     GroupHashtag hashTag = new GroupHashtag();
                     hashTag.setTag(tagName);
                     hashTag.setGroup(savedGroup);
@@ -147,7 +178,7 @@ public class GroupService {
         GroupChatRoom groupChatRoom = GroupChatRoom.builder()
             .groupId(savedGroup.getId())
             .status(ChatRoomType.GROUP_CHAT)
-            .name(savedGroup.getId()+"번 그룹 채팅방")
+            .name(savedGroup.getId() + "번 그룹 채팅방")
             .build();
 
         groupChatRoomRepository.save(groupChatRoom);
@@ -159,46 +190,33 @@ public class GroupService {
     // 모임 수정
     @Transactional
     public void update(Long groupId, String leaderEmail, GroupRequest updateRequest) {
-        Group group = groupWithLeaderValidation(groupId, leaderEmail);
+        Group group = validateGroupWithLeader(groupId,leaderEmail);
 
-        //Builder 패턴으로 내용 수정하고 다시 저장하기
-        group.setTitle(updateRequest.getTitle());
-        group.setExplain(updateRequest.getExplain());
-        group.setSimpleExplain(updateRequest.getSimpleExplain());
-        group.setPlaceName(updateRequest.getPlaceName());
-        group.setGroupDate(updateRequest.getGroupDate());
-        group.setAddress(updateRequest.getAddress());
-        group.setCategory(updateRequest.getCategory());
-        group.setMaxPeople(updateRequest.getMaxPeople());
-        group.setLatitude(updateRequest.getLatitude());
-        group.setLongitude(updateRequest.getLongitude());
-        group.setDuring(updateRequest.getDuring());
+        // 이미지 변경
+        String newImageUrl = null;
+        if (updateRequest.getImage() != null && !updateRequest.getImage().isEmpty()) {
+            newImageUrl = s3FileService.upload(updateRequest.getImage(), "groups");
+        }
 
-        // 재설정
-        group.getHashtags().clear();
-        List<GroupHashtag> hashtags = updateRequest.getHashTags().stream()
-            .map(hashtagName -> GroupHashtag.builder()
-                .tag(hashtagName)
-                .group(group)
-                .build())
-            .collect(Collectors.toList());
-        group.setHashtags(hashtags);
+        // 모임 변경 사항 저장
+        Group updatedGroup = updateRequest.mapToUpdate(group, newImageUrl);
+        Group savedGroup = groupRepository.save(updatedGroup);
 
+        // 해시태그 설정
+        updateHashtags(savedGroup, updateRequest.getHashTags());
     }
 
     // 모임 삭제
     @Transactional
     public void delete(Long groupId, String leaderEmail) {
-        Group group = groupWithLeaderValidation(groupId, leaderEmail);
+        Group group = validateGroupWithLeader(groupId,leaderEmail);
 
         // 소프트 삭제 방식으로 -> false / DELETE 로 변경
-        group.unActivated();
-        group.setStatus(GroupStatus.DELETE);
+        group.changeStatusAndActivated(GroupStatus.DELETE);
 
         // 관련 멤버들 active - false / status - GROUP_DELETED
         for (Participant participant : group.getParticipants()) {
-            participant.unActivated();
-            participant.setStatus(ParticipantStatus.GROUP_DELETED);
+            participant.changeStatusAndActivated(ParticipantStatus.GROUP_DELETED);
         }
 
         // 해당 모임 id 의 일정들 삭제
@@ -208,16 +226,14 @@ public class GroupService {
     //모임 취소
     @Transactional
     public void cancel(Long groupId, String leaderEmail) {
-        Group group = groupWithLeaderValidation(groupId, leaderEmail);
+        Group group = validateGroupWithLeader(groupId,leaderEmail);
 
         // 소프트 삭제 방식으로 -> false / CANCEL 로 변경
-        group.unActivated();
-        group.setStatus(GroupStatus.CANCELED);
+        group.changeStatusAndActivated(GroupStatus.CANCELED);
 
         // 관련 멤버들 active - false / status - GROUP_CANCELED
         for (Participant participant : group.getParticipants()) {
-            participant.unActivated();
-            participant.setStatus(ParticipantStatus.GROUP_CANCELED);
+            participant.changeStatusAndActivated(ParticipantStatus.GROUP_CANCELED);
         }
 
         // 해당 모임 id 의 일정들 삭제
@@ -227,14 +243,13 @@ public class GroupService {
     // 모임 완료
     @Transactional
     public void complete(Long groupId, String leaderEmail) {
-        Group group = groupWithLeaderValidation(groupId, leaderEmail);
+        Group group = validateGroupWithLeader(groupId,leaderEmail);
 
         if (!Arrays.asList(GroupStatus.FULL, GroupStatus.RECRUITING).contains(group.getStatus())) {
             throw new IllegalStateException("완료할 수 없는 모임 상태입니다.");
         }
 
-        group.unActivated();
-        group.setStatus(GroupStatus.COMPLETED);
+        group.changeStatusAndActivated(GroupStatus.COMPLETED);
 
         // 관련 멤버들 active - false / status - GROUP_CANCELED
         for (Participant participant : group.getParticipants()) {
@@ -243,23 +258,36 @@ public class GroupService {
         }
 
     }
-    // 그룹에 리더이자 사용자 false 상태 확인 코드(중복 코드 대체)
-    //todo 검증 코드
-    private Group groupWithLeaderValidation(Long groupId, String leaderEmail) {
-        // 그룹 존재 확인
-        Group group = groupRepository.findById(groupId)
-            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
 
-        // 리더인지 확인
-        User leader = group.getLeader();
-        if (!leader.getEmail().equals(leaderEmail)) {
+    // 그룹 확인 및 사용자 검증
+    private Group validateGroupWithLeader(Long groupId, String userEmail) {
+        Group group = validateGroup(groupId);
+        User user = validateUser(userEmail);
+
+        if (!group.getLeader().getEmail().equals(user.getEmail())) {
             throw new CommonException(ResponseCode.UNAUTHORIZED);
         }
-        // 사용자로 false (정지 당한 사람이 아닌지)
-        if (leader.getStatus() == UserStatus.SUSPENDED || leader.getStatus() == UserStatus.BANNED) {
-            throw new CommonException(ResponseCode.UNAUTHORIZED);
-        }
+
         return group;
+    }
+
+    // 그룹 존재 확인
+    private Group validateGroup(Long groupId) {
+        return groupRepository.findById(groupId)
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+    }
+
+    // 사용자 검증
+    private User validateUser(String userEmail) {
+        User user = userRepository.findByEmail(userEmail);
+        if (user == null) {
+            throw new CommonException(ResponseCode.NOT_FOUND);
+        }
+
+        if (user.getStatus() == UserStatus.SUSPENDED || user.getStatus() == UserStatus.BANNED) {
+            throw new CommonException(ResponseCode.UNAUTHORIZED);
+        }
+        return user;
     }
 
     private GroupMyResponse convertToGroupMyResponse(Group group, String userEmail) {
@@ -298,6 +326,20 @@ public class GroupService {
         return groupRepository.countByLeaderEmailAndStatus(email, GroupStatus.COMPLETED);
     }
 
+    private void updateHashtags(Group group, List<String> newHashTags) {
+        groupHashtagRepository.deleteByGroup(group);
+
+        if (newHashTags != null && !newHashTags.isEmpty()) {
+            List<GroupHashtag> hashtags = newHashTags.stream()
+                .map(tagName -> GroupHashtag.builder()
+                    .tag(tagName)
+                    .group(group)
+                    .build())
+                .collect(Collectors.toList());
+            groupHashtagRepository.saveAll(hashtags);
+        }
+    }
+
     private GroupResponse convertToGroupResponse(Group group) {
         return GroupResponse.builder()
             .id(group.getId())
@@ -307,6 +349,8 @@ public class GroupService {
             .placeName(group.getPlaceName())
             .address(group.getAddress())
             .groupDate(group.getGroupDate())
+            .createdAt(group.getCreatedAt())
+            .viewCount(group.getViewCount())
             .maxPeople(group.getMaxPeople())
             .nowPeople(group.getNowPeople())
             .status(group.getStatus())
@@ -315,31 +359,12 @@ public class GroupService {
             .during(group.getDuring())
             .category(group.getCategory())
             .activated(group.getActivated())
-            .leader(group.getLeader().getNickname())
+            .leaderNickname(group.getLeader().getNickname())
+            .leaderEmail(group.getLeader().getEmail())
             .hashTags(group.getHashtags().stream()
                 .map(GroupHashtag::getTag)
                 .collect(Collectors.toList()))
             .build();
-    }
-
-    private Group mapToEntity(final GroupDTO groupDTO, final Group group) {
-        group.setTitle(groupDTO.getTitle());
-        group.setExplain(groupDTO.getExplain());
-        group.setPlaceName(groupDTO.getPlaceName());
-        group.setAddress(groupDTO.getAddress());
-        group.setGroupDate(groupDTO.getGroupDate());
-        group.setMaxPeople(groupDTO.getMaxPeople());
-        group.setNowPeople(groupDTO.getNowPeople());
-        group.setStatus(groupDTO.getStatus());
-        group.setLatitude(groupDTO.getLatitude());
-        group.setLongitude(groupDTO.getLongitude());
-        group.setDuring(groupDTO.getDuring());
-        group.setCategory(groupDTO.getCategory());
-        final User leader =
-            groupDTO.getLeader() == null ? null : userRepository.findById(groupDTO.getLeader())
-                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        group.setLeader(leader);
-        return group;
     }
 
     public ReferencedWarning getReferencedWarning(final Long id) {

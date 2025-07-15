@@ -25,14 +25,14 @@ public class UserInfoApiController {
 
     private final UserInfoService userInfoService;
 
-    @PutMapping
+    @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
         summary = "프로필 수정",
         description = """
             아래와 같은 형식으로 multipart/form-data 요청을 전송해 주세요.
             
             • image: 프로필 이미지 파일 (예: PNG, JPG 등 이미지 파일만 업로드 가능하게 해주세요.)
-              - Swagger 에서는 이미지 업로드 테스트가 어려우므로 Postman 으로 테스트하는 것을 권장합니다.
+              - 3MB 이하의 파일만 업로드 가능합니다.
             
             • imageChanged: 이미지 변경 여부 (true/false)
               - true: 이미지가 업로드되거나 삭제됩니다.

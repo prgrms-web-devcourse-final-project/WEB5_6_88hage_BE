@@ -12,4 +12,6 @@ public interface GroupRepository extends JpaRepository<Group, Long>, GroupReposi
     Group findFirstByLeader(User user);
 
     long countByLeaderEmailAndStatus(String email, GroupStatus groupStatus);
+
+    List<Group> findByLeaderEmail(String email);
 }

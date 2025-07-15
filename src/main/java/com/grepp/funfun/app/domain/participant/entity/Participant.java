@@ -47,4 +47,9 @@ public class Participant extends BaseEntity {
     @JoinColumn(name = "group_id", nullable = false)
     private Group group;
 
+    public void changeStatusAndActivated(ParticipantStatus status) {
+        this.unActivated();
+        this.status = status;
+    }
+
 }

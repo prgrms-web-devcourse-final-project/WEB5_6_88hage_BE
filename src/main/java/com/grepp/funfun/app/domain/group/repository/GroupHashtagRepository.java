@@ -9,4 +9,5 @@ public interface GroupHashtagRepository extends JpaRepository<GroupHashtag, Long
 
     GroupHashtag findFirstByGroup(Group group);
 
+    void deleteByGroup(Group group);
 }

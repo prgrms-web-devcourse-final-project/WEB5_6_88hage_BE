@@ -13,6 +13,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 @Slf4j
@@ -33,6 +35,7 @@ public class GroupRequest {
     private String placeName;
 
     @NotNull(message="모임 시간은 필수입니다.")
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDateTime groupDate;
 
     //모임 주소
@@ -54,15 +57,40 @@ public class GroupRequest {
     @NotNull(message = "경도는 필수입니다.")
     private Double longitude;
 
+    private MultipartFile image;
+
     @NotEmpty(message="해시태그는 1개 이상 선택해야합니다.")
     private List<String> hashTags;
 
     @Min(value = 1, message = "최소 1시간 이상이어야 합니다.")  // message 추가
     private Integer during;
 
-    public Group toEntity(User leader){
+    public Group mapToCreate(User leader, String imageUrl) {
         return Group.builder()
             .leader(leader)
+            .title(this.title)
+            .explain(this.explain)
+            .simpleExplain(this.simpleExplain)
+            .placeName(this.placeName)
+            .groupDate(this.groupDate)
+            .viewCount(0)
+            .address(this.address)
+            .category(this.category)
+            .maxPeople(this.maxPeople)
+            .nowPeople(1)
+            .imageUrl(imageUrl)
+            .status(GroupStatus.RECRUITING)
+            .latitude(this.latitude)
+            .longitude(this.longitude)
+            .during(this.during)
+            .build();
+    }
+
+    // 수정용 메서드
+    public Group mapToUpdate(Group existingGroup, String newImageUrl) {
+        return Group.builder()
+            .id(existingGroup.getId())
+            .leader(existingGroup.getLeader())
             .title(this.title)
             .explain(this.explain)
             .simpleExplain(this.simpleExplain)
@@ -71,12 +99,14 @@ public class GroupRequest {
             .address(this.address)
             .category(this.category)
             .maxPeople(this.maxPeople)
-            .nowPeople(1)
-            .status(GroupStatus.RECRUITING)
             .latitude(this.latitude)
             .longitude(this.longitude)
             .during(this.during)
+            .imageUrl(newImageUrl != null ? newImageUrl : existingGroup.getImageUrl())
+            .viewCount(existingGroup.getViewCount())
+            .nowPeople(existingGroup.getNowPeople())
+            .status(existingGroup.getStatus())
             .build();
     }
-
 }
+

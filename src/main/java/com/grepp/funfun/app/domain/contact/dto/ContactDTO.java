@@ -1,9 +1,11 @@
 package com.grepp.funfun.app.domain.contact.dto;
 
+import com.grepp.funfun.app.domain.contact.vo.ContactCategory;
 import com.grepp.funfun.app.domain.contact.vo.ContactStatus;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -31,4 +33,7 @@ public class ContactDTO {
     @Size(max = 255)
     private String user;
 
+    private ContactCategory category;
+
+    private List<String> imageUrls;
 }

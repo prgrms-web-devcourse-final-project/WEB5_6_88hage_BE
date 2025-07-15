@@ -4,8 +4,7 @@ package com.grepp.funfun.app.domain.report.vo;
 public enum ReportType {
 
     CHAT("채팅"),
-    POST("게시글"),
-    MESSAGE("쪽지");
+    POST("게시글");
 
     private final String koreanName;
 

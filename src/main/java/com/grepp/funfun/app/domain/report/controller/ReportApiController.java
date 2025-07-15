@@ -1,18 +1,14 @@
 package com.grepp.funfun.app.domain.report.controller;
 
-import com.grepp.funfun.app.domain.report.dto.ReportDTO;
+import com.grepp.funfun.app.domain.report.dto.payload.ReportRequest;
 import com.grepp.funfun.app.domain.report.service.ReportService;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import jakarta.validation.Valid;
-import java.util.List;
-import org.springframework.http.HttpStatus;
+import com.grepp.funfun.app.infra.response.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,43 +16,17 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping(value = "/api/reports", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequiredArgsConstructor
 public class ReportApiController {
 
     private final ReportService reportService;
 
-    public ReportApiController(final ReportService reportService) {
-        this.reportService = reportService;
-    }
-
-    @GetMapping
-    public ResponseEntity<List<ReportDTO>> getAllReports() {
-        return ResponseEntity.ok(reportService.findAll());
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<ReportDTO> getReport(@PathVariable(name = "id") final Long id) {
-        return ResponseEntity.ok(reportService.get(id));
-    }
-
     @PostMapping
-    @ApiResponse(responseCode = "201")
-    public ResponseEntity<Long> createReport(@RequestBody @Valid final ReportDTO reportDTO) {
-        final Long createdId = reportService.create(reportDTO);
-        return new ResponseEntity<>(createdId, HttpStatus.CREATED);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Long> updateReport(@PathVariable(name = "id") final Long id,
-            @RequestBody @Valid final ReportDTO reportDTO) {
-        reportService.update(id, reportDTO);
-        return ResponseEntity.ok(id);
-    }
-
-    @DeleteMapping("/{id}")
-    @ApiResponse(responseCode = "204")
-    public ResponseEntity<Void> deleteReport(@PathVariable(name = "id") final Long id) {
-        reportService.delete(id);
-        return ResponseEntity.noContent().build();
+    @Operation(summary = "신고하기", description = "부적절한 모임 게시글이나 채팅을 신고합니다.")
+    public ResponseEntity<ApiResponse<String>> createReport(@RequestBody ReportRequest reportRequest, Authentication authentication) {
+        String email = authentication.getName();
+        reportService.create(email, reportRequest);
+        return ResponseEntity.ok(ApiResponse.success("정상적으로 신고되었습니다."));
     }
 
 }

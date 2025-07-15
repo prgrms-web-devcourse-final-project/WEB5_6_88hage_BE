@@ -110,4 +110,14 @@ public class Content extends BaseEntity {
             "이고 카테고리는 " + category.getCategory().getKoreanName() +
             '}';
     }
+    public void increaseBookmark() {
+        this.bookmarkCount++;
+    }
+
+    public void decreaseBookmark() {
+        if (this.bookmarkCount > 0) {
+            this.bookmarkCount--;
+        }
+    }
+
 }

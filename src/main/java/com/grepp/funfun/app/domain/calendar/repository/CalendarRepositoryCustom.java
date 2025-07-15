@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.domain.calendar.repository;
 
+import com.grepp.funfun.app.domain.calendar.dto.payload.CalendarContentResponse;
 import com.grepp.funfun.app.domain.calendar.dto.payload.CalendarDailyResponse;
 import com.grepp.funfun.app.domain.calendar.dto.payload.CalendarMonthlyResponse;
 import java.time.LocalDateTime;
@@ -12,4 +13,5 @@ public interface CalendarRepositoryCustom {
     List<CalendarMonthlyResponse> findMonthlyGroupCalendars(String email, LocalDateTime start, LocalDateTime end);
     List<CalendarDailyResponse> findDailyContentCalendars(String email, LocalDateTime start, LocalDateTime end);
     List<CalendarDailyResponse> findDailyGroupCalendars(String email, LocalDateTime start, LocalDateTime end);
+    List<CalendarContentResponse> findContentByEmail(String email);
 }
