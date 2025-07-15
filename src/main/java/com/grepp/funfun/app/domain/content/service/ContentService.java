@@ -40,6 +40,7 @@ public class ContentService {
     private final CalendarRepository calendarRepository;
     private final UserService userService;
 
+    @Transactional
     public ContentDTO getContents(final Long id) {
         Content content = contentRepository.findByIdWithCategory(id)
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
@@ -195,6 +196,7 @@ public class ContentService {
                 .endDate(content.getEndDate())
                 .fee(content.getFee())
                 .address(content.getAddress())
+                .area(content.getArea())
                 .guname(content.getGuname())
                 .time(content.getTime())
                 .runTime(content.getRunTime())
