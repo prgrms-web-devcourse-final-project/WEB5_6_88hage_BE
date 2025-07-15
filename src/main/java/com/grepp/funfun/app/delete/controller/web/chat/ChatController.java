@@ -72,6 +72,12 @@ public class ChatController {
         return "chat/groupChat";
     }
 
+    @GetMapping("/autoSearch")
+    public String autoSearch(Model model,String keyword) {
+        model.addAttribute("keyword", keyword);
+        return "chat/autoSearch";
+    }
+
     @GetMapping("/personalChat")
     public String PersonalChat(Authentication authentication, Model model) {
         String userEmail = authentication.getName();

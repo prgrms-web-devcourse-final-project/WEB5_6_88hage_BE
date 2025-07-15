@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>모임 검색 자동완성 테스트</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      padding: 40px;
+      text-align: center;
+      color: white;
+    }
+
+    .header h1 {
+      font-size: 2.2em;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .header p {
+      font-size: 1.1em;
+      opacity: 0.9;
+    }
+
+    .search-section {
+      padding: 40px;
+    }
+
+    .search-container {
+      position: relative;
+      margin-bottom: 30px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 20px 60px 20px 25px;
+      border: 3px solid #e8ecf4;
+      border-radius: 15px;
+      font-size: 18px;
+      transition: all 0.3s ease;
+      outline: none;
+      background: #f8f9ff;
+    }
+
+    .search-input:focus {
+      border-color: #4facfe;
+      box-shadow: 0 0 25px rgba(79, 172, 254, 0.4);
+      background: white;
+    }
+
+    .search-icon {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 24px;
+      color: #666;
+    }
+
+    .autocomplete-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 2px solid #e8ecf4;
+      border-radius: 15px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+      z-index: 1000;
+      max-height: 350px;
+      overflow-y: auto;
+      margin-top: 8px;
+      display: none;
+    }
+
+    .autocomplete-item {
+      padding: 18px 25px;
+      cursor: pointer;
+      border-bottom: 1px solid #f5f6fa;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      font-size: 16px;
+    }
+
+    .autocomplete-item:hover {
+      background: linear-gradient(135deg, #f8f9ff 0%, #e8f4ff 100%);
+      color: #4facfe;
+      transform: translateX(5px);
+    }
+
+    .autocomplete-item:last-child {
+      border-bottom: none;
+    }
+
+    .autocomplete-icon {
+      margin-right: 15px;
+      font-size: 20px;
+      width: 25px;
+      text-align: center;
+    }
+
+    .autocomplete-text {
+      flex: 1;
+    }
+
+    .autocomplete-type {
+      font-size: 12px;
+      color: #888;
+      background: #f0f2f5;
+      padding: 4px 8px;
+      border-radius: 8px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .api-info {
+      background: #f8f9ff;
+      border: 2px solid #e8f4ff;
+      border-radius: 15px;
+      padding: 25px;
+      margin-top: 30px;
+    }
+
+    .api-title {
+      font-size: 1.3em;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .api-url {
+      background: #2d3748;
+      color: #68d391;
+      padding: 15px 20px;
+      border-radius: 10px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 14px;
+      margin-bottom: 15px;
+      word-break: break-all;
+    }
+
+    .api-params {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    .test-status {
+      margin-top: 20px;
+      padding: 15px 20px;
+      border-radius: 10px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .status-success {
+      background: #d4edda;
+      color: #155724;
+      border: 2px solid #c3e6cb;
+    }
+
+    .status-loading {
+      background: #fff3cd;
+      color: #856404;
+      border: 2px solid #ffeaa7;
+    }
+
+    .status-error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 2px solid #f5c6cb;
+    }
+
+    .no-results {
+      padding: 20px;
+      text-align: center;
+      color: #888;
+      font-style: italic;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        margin: 0 10px;
+      }
+
+      .header {
+        padding: 30px 20px;
+      }
+
+      .header h1 {
+        font-size: 1.8em;
+      }
+
+      .search-section {
+        padding: 30px 20px;
+      }
+
+      .search-input {
+        padding: 18px 50px 18px 20px;
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🔍 자동완성 테스트</h1>
+    <p>모임 검색 자동완성 API 테스트 페이지</p>
+  </div>
+
+  <div class="search-section">
+    <div class="search-container">
+      <input
+          type="text"
+          class="search-input"
+          placeholder="검색어를 입력하세요... (예: 축구, 독서, 요리)"
+          id="searchInput"
+          th:value="${keyword ?: ''}"
+      >
+      <span class="search-icon">🔍</span>
+
+      <div class="autocomplete-dropdown" id="autocompleteDropdown">
+        <!-- 자동완성 결과가 여기에 표시됩니다 -->
+      </div>
+    </div>
+
+    <div class="api-info">
+      <div class="api-title">
+        ⚡ API 엔드포인트
+      </div>
+      <div class="api-url" th:text="'GET ' + ${@environment.getProperty('server.servlet.context-path', '')} + '/api/groups/autocomplete?keyword={keyword}'">
+        GET /api/groups/autocomplete?keyword={keyword}
+      </div>
+      <div class="api-params">
+        <strong>파라미터:</strong><br>
+        • keyword: 검색할 키워드 (최소 1글자)<br>
+        <span th:if="${#strings.isEmpty(keyword)}" style="color: #999;">
+          • 현재 키워드: 없음
+        </span>
+        <span th:unless="${#strings.isEmpty(keyword)}" style="color: #4facfe;">
+          • 현재 키워드: <strong th:text="${keyword}"></strong>
+        </span>
+      </div>
+
+      <div id="testStatus" class="test-status status-loading" style="display: none;">
+        API 호출 중...
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Thymeleaf에서 JavaScript 변수 전달 -->
+<script th:inline="javascript">
+  /*<![CDATA[*/
+  const API_BASE_URL = /*[[${@environment.getProperty('server.servlet.context-path', '')}]]*/ '';
+  const CSRF_TOKEN = /*[[${_csrf?.token}]]*/ null;
+  const CSRF_HEADER = /*[[${_csrf?.headerName}]]*/ null;
+  /*]]>*/
+</script>
+
+<script>
+  const searchInput = document.getElementById('searchInput');
+  const autocompleteDropdown = document.getElementById('autocompleteDropdown');
+  const testStatus = document.getElementById('testStatus');
+
+  let searchTimeout;
+
+  // CSRF 토큰 헤더 설정
+  function getHeaders() {
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+
+    if (CSRF_TOKEN && CSRF_HEADER) {
+      headers[CSRF_HEADER] = CSRF_TOKEN;
+    }
+
+    return headers;
+  }
+
+  // 자동완성 API 호출
+  async function callAutocompleteAPI(keyword) {
+    try {
+      const url = `${API_BASE_URL}/api/groups/autocomplete?keyword=${encodeURIComponent(keyword)}`;
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: getHeaders()
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data;
+
+    } catch (error) {
+      console.error('API Error:', error);
+
+      // 개발 환경에서는 모의 데이터 반환
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        console.warn('Using mock data for development');
+        return getMockData(keyword);
+      }
+
+      throw error;
+    }
+  }
+
+  // 모의 데이터 (개발용)
+  function getMockData(keyword) {
+    const mockData = [
+      { text: "축구", type: "keyword", icon: "⚽" },
+      { text: "축구모임", type: "title", icon: "📋" },
+      { text: "독서", type: "keyword", icon: "📚" },
+      { text: "독서클럽", type: "title", icon: "📋" },
+      { text: "요리", type: "keyword", icon: "👨‍🍳" },
+      { text: "요리교실", type: "title", icon: "📋" },
+      { text: "영화", type: "keyword", icon: "🎬" },
+      { text: "영화감상", type: "title", icon: "📋" },
+      { text: "등산", type: "keyword", icon: "🏔️" },
+      { text: "등산동호회", type: "title", icon: "📋" },
+      { text: "스터디", type: "hashtag", icon: "#" },
+      { text: "친목", type: "hashtag", icon: "#" },
+      { text: "주말", type: "hashtag", icon: "#" },
+      { text: "강남", type: "hashtag", icon: "#" },
+      { text: "홍대", type: "hashtag", icon: "#" }
+    ];
+
+    return mockData.filter(item =>
+        item.text.toLowerCase().includes(keyword.toLowerCase())
+    ).slice(0, 8);
+  }
+
+  // 자동완성 결과 표시
+  function showAutocomplete(suggestions) {
+    if (!Array.isArray(suggestions) || suggestions.length === 0) {
+      autocompleteDropdown.innerHTML = '<div class="no-results">검색 결과가 없습니다</div>';
+      autocompleteDropdown.style.display = 'block';
+      return;
+    }
+
+    autocompleteDropdown.innerHTML = suggestions.map(item => `
+      <div class="autocomplete-item" onclick="selectAutocomplete('${escapeHtml(item.text)}')">
+        <span class="autocomplete-icon">${escapeHtml(item.icon || '📋')}</span>
+        <span class="autocomplete-text">${escapeHtml(item.text)}</span>
+        <span class="autocomplete-type">${escapeHtml(item.type || 'unknown')}</span>
+      </div>
+    `).join('');
+
+    autocompleteDropdown.style.display = 'block';
+  }
+
+  // HTML 이스케이프 함수
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // 자동완성 항목 선택
+  function selectAutocomplete(text) {
+    searchInput.value = text;
+    autocompleteDropdown.style.display = 'none';
+
+    testStatus.className = 'test-status status-success';
+    testStatus.textContent = `✅ "${text}" 선택됨`;
+    testStatus.style.display = 'block';
+
+    // 선택된 값으로 페이지 새로고침 (선택사항)
+    // window.location.href = `${window.location.pathname}?keyword=${encodeURIComponent(text)}`;
+  }
+
+  // 검색 입력 이벤트
+  searchInput.addEventListener('input', function(e) {
+    const keyword = e.target.value.trim();
+
+    clearTimeout(searchTimeout);
+
+    if (keyword.length >= 1) {
+      // 상태 표시
+      testStatus.className = 'test-status status-loading';
+      testStatus.textContent = `🔄 "${keyword}" 검색 중...`;
+      testStatus.style.display = 'block';
+
+      // 300ms 지연 후 API 호출
+      searchTimeout = setTimeout(async () => {
+        try {
+          const suggestions = await callAutocompleteAPI(keyword);
+          showAutocomplete(suggestions);
+
+          // 성공 상태 표시
+          testStatus.className = 'test-status status-success';
+          testStatus.textContent = `✅ ${suggestions.length}개 결과 찾음`;
+
+        } catch (error) {
+          // 에러 상태 표시
+          testStatus.className = 'test-status status-error';
+          testStatus.textContent = `❌ API 호출 실패: ${error.message}`;
+          autocompleteDropdown.style.display = 'none';
+        }
+      }, 300);
+
+    } else {
+      autocompleteDropdown.style.display = 'none';
+      testStatus.style.display = 'none';
+    }
+  });
+
+  // 외부 클릭 시 자동완성 숨기기
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.search-container')) {
+      autocompleteDropdown.style.display = 'none';
+    }
+  });
+
+  // 키보드 네비게이션
+  let selectedIndex = -1;
+  searchInput.addEventListener('keydown', function(e) {
+    const items = autocompleteDropdown.querySelectorAll('.autocomplete-item');
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+      updateSelection(items);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      selectedIndex = Math.max(selectedIndex - 1, -1);
+      updateSelection(items);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (selectedIndex >= 0 && items[selectedIndex]) {
+        items[selectedIndex].click();
+      }
+    } else if (e.key === 'Escape') {
+      autocompleteDropdown.style.display = 'none';
+      selectedIndex = -1;
+    }
+  });
+
+  function updateSelection(items) {
+    items.forEach((item, index) => {
+      if (index === selectedIndex) {
+        item.style.background = 'linear-gradient(135deg, #f8f9ff 0%, #e8f4ff 100%)';
+        item.style.color = '#4facfe';
+      } else {
+        item.style.background = '';
+        item.style.color = '';
+      }
+    });
+  }
+
+  // 페이지 로드 시 초기화
+  document.addEventListener('DOMContentLoaded', function() {
+    // URL 파라미터에서 키워드가 있으면 자동 검색
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialKeyword = urlParams.get('keyword');
+
+    if (initialKeyword && searchInput.value === initialKeyword) {
+      // 초기 키워드로 자동완성 테스트
+      setTimeout(() => {
+        const event = new Event('input', { bubbles: true });
+        searchInput.dispatchEvent(event);
+      }, 500);
+    }
+  });
+</script>
+</body>
+</html>
