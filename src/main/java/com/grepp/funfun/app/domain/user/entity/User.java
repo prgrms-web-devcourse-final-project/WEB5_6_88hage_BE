@@ -84,8 +84,6 @@ public class User extends BaseEntity {
         this.address = request.getAddress();
         this.latitude = request.getLatitude();
         this.longitude = request.getLongitude();
-        this.birthDate = request.getBirthDate();
-        this.gender = request.getGender();
         this.isMarketingAgreed = request.getIsMarketingAgreed();
 
         // OAuth2 사용자가 추가 정보 기입 완료하면 ROLE_USER 로 전환
