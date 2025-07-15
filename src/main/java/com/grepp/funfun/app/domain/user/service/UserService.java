@@ -164,7 +164,7 @@ public class UserService {
         userRepository.save(user);
         redisTemplate.delete(key);
 
-        return authService.processTokenSignin(user.getEmail(), user.getRole().name(), false);
+        return authService.processTokenSignin(user.getEmail(), user.getNickname(), user.getRole().name(), false);
     }
 
     public void sendCode(String email) {

@@ -64,7 +64,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             userRepository.save(newUser);
             log.info("OAuth2 사용자 기본 정보 저장: {}", email);
 
-            TokenDto tokenDto = authService.processTokenSignin(email, newUser.getRole().name(), false);
+            TokenDto tokenDto = authService.processTokenSignin(email, "", newUser.getRole().name(), false);
             TokenCookieFactory.setAllAuthCookies(response, tokenDto);
 
             // NOTE : 프론트 경로로 변경 필요
@@ -74,7 +74,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             User user = userRepository.findById(email).orElse(null);
 
             if (user != null) {
-                TokenDto tokenDto = authService.processTokenSignin(email, user.getRole().name(), false);
+                TokenDto tokenDto = authService.processTokenSignin(email, user.getNickname() ,user.getRole().name(), false);
 
                 TokenCookieFactory.setAllAuthCookies(response, tokenDto);
 
