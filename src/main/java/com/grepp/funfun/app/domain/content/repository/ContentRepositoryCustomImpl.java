@@ -13,6 +13,7 @@ import jakarta.persistence.EntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 import org.springframework.stereotype.Repository;
 
@@ -49,6 +50,7 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
             String guname,
             LocalDate startDate,
             LocalDate endDate,
+            boolean includeExpired,
             Pageable pageable) {
 
         JPAQuery<Content> query = queryFactory
@@ -58,27 +60,93 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
                         categoryEq(categoryParam),
                         gunameEq(guname),
                         startDateGoe(startDate),
-                        endDateLoe(endDate)
+                        endDateLoe(endDate),
+                        includeExpired ? null : content.endDate.goe(LocalDate.now())
                 );
 
         long total = query.fetchCount();
 
-        List<Content> results = getQuerydsl()
-                .applyPagination(pageable, query)
+        if (pageable.getSort().isSorted()) {
+            for (Sort.Order order : pageable.getSort()) {
+                String property = order.getProperty();
+                Sort.Direction direction = order.getDirection();
+
+                if ("bookmarkCount".equals(property)) {
+                    if (direction == Sort.Direction.ASC) {
+                        query.orderBy(content.bookmarkCount.asc());
+                    } else {
+                        query.orderBy(content.bookmarkCount.desc());
+                    }
+                } else if ("endDate".equals(property)) {
+                    if (direction == Sort.Direction.ASC) {
+                        query.orderBy(content.endDate.asc());
+                    } else {
+                        query.orderBy(content.endDate.desc());
+                    }
+                }
+            }
+        }
+
+        List<Content> results = query
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
                 .fetch();
 
         return new PageImpl<>(results, pageable, total);
     }
 
     @Override
+    public Page<Content> findFilteredContentsByDistance(
+            ContentClassification categoryParam,
+            String guname,
+            LocalDate startDate,
+            LocalDate endDate,
+            double userLat,
+            double userLng,
+            boolean includeExpired,
+            Pageable pageable) {
+
+        // 거리 계산(사용자의 위치 기준)
+        NumberExpression<Double> distance = createDistanceExpression(userLat, userLng);
+
+        long total = queryFactory
+                .selectFrom(content)
+                .join(content.category, category)
+                .where(
+                        categoryEq(categoryParam),
+                        gunameEq(guname),
+                        startDateGoe(startDate),
+                        endDateLoe(endDate),
+                        content.latitude.isNotNull(),
+                        content.longitude.isNotNull(),
+                        includeExpired ? null : content.endDate.goe(LocalDate.now())
+                )
+                .fetchCount();
+
+        List<Content> results = queryFactory
+                .selectFrom(content)
+                .join(content.category, category)
+                .where(
+                        categoryEq(categoryParam),
+                        gunameEq(guname),
+                        startDateGoe(startDate),
+                        endDateLoe(endDate),
+                        content.latitude.isNotNull(),
+                        content.longitude.isNotNull(),
+                        includeExpired ? null : content.endDate.goe(LocalDate.now())
+                )
+                .orderBy(distance.asc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        return new PageImpl<>(results, pageable, total);
+    }
+
+
+    @Override
     public List<Content> findNearby(double lat, double lng, double radiusInKm, Long excludeId, int limit) {
-        NumberExpression<Double> distance = Expressions.numberTemplate(Double.class,
-                "6371 * acos(" +
-                        "cos(radians({0})) * cos(radians({1})) * " +
-                        "cos(radians({2}) - radians({3})) + " +
-                        "sin(radians({0})) * sin(radians({1}))" +
-                        ")",
-                lat, content.latitude, content.longitude, lng);
+        NumberExpression<Double> distance = createDistanceExpression(lat, lng);
 
         return queryFactory
                 .selectFrom(content)
@@ -86,7 +154,8 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
                         content.id.ne(excludeId),
                         content.latitude.isNotNull(),
                         content.longitude.isNotNull(),
-                        distance.lt(radiusInKm)
+                        distance.lt(radiusInKm),
+                        content.endDate.goe(LocalDate.now())
                 )
                 .orderBy(distance.asc())
                 .limit(limit)
@@ -98,7 +167,10 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
         return queryFactory
                 .selectFrom(content)
                 .join(content.category, category).fetchJoin()
-                .where(category.category.eq(categoryParam))
+                .where(
+                        category.category.eq(categoryParam),
+                        content.endDate.goe(LocalDate.now())
+                )
                 .fetch();
     }
 
@@ -116,5 +188,15 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
 
     private BooleanExpression endDateLoe(LocalDate endDate) {
         return endDate != null ? content.endDate.loe(endDate) : null;
+    }
+
+    private NumberExpression<Double> createDistanceExpression(double baseLat, double baseLng) {
+        return Expressions.numberTemplate(Double.class,
+                "6371 * acos(" +
+                        "cos(radians({0})) * cos(radians({1})) * " +
+                        "cos(radians({2}) - radians({3})) + " +
+                        "sin(radians({0})) * sin(radians({1}))" +
+                        ")",
+                baseLat, content.latitude, content.longitude, baseLng);
     }
 }
