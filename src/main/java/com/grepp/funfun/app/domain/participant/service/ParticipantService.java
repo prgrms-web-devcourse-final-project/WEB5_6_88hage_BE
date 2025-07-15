@@ -1,5 +1,7 @@
 package com.grepp.funfun.app.domain.participant.service;
 
+import com.grepp.funfun.app.domain.group.vo.GroupClassification;
+import com.grepp.funfun.app.domain.participant.dto.payload.GroupCompletedStatsResponse;
 import com.grepp.funfun.app.domain.participant.dto.payload.ParticipantResponse;
 import com.grepp.funfun.app.domain.calendar.service.CalendarService;
 import com.grepp.funfun.app.domain.group.vo.GroupStatus;
@@ -15,6 +17,7 @@ import com.grepp.funfun.app.domain.user.repository.UserRepository;
 import com.grepp.funfun.app.domain.user.vo.UserStatus;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -270,12 +273,27 @@ public class ParticipantService {
             .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public long countJoinGroupByEmail(String email) {
         return participantRepository.countByUserEmailAndRoleAndStatus(
             email,
             ParticipantRole.MEMBER,
             ParticipantStatus.GROUP_COMPLETE
         );
+    }
+
+    @Transactional(readOnly = true)
+    public List<GroupCompletedStatsResponse> getGroupCompletionStats(String email) {
+        List<GroupCompletedStatsResponse> stats = participantRepository.findGroupCompletedStats(email);
+
+        return Arrays.stream(GroupClassification.values())
+            .map(category ->
+                stats.stream()
+                    .filter(stat -> stat.getCategory() == category)
+                    .findFirst()
+                    .orElse(new GroupCompletedStatsResponse(category, 0L))
+            )
+            .toList();
     }
     // ------------------------------여기 까지 ------------------------------------
 
