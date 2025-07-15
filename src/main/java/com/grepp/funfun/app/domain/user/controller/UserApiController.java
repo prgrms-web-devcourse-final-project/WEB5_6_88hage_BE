@@ -3,6 +3,7 @@ package com.grepp.funfun.app.domain.user.controller;
 import com.grepp.funfun.app.domain.auth.payload.TokenResponse;
 import com.grepp.funfun.app.domain.user.dto.payload.ChangePasswordRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.NicknameRequest;
+import com.grepp.funfun.app.domain.user.dto.payload.OAuth2SignupRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.UserInfoRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.SignupRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.UserInfoResponse;
@@ -50,6 +51,14 @@ public class UserApiController {
     public ResponseEntity<ApiResponse<String>> createUser(@RequestBody @Valid SignupRequest request) {
         String createdEmail = userService.create(request);
         return ResponseEntity.ok(ApiResponse.success(createdEmail));
+    }
+
+    @PatchMapping("/oauth2/signup")
+    @Operation(summary = "OAuth2 회원가입", description = "소셜 로그인 대상의 추가 정보를 입력 받습니다.")
+    public ResponseEntity<ApiResponse<String>> updateOAuth2User(@RequestBody @Valid OAuth2SignupRequest request, Authentication authentication) {
+        String email = authentication.getName();
+        userService.updateOAuth2User(email, request);
+        return ResponseEntity.ok(ApiResponse.success(email));
     }
 
     @GetMapping("/info")

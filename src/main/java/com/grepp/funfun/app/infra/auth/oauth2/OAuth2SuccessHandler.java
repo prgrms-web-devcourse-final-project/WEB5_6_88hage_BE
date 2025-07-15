@@ -68,8 +68,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             TokenCookieFactory.setAllAuthCookies(response, tokenDto);
 
             // NOTE : 프론트 경로로 변경 필요
-            //  회원 정보 수정 페이지로
-            getRedirectStrategy().sendRedirect(request, response, front+ "/user/info");
+            //  OAuth2 추가 회원 가입 페이지로
+            getRedirectStrategy().sendRedirect(request, response, front+ "/user/oauth2/signup");
         } else {
             User user = userRepository.findById(email).orElse(null);
 
@@ -80,8 +80,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
                 if (user.getRole().equals(Role.ROLE_GUEST)) {
                     // NOTE : 프론트 경로로 변경 필요
-                    //  회원 정보 수정 페이지로
-                    getRedirectStrategy().sendRedirect(request, response, front+ "/user/info");
+                    //  OAuth2 추가 회원 가입 페이지로
+                    getRedirectStrategy().sendRedirect(request, response, front+ "/user/oauth2/signup");
                     return;
                 }
 

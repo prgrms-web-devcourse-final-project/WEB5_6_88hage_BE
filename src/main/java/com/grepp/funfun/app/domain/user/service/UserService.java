@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.domain.user.service;
 
+import com.grepp.funfun.app.domain.user.dto.payload.OAuth2SignupRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.UserInfoRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.SignupRequest;
 import com.grepp.funfun.app.domain.auth.service.AuthService;
@@ -238,7 +239,17 @@ public class UserService {
     public void updateUserInfo(String email, UserInfoRequest request) {
         User user = userRepository.findById(email).orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
 
-        user.updateFromRequest(request);
+        user.updateUser(request);
+    }
+
+    @Transactional
+    public void updateOAuth2User(String email, OAuth2SignupRequest request) {
+        User user = userRepository.findById(email).orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+        // 닉네임 중복 검사
+        if (userRepository.existsByNickname(request.getNickname())) {
+            throw new CommonException(ResponseCode.USER_NICKNAME_DUPLICATE);
+        }
+        user.updateOAuth2User(request);
     }
 
     @Transactional
