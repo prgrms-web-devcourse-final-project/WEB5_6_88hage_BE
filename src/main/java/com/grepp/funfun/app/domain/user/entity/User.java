@@ -79,6 +79,10 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user")
     private List<ContentPreference> contentPreferences = new ArrayList<>();
 
+    public boolean isAdmin() {
+        return this.role == Role.ROLE_ADMIN;
+    }
+
     public String getGroupPreferencesToString(){
         if(groupPreferences == null){
             return "나는 특별한 취향이 없습니다";
