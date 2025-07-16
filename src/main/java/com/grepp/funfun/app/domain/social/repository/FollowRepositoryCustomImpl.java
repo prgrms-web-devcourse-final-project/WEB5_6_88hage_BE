@@ -25,8 +25,8 @@ public class FollowRepositoryCustomImpl implements FollowRepositoryCustom {
     private final QUserInfo userInfo = QUserInfo.userInfo;
 
     @Override
-    public List<FollowsResponse> findFollowersByFolloweeEmail(String followeeEmail) {
-        return queryFactory
+    public Page<FollowsResponse> findFollowersByFolloweeEmail(String followeeEmail, Pageable pageable) {
+        List<FollowsResponse> content = queryFactory
             .select(Projections.constructor(
                 FollowsResponse.class,
                 user.email,
@@ -37,7 +37,17 @@ public class FollowRepositoryCustomImpl implements FollowRepositoryCustom {
             .join(follow.follower, user)
             .join(user.info, userInfo)
             .where(follow.followee.email.eq(followeeEmail))
+            .orderBy(getOrderSpecifiers(pageable.getSort()))
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize())
             .fetch();
+
+        JPAQuery<Long> countQuery = queryFactory
+            .select(follow.count())
+            .from(follow)
+            .where(follow.followee.email.eq(followeeEmail));
+
+        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
     }
 
     @Override

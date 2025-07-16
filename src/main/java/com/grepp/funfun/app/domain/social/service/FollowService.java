@@ -58,8 +58,8 @@ public class FollowService {
         followRepository.deleteByFollowerEmailAndFolloweeEmail(followerEmail, followeeEmail);
     }
 
-    public List<FollowsResponse> getFollowers(String email) {
-        return followRepository.findFollowersByFolloweeEmail(email);
+    public Page<FollowsResponse> getFollowers(String email, Pageable pageable) {
+        return followRepository.findFollowersByFolloweeEmail(email, pageable);
     }
 
     public Page<FollowsResponse> getFollowings(String email, Pageable pageable) {
