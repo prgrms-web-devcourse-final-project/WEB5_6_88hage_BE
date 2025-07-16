@@ -42,7 +42,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -165,7 +164,7 @@ public class UserService {
         userRepository.save(user);
         redisTemplate.delete(key);
 
-        return authService.processTokenSignin(user.getEmail(), user.getNickname(), user.getRole().name(), false);
+        return authService.processTokenLogin(user.getEmail(), user.getNickname(), user.getRole().name(), false);
     }
 
     public void sendCode(String email) {
@@ -244,8 +243,7 @@ public class UserService {
     }
 
     @Transactional
-    public TokenDto updateOAuth2User(Authentication authentication, OAuth2SignupRequest request) {
-        String email = authentication.getName();
+    public TokenDto updateOAuth2User(String email, OAuth2SignupRequest request) {
         User user = userRepository.findById(email).orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
 
         // 닉네임 중복 검사
@@ -255,12 +253,11 @@ public class UserService {
 
         user.updateOAuth2User(request);
 
-        return authService.reissueAccessToken(authentication, request.getNickname(), user.getRole().name());
+        return authService.reissueAccessToken(request.getNickname(), user.getRole().name());
     }
 
     @Transactional
-    public TokenDto changeNickname(Authentication authentication, String nickname) {
-        String email = authentication.getName();
+    public TokenDto changeNickname(String email, String nickname) {
         User user = userRepository.findById(email).orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
 
         // 닉네임 중복 검사
@@ -271,7 +268,7 @@ public class UserService {
         user.setNickname(nickname);
         userRepository.save(user);
 
-        return authService.reissueAccessToken(authentication, nickname, user.getRole().name());
+        return authService.reissueAccessToken(nickname, user.getRole().name());
     }
 
     public void verifyNickname(String nickname) {

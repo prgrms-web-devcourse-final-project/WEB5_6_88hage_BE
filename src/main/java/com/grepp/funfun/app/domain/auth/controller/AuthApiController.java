@@ -34,7 +34,7 @@ public class AuthApiController {
         @RequestBody @Valid LoginRequest loginRequest,
         HttpServletResponse response
     ) {
-        TokenDto tokenDto = authService.signin(loginRequest);
+        TokenDto tokenDto = authService.login(loginRequest);
         TokenCookieFactory.setAllAuthCookies(response, tokenDto);
 
         // 취향 설정을 하지 않은 사용자

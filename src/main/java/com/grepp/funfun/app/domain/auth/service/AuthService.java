@@ -35,7 +35,7 @@ public class AuthService {
     private final UserBlackListRepository userBlackListRepository;
     private final UserRepository userRepository;
 
-    public TokenDto signin(LoginRequest loginRequest) {
+    public TokenDto login(LoginRequest loginRequest) {
         UsernamePasswordAuthenticationToken authenticationToken =
             new UsernamePasswordAuthenticationToken(loginRequest.getEmail(),
                 loginRequest.getPassword());
@@ -78,11 +78,11 @@ public class AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String roles = String.join(",",
             authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
-        return processTokenSignin(authentication.getName(), user.getNickname(), roles, loginRequest.isRememberMe());
+        return processTokenLogin(authentication.getName(), user.getNickname(), roles, loginRequest.isRememberMe());
     }
 
     @Transactional
-    public TokenDto processTokenSignin(String email, String nickname, String roles, boolean rememberMe) {
+    public TokenDto processTokenLogin(String email, String nickname, String roles, boolean rememberMe) {
         // black list 에 있다면 해제
         userBlackListRepository.deleteById(email);
 
@@ -103,7 +103,9 @@ public class AuthService {
     }
 
     @Transactional
-    public TokenDto reissueAccessToken(Authentication authentication, String nickname, String roles) {
+    public TokenDto reissueAccessToken(String nickname, String roles) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
         Principal principal = (Principal) authentication.getPrincipal();
         String accessToken = principal.getAccessToken().orElseThrow(() -> new CommonException(ResponseCode.UNAUTHORIZED));
         String atId = jwtTokenProvider.getClaims(accessToken).getId();
