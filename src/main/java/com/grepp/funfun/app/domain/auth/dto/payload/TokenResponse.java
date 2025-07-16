@@ -1,4 +1,4 @@
-package com.grepp.funfun.app.domain.auth.payload;
+package com.grepp.funfun.app.domain.auth.dto.payload;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

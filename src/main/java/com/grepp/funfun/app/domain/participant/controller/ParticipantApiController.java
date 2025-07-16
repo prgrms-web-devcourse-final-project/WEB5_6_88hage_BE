@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.domain.participant.controller;
 
+import com.grepp.funfun.app.domain.participant.dto.payload.GroupCompletedStatsResponse;
 import com.grepp.funfun.app.domain.participant.dto.payload.ParticipantResponse;
 import com.grepp.funfun.app.domain.participant.dto.ParticipantDTO;
 import com.grepp.funfun.app.domain.participant.service.ParticipantService;
@@ -140,5 +141,13 @@ public class ParticipantApiController {
                 .body(ApiResponse.error(ResponseCode.BAD_REQUEST, e.getMessage()));
         }
 
+    }
+
+    @GetMapping("/stats/group-completed")
+    @Operation(summary = "모임 완료 통계", description = "유저가 완료한 모임을 카테고리별로 카운트합니다. (즐겨 찾는 여가 생활)")
+    public ResponseEntity<ApiResponse<List<GroupCompletedStatsResponse>>> getCompletedStats(Authentication authentication) {
+        String email = authentication.getName();
+        List<GroupCompletedStatsResponse> result = participantService.getGroupCompletionStats(email);
+        return ResponseEntity.ok(ApiResponse.success(result));
     }
 }

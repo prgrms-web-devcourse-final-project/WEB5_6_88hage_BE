@@ -2,7 +2,7 @@ package com.grepp.funfun.app.domain.integrate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.grepp.funfun.app.domain.auth.payload.LoginRequest;
+import com.grepp.funfun.app.domain.auth.dto.payload.LoginRequest;
 import com.grepp.funfun.app.domain.auth.service.AuthService;
 import com.grepp.funfun.app.domain.auth.vo.Role;
 import com.grepp.funfun.app.domain.group.vo.GroupStatus;

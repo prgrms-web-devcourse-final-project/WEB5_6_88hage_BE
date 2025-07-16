@@ -22,22 +22,6 @@ public class UserInfoRequest {
     @NotNull(message = "경도는 필수입니다.")
     private Double longitude;
 
-    @NotBlank(message = "생년월일은 필수입니다.")
-    private String birthDate;
-
-    @AssertTrue(message = "생년월일은 yyyyMMdd 형식의 유효한 날짜여야 합니다.")
-    public boolean isBirthDate() {
-        try {
-            LocalDate.parse(birthDate, DateTimeFormatter.ofPattern("yyyyMMdd"));
-            return true;
-        } catch (DateTimeParseException e) {
-            return false;
-        }
-    }
-
-    @NotNull(message = "성별은 필수입니다.")
-    private Gender gender;
-
     @NotNull(message = "마케팅 수신 여부를 선택해주세요.")
     @JsonProperty("isMarketingAgreed")
     private Boolean isMarketingAgreed;

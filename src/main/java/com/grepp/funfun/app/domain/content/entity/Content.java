@@ -110,6 +110,9 @@ public class Content extends BaseEntity {
             '}';
     }
     public void increaseBookmark() {
+        if (this.bookmarkCount == null) {
+            this.bookmarkCount = 0;
+        }
         this.bookmarkCount++;
     }
 

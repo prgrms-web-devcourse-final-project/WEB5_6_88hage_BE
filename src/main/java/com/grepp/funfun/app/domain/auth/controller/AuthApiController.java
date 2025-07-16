@@ -1,7 +1,7 @@
 package com.grepp.funfun.app.domain.auth.controller;
 
-import com.grepp.funfun.app.domain.auth.payload.LoginRequest;
-import com.grepp.funfun.app.domain.auth.payload.TokenResponse;
+import com.grepp.funfun.app.domain.auth.dto.payload.LoginRequest;
+import com.grepp.funfun.app.domain.auth.dto.payload.TokenResponse;
 import com.grepp.funfun.app.domain.auth.service.AuthService;
 import com.grepp.funfun.app.domain.auth.dto.TokenDto;
 import com.grepp.funfun.app.domain.preference.service.PreferenceService;
