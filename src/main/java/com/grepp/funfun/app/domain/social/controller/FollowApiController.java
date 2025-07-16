@@ -49,12 +49,15 @@ public class FollowApiController {
     @GetMapping("/followers")
     @Operation(summary = "팔로워 조회", description = """
         팔로워 목록을 조회합니다.
+        
         기본 정렬은 닉네임 오름차순입니다.
         
         • page: 0 ~ N, 보고 싶은 페이지를 지정할 수 있습니다.
+        
             - 기본값: 0
         
         • size: 기본 페이지당 항목 수
+        
             - 기본값 : 10
         
         • sort: 정렬
@@ -80,12 +83,15 @@ public class FollowApiController {
     @GetMapping("/followings")
     @Operation(summary = "팔로잉 조회", description = """
         팔로잉 목록을 조회합니다.
+        
         기본 정렬은 닉네임 오름차순입니다.
         
         • page: 0 ~ N, 보고 싶은 페이지를 지정할 수 있습니다.
+        
             - 기본값: 0
         
         • size: 기본 페이지당 항목 수
+        
             - 기본값 : 10
         
         • sort: 정렬
