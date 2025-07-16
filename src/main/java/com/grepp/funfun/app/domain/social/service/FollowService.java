@@ -10,6 +10,8 @@ import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,8 +62,8 @@ public class FollowService {
         return followRepository.findFollowersByFolloweeEmail(email);
     }
 
-    public List<FollowsResponse> getFollowings(String email) {
-        return followRepository.findFollowingsByFollowerEmail(email);
+    public Page<FollowsResponse> getFollowings(String email, Pageable pageable) {
+        return followRepository.findFollowingsByFollowerEmail(email, pageable);
     }
 
     public long countFollowers(String email) {
