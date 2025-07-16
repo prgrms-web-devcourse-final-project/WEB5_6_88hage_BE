@@ -55,4 +55,8 @@ public class ContentDTO {
 
     private Integer bookmarkCount;
 
+    private Double latitude;
+
+    private Double longitude;
+
 }

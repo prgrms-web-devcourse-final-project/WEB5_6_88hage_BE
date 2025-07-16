@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -33,22 +34,18 @@ public class ContentApiController {
     private final ContentService contentService;
 
     @GetMapping
-    @Operation(
-            summary = "컨텐츠 목록 조회",
-            description = "필터 조건에 따라 컨텐츠 목록을 페이징하여 조회합니다."
-    )
+    @Operation(summary = "컨텐츠 목록 조회")
     public ResponseEntity<ApiResponse<Page<ContentDTO>>> getAllContents(
             @Valid @ParameterObject ContentFilterRequest request,
-            @ParameterObject @PageableDefault(size = 10, sort = "startDate", direction = Sort.Direction.ASC) Pageable pageable) {
+            @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
 
-        Page<ContentDTO> contents = contentService.findByFilters(request, pageable);
+        Page<ContentDTO> contents = contentService.findByFiltersWithSort(request, pageable);
         return ResponseEntity.ok(ApiResponse.success(contents));
+
     }
 
     @GetMapping("/{id}")
-    @Operation(
-            summary = "컨텐츠 상세 조회"
-    )
+    @Operation(summary = "컨텐츠 상세 조회")
     public ResponseEntity<ApiResponse<ContentDetailResponse>> getContent(
             @PathVariable(name = "id") final Long id
     ) {
@@ -56,7 +53,11 @@ public class ContentApiController {
         List<ContentDTO> related = contentService.findRandomByCategory(id, 5);
         List<ContentDTO> nearby = contentService.findNearbyContents(id, 3.0, 5);
 
-        ContentDetailResponse response = new ContentDetailResponse(content, related, nearby);
+        ContentDetailResponse response = ContentDetailResponse.builder()
+                .content(content)
+                .related(related)
+                .nearby(nearby)
+                .build();
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }

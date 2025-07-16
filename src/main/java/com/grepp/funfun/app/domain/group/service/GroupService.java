@@ -18,6 +18,7 @@ import com.grepp.funfun.app.domain.calendar.service.CalendarService;
 import com.grepp.funfun.app.domain.chat.entity.GroupChatRoom;
 import com.grepp.funfun.app.domain.chat.repository.GroupChatRoomRepository;
 import com.grepp.funfun.app.domain.chat.vo.ChatRoomType;
+import com.grepp.funfun.app.domain.group.dto.payload.GroupListResponse;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupMyResponse;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupRequest;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupResponse;
@@ -46,6 +47,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 
 @Service
@@ -112,15 +115,17 @@ public class GroupService {
 
     // 모임 조회
     @Transactional(readOnly = true)
-    public List<GroupResponse> getGroups(
+    public Page<GroupListResponse> getGroups(
         String category,
         String keyword,
         String sortBy,
-        String userEmail
+        String userEmail,
+        Pageable pageable
     ) {
-        return groupRepository.findGroups(category, keyword, sortBy, userEmail).stream()
-            .map(this::convertToGroupResponse)
-            .collect(Collectors.toList());
+        Page<Group> groupPage = groupRepository.findGroups(category, keyword, sortBy, userEmail, pageable);
+
+        return groupPage.map(GroupListResponse::convertToGroupList);
+
     }
 
     // 내가 속한 모임 조회

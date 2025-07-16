@@ -33,7 +33,6 @@ import org.hibernate.annotations.BatchSize;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "content")
 public class Content extends BaseEntity {
 
     @Id
@@ -88,7 +87,7 @@ public class Content extends BaseEntity {
     private ContentCategory category;
 
     @Column(nullable = false)
-    private Integer bookmarkCount = 0;
+    private Integer bookmarkCount;
 
     @Override
     public String toString() {
