@@ -69,7 +69,7 @@ public class CalendarService {
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
 
         if(calendar.getType() == ActivityType.GROUP) {
-            throw new CommonException(ResponseCode.BAD_REQUEST);
+            throw new CommonException(ResponseCode.BAD_REQUEST, "모임 일정은 직접 삭제할 수 없습니다.");
         }
 
         // bookmarkCount--;
@@ -87,7 +87,7 @@ public class CalendarService {
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
 
         if (calendar.getType() == ActivityType.GROUP) {
-            throw new CommonException(ResponseCode.BAD_REQUEST);
+            throw new CommonException(ResponseCode.BAD_REQUEST, "모임 일정은 직접 수정할 수 없습니다.");
         }
 
         calendar.setSelectedDate(selectedDate);

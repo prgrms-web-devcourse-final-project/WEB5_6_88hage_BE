@@ -33,7 +33,7 @@ public class FollowService {
     public void follow(String followerEmail, String followeeEmail) {
         if (followerEmail.equals(followeeEmail)) {
             // 자기 자신은 팔로우할 수 없습니다.
-            throw new CommonException(ResponseCode.BAD_REQUEST);
+            throw new CommonException(ResponseCode.BAD_REQUEST, "자기 자신은 팔로우할 수 없습니다.");
         }
 
         boolean exists = followRepository.existsByFollowerEmailAndFolloweeEmail(followerEmail, followeeEmail);
@@ -44,7 +44,7 @@ public class FollowService {
             followRepository.save(follow);
         } else {
             // 이미 팔로우한 사용자입니다.
-            throw new CommonException(ResponseCode.BAD_REQUEST);
+            throw new CommonException(ResponseCode.BAD_REQUEST, "이미 팔로우한 사용자입니다.");
         }
     }
 
@@ -53,7 +53,7 @@ public class FollowService {
         boolean exists = followRepository.existsByFollowerEmailAndFolloweeEmail(followerEmail, followeeEmail);
         if (!exists) {
             // 팔로우 관계가 아닙니다.
-         throw new CommonException(ResponseCode.BAD_REQUEST);
+         throw new CommonException(ResponseCode.BAD_REQUEST, "팔로우 관계가 아닙니다.");
         }
         followRepository.deleteByFollowerEmailAndFolloweeEmail(followerEmail, followeeEmail);
     }

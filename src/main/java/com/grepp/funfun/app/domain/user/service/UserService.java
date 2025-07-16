@@ -222,7 +222,7 @@ public class UserService {
         User user = userRepository.findById(email).orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
 
         if (!redisTemplate.hasKey(verifiedKey)) {
-            throw new CommonException(ResponseCode.BAD_REQUEST);
+            throw new CommonException(ResponseCode.EXPIRED_AUTH_CODE_VERIFY);
         }
 
         // 비밀번호 암호화
