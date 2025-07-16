@@ -2073,6 +2073,8 @@ VALUES
     ('허위 정보를 포함하고 있어요', 'POST', 6, 't3@aaa.aaa', 't2@aaa.aaa', true, NOW(), NOW()),
     ('불쾌한 표현이 있어요', 'POST', 10, 't5@aaa.aaa', 't3@aaa.aaa', true, NOW(), NOW());
 
+ALTER TABLE contact ALTER COLUMN activated SET DEFAULT true;
+
 -- Contact 테이블 데이터 삽입
 INSERT INTO contact (title, content, category, status, answer, answered_at, user_id, created_at, modified_at)
 VALUES
