@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>모임 검색 자동완성 테스트</title>
+  <title>모임 해시태그 자동완성 테스트</title>
   <style>
     * {
       margin: 0;
@@ -205,6 +205,63 @@
       font-style: italic;
     }
 
+    .save-section {
+      margin-top: 30px;
+      padding: 20px;
+      background: #f8f9ff;
+      border-radius: 15px;
+      border: 2px solid #e8f4ff;
+    }
+
+    .save-title {
+      font-size: 1.2em;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 15px;
+    }
+
+    .save-controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .save-input {
+      flex: 1;
+      padding: 12px 15px;
+      border: 2px solid #e8ecf4;
+      border-radius: 10px;
+      font-size: 16px;
+      outline: none;
+    }
+
+    .save-input:focus {
+      border-color: #4facfe;
+    }
+
+    .save-button {
+      padding: 12px 25px;
+      background: #4facfe;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+    }
+
+    .save-button:hover {
+      background: #3a8ae8;
+      transform: translateY(-2px);
+    }
+
+    .save-button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
     @media (max-width: 768px) {
       .container {
         margin: 0 10px;
@@ -226,24 +283,44 @@
         padding: 18px 50px 18px 20px;
         font-size: 16px;
       }
+
+      .save-controls {
+        flex-direction: column;
+      }
     }
   </style>
 </head>
 <body>
 <div class="container">
   <div class="header">
-    <h1>🔍 자동완성 테스트</h1>
-    <p>모임 검색 자동완성 API 테스트 페이지</p>
+    <h1>🏷️ 해시태그 자동완성 테스트</h1>
+    <p>모임 해시태그 자동완성 API 테스트 페이지</p>
   </div>
 
   <div class="search-section">
+    <!-- 해시태그 저장 섹션 -->
+    <div class="save-section">
+      <div class="save-title">📝 새 해시태그 저장</div>
+      <div class="save-controls">
+        <input
+            type="text"
+            class="save-input"
+            placeholder="저장할 해시태그를 입력하세요... (예: 축구, 독서, 요리)"
+            id="saveInput"
+        >
+        <button class="save-button" id="saveButton">저장</button>
+      </div>
+      <div id="saveStatus" class="test-status" style="display: none; margin-top: 10px;"></div>
+    </div>
+
+    <!-- 자동완성 검색 섹션 -->
     <div class="search-container">
       <input
           type="text"
           class="search-input"
-          placeholder="검색어를 입력하세요... (예: 축구, 독서, 요리)"
+          placeholder="해시태그를 검색하세요... (예: 축, 독, 요)"
           id="searchInput"
-          th:value="${keyword ?: ''}"
+          th:value="${prefix ?: ''}"
       >
       <span class="search-icon">🔍</span>
 
@@ -256,17 +333,21 @@
       <div class="api-title">
         ⚡ API 엔드포인트
       </div>
-      <div class="api-url" th:text="'GET ' + ${@environment.getProperty('server.servlet.context-path', '')} + '/api/groups/autocomplete?keyword={keyword}'">
-        GET /api/groups/autocomplete?keyword={keyword}
+      <div class="api-url">
+        GET /api/groupHashtags/complete?prefix={prefix}
+      </div>
+      <div class="api-url">
+        POST /api/groupHashtags/save?keyword={keyword}
       </div>
       <div class="api-params">
         <strong>파라미터:</strong><br>
-        • keyword: 검색할 키워드 (최소 1글자)<br>
-        <span th:if="${#strings.isEmpty(keyword)}" style="color: #999;">
-          • 현재 키워드: 없음
+        • prefix: 검색할 접두어 (최소 1글자)<br>
+        • keyword: 저장할 키워드<br>
+        <span th:if="${#strings.isEmpty(prefix)}" style="color: #999;">
+          • 현재 검색어: 없음
         </span>
-        <span th:unless="${#strings.isEmpty(keyword)}" style="color: #4facfe;">
-          • 현재 키워드: <strong th:text="${keyword}"></strong>
+        <span th:unless="${#strings.isEmpty(prefix)}" style="color: #4facfe;">
+          • 현재 검색어: <strong th:text="${prefix}"></strong>
         </span>
       </div>
 
@@ -290,6 +371,9 @@
   const searchInput = document.getElementById('searchInput');
   const autocompleteDropdown = document.getElementById('autocompleteDropdown');
   const testStatus = document.getElementById('testStatus');
+  const saveInput = document.getElementById('saveInput');
+  const saveButton = document.getElementById('saveButton');
+  const saveStatus = document.getElementById('saveStatus');
 
   let searchTimeout;
 
@@ -307,9 +391,9 @@
   }
 
   // 자동완성 API 호출
-  async function callAutocompleteAPI(keyword) {
+  async function callAutocompleteAPI(prefix) {
     try {
-      const url = `${API_BASE_URL}/api/groups/autocomplete?keyword=${encodeURIComponent(keyword)}`;
+      const url = `${API_BASE_URL}/api/groupHashtags/complete?prefix=${encodeURIComponent(prefix)}`;
 
       const response = await fetch(url, {
         method: 'GET',
@@ -320,45 +404,46 @@
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      const data = await response.json();
-      return data;
+      const result = await response.json();
+
+      if (result.code === "0000" && Array.isArray(result.data)) {
+        // result.data가 자동완성 배열이라고 가정
+        return result.data.map(text => ({
+          text,
+          type: 'hashtag',
+          icon: '#'
+        }));
+      } else {
+        throw new Error(result.message || '알 수 없는 오류');
+      }
 
     } catch (error) {
       console.error('API Error:', error);
-
-      // 개발 환경에서는 모의 데이터 반환
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        console.warn('Using mock data for development');
-        return getMockData(keyword);
-      }
-
       throw error;
     }
   }
 
-  // 모의 데이터 (개발용)
-  function getMockData(keyword) {
-    const mockData = [
-      { text: "축구", type: "keyword", icon: "⚽" },
-      { text: "축구모임", type: "title", icon: "📋" },
-      { text: "독서", type: "keyword", icon: "📚" },
-      { text: "독서클럽", type: "title", icon: "📋" },
-      { text: "요리", type: "keyword", icon: "👨‍🍳" },
-      { text: "요리교실", type: "title", icon: "📋" },
-      { text: "영화", type: "keyword", icon: "🎬" },
-      { text: "영화감상", type: "title", icon: "📋" },
-      { text: "등산", type: "keyword", icon: "🏔️" },
-      { text: "등산동호회", type: "title", icon: "📋" },
-      { text: "스터디", type: "hashtag", icon: "#" },
-      { text: "친목", type: "hashtag", icon: "#" },
-      { text: "주말", type: "hashtag", icon: "#" },
-      { text: "강남", type: "hashtag", icon: "#" },
-      { text: "홍대", type: "hashtag", icon: "#" }
-    ];
+  // 해시태그 저장 API 호출
+  async function saveHashtagAPI(keyword) {
+    try {
+      const url = `${API_BASE_URL}/api/groupHashtags/save?keyword=${encodeURIComponent(keyword)}`;
 
-    return mockData.filter(item =>
-        item.text.toLowerCase().includes(keyword.toLowerCase())
-    ).slice(0, 8);
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: getHeaders()
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      return result;
+
+    } catch (error) {
+      console.error('Save API Error:', error);
+      throw error;
+    }
   }
 
   // 자동완성 결과 표시
@@ -370,12 +455,12 @@
     }
 
     autocompleteDropdown.innerHTML = suggestions.map(item => `
-      <div class="autocomplete-item" onclick="selectAutocomplete('${escapeHtml(item.text)}')">
-        <span class="autocomplete-icon">${escapeHtml(item.icon || '📋')}</span>
-        <span class="autocomplete-text">${escapeHtml(item.text)}</span>
-        <span class="autocomplete-type">${escapeHtml(item.type || 'unknown')}</span>
-      </div>
-    `).join('');
+    <div class="autocomplete-item" onclick="selectAutocomplete('${escapeHtml(item.text)}')">
+      <span class="autocomplete-icon">${escapeHtml(item.icon || '#')}</span>
+      <span class="autocomplete-text">${escapeHtml(item.text)}</span>
+      <span class="autocomplete-type">${escapeHtml(item.type || 'hashtag')}</span>
+    </div>
+  `).join('');
 
     autocompleteDropdown.style.display = 'block';
   }
@@ -393,37 +478,65 @@
     autocompleteDropdown.style.display = 'none';
 
     testStatus.className = 'test-status status-success';
-    testStatus.textContent = `✅ "${text}" 선택됨`;
+    testStatus.textContent = `✅ "#${text}" 선택됨`;
     testStatus.style.display = 'block';
-
-    // 선택된 값으로 페이지 새로고침 (선택사항)
-    // window.location.href = `${window.location.pathname}?keyword=${encodeURIComponent(text)}`;
   }
+
+  // 해시태그 저장 버튼 클릭
+  saveButton.addEventListener('click', async function() {
+    const keyword = saveInput.value.trim();
+
+    if (!keyword) {
+      saveStatus.className = 'test-status status-error';
+      saveStatus.textContent = '❌ 저장할 해시태그를 입력하세요';
+      saveStatus.style.display = 'block';
+      return;
+    }
+
+    saveButton.disabled = true;
+    saveStatus.className = 'test-status status-loading';
+    saveStatus.textContent = `🔄 "${keyword}" 저장 중...`;
+    saveStatus.style.display = 'block';
+
+    try {
+      const result = await saveHashtagAPI(keyword);
+
+      if (result.code === "0000") {
+        saveStatus.className = 'test-status status-success';
+        saveStatus.textContent = `✅ "${keyword}" 저장 완료`;
+        saveInput.value = '';
+      } else {
+        saveStatus.className = 'test-status status-error';
+        saveStatus.textContent = `❌ 저장 실패: ${result.message || '알 수 없는 오류'}`;
+      }
+    } catch (error) {
+      saveStatus.className = 'test-status status-error';
+      saveStatus.textContent = `❌ 저장 실패: ${error.message}`;
+    } finally {
+      saveButton.disabled = false;
+    }
+  });
 
   // 검색 입력 이벤트
   searchInput.addEventListener('input', function(e) {
-    const keyword = e.target.value.trim();
+    const prefix = e.target.value.trim();
 
     clearTimeout(searchTimeout);
 
-    if (keyword.length >= 1) {
-      // 상태 표시
+    if (prefix.length >= 1) {
       testStatus.className = 'test-status status-loading';
-      testStatus.textContent = `🔄 "${keyword}" 검색 중...`;
+      testStatus.textContent = `🔄 "${prefix}" 검색 중...`;
       testStatus.style.display = 'block';
 
-      // 300ms 지연 후 API 호출
       searchTimeout = setTimeout(async () => {
         try {
-          const suggestions = await callAutocompleteAPI(keyword);
+          const suggestions = await callAutocompleteAPI(prefix);
           showAutocomplete(suggestions);
 
-          // 성공 상태 표시
           testStatus.className = 'test-status status-success';
           testStatus.textContent = `✅ ${suggestions.length}개 결과 찾음`;
 
         } catch (error) {
-          // 에러 상태 표시
           testStatus.className = 'test-status status-error';
           testStatus.textContent = `❌ API 호출 실패: ${error.message}`;
           autocompleteDropdown.style.display = 'none';
@@ -433,6 +546,13 @@
     } else {
       autocompleteDropdown.style.display = 'none';
       testStatus.style.display = 'none';
+    }
+  });
+
+  // Enter 키로 저장
+  saveInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      saveButton.click();
     }
   });
 
@@ -479,14 +599,15 @@
     });
   }
 
+
   // 페이지 로드 시 초기화
   document.addEventListener('DOMContentLoaded', function() {
-    // URL 파라미터에서 키워드가 있으면 자동 검색
+    // URL 파라미터에서 prefix가 있으면 자동 검색
     const urlParams = new URLSearchParams(window.location.search);
-    const initialKeyword = urlParams.get('keyword');
+    const initialPrefix = urlParams.get('prefix');
 
-    if (initialKeyword && searchInput.value === initialKeyword) {
-      // 초기 키워드로 자동완성 테스트
+    if (initialPrefix && searchInput.value === initialPrefix) {
+      // 초기 prefix로 자동완성 테스트
       setTimeout(() => {
         const event = new Event('input', { bubbles: true });
         searchInput.dispatchEvent(event);
