@@ -45,7 +45,6 @@ class KakaoGeoServiceTest {
 
     @BeforeEach
     void setUp() {
-        // @Value로 주입되는 값 설정
         ReflectionTestUtils.setField(kakaoGeoService, "kakaoApiKey", "test-api-key");
         ReflectionTestUtils.setField(kakaoGeoService, "restTemplate", restTemplate);
     }

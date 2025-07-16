@@ -19,7 +19,7 @@ public class SwaggerConfig {
                 .title("API 문서")
                 .description("API 명세입니다. 에러 코드는 [링크]를 참조해 주세요.")
                 .version("v1.0.0"))
-            .addServersItem(new Server().url("https://funfun.cloud"))
+//            .addServersItem(new Server().url("https://funfun.cloud"))
             .components(
                 new Components()
                     .addSecuritySchemes("bearerAuth"

@@ -1,7 +1,6 @@
 package com.grepp.funfun.app.domain.content.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.grepp.funfun.app.domain.content.dto.ContentGeoDTO;
 import com.grepp.funfun.app.domain.content.entity.Content;
 import com.grepp.funfun.app.domain.content.entity.ContentCategory;
 import com.grepp.funfun.app.domain.content.repository.ContentRepository;
@@ -15,9 +14,12 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,7 +50,7 @@ public class KakaoGeoService {
             String area = content.getArea() != null ? content.getArea() : "서울특별시";
             String searchAddress = (cleanedPlaceName.contains(area)) ? cleanedPlaceName : area + " " + cleanedPlaceName;
 
-            // 키워드 검색으로 바로 위경도 가져오기
+            // 키워드 검색으로 위경도 가져오기
             Optional<double[]> coordinatesOpt = getCoordinatesFromKeywordSearch(searchAddress);
             if (coordinatesOpt.isEmpty()) {
                 log.warn("위경도 검색 실패: {} → {}", content.getId(), searchAddress);
@@ -129,20 +131,26 @@ public class KakaoGeoService {
     // 키워드 검색으로 바로 위경도 가져오기
     public Optional<double[]> getCoordinatesFromKeywordSearch(String keyword) {
         try {
+            log.info("사용 중인 Kakao API Key: {}", kakaoApiKey);
+
+            log.info("원본 키워드: '{}'", keyword);
             String[] searchVariants = optimizeKeywordForSearch(keyword);
+            log.info("검색 시도할 키워드들: {}", java.util.Arrays.toString(searchVariants));
 
             for (String searchKeyword : searchVariants) {
                 if (searchKeyword.trim().isEmpty()) continue;
 
-                String encodedKeyword = URLEncoder.encode(searchKeyword, StandardCharsets.UTF_8);
-                if (encodedKeyword.length() > 90) {
-                    log.info("키워드가 길어서 스킵: {} ({}자)", searchKeyword, encodedKeyword.length());
+                // 길이 체크를 위한 임시 인코딩
+                String encodedForLengthCheck  = URLEncoder.encode(searchKeyword, StandardCharsets.UTF_8);
+                if (encodedForLengthCheck.length() > 90) {
+                    log.info("키워드가 길어서 스킵: {} (인코딩 길이: {}자)", searchKeyword, encodedForLengthCheck.length());
                     continue;
                 }
 
-                log.info("키워드 검색 시도: '{}' (인코딩 후 {}자)", searchKeyword, encodedKeyword.length());
-                Optional<double[]> result = performKeywordSearchForCoordinates(encodedKeyword, searchKeyword);
+                log.info("키워드 검색 시도: '{}'", searchKeyword);
+                Optional<double[]> result = performKeywordSearchForCoordinates(searchKeyword);
                 if (result.isPresent()) {
+                    log.info("성공한 키워드: '{}'", searchKeyword);
                     return result;
                 }
             }
@@ -154,49 +162,96 @@ public class KakaoGeoService {
     }
 
     private String[] optimizeKeywordForSearch(String keyword) {
-        return new String[] {
-                keyword.replaceAll("서울특별시\\s*", "").trim(),
-                keyword.replaceAll("서울특별시\\s*", "")
-                        .replaceAll("서울시\\s*", "")
-                        .replaceAll("서울\\s*", "").trim(),
-                extractCoreKeyword(keyword),
-                keyword.length() > 20 ? keyword.substring(0, 20) : keyword
-        };
+        List<String> variants = new ArrayList<>();
+
+        variants.add(keyword);
+
+        String withoutSeoul = keyword.replaceAll("서울특별시\\s*", "")
+                .replaceAll("서울시\\s*", "")
+                .replaceAll("서울\\s*", "").trim();
+        if (!withoutSeoul.isEmpty()) {
+            variants.add(withoutSeoul);
+        }
+
+        String cleaned = keyword.replaceAll("\\([^)]*\\)", "")
+                .replaceAll("\\[[^]]*\\]", "")
+                .replaceAll("[()\\[\\]]", "")
+                .trim();
+        if (!cleaned.isEmpty()) {
+            variants.add(cleaned);
+        }
+
+        String core = extractCoreKeyword(keyword);
+        if (!core.isEmpty() && core.length() >= 2) {
+            variants.add(core);
+        }
+
+        String[] words = withoutSeoul.split("\\s+");
+        if (words.length > 0 && words[0].length() >= 2) {
+            variants.add(words[0]);
+        }
+
+        return variants.stream()
+                .filter(s -> s != null && !s.trim().isEmpty())
+                .distinct()
+                .toArray(String[]::new);
     }
 
     private String extractCoreKeyword(String keyword) {
         String cleaned = keyword.replaceAll("서울특별시\\s*", "")
                 .replaceAll("서울시\\s*", "")
                 .replaceAll("서울\\s*", "")
+                .replaceAll("\\([^)]*\\)", "")
                 .trim();
 
         String[] words = cleaned.split("\\s+");
-        if (words.length == 0) return cleaned;
+        if (words.length == 0) return "";
+
         String core = words[words.length - 1];
-        return core.length() < 3 ? "" : core;
+
+        if (core.matches(".*[가-힣].*") && core.length() >= 2) {
+            return core;
+        } else if (core.matches(".*[a-zA-Z].*") && core.length() >= 3) {
+            return core;
+        }
+        return "";
     }
 
-    private Optional<double[]> performKeywordSearchForCoordinates(String encodedKeyword, String originalKeyword) {
+    private Optional<double[]> performKeywordSearchForCoordinates(String originalKeyword) {
         try {
-            String url = "https://dapi.kakao.com/v2/local/search/keyword.json?query=" + encodedKeyword;
+//            String encodedKeyword = URLEncoder.encode(originalKeyword, StandardCharsets.UTF_8);
+//            String url = "https://dapi.kakao.com/v2/local/search/keyword.json?query=" + encodedKeyword;
+
+            // 자동 인코딩 수행
+            URI uri = UriComponentsBuilder
+                    .fromHttpUrl("https://dapi.kakao.com/v2/local/search/keyword.json")
+                    .queryParam("query", originalKeyword)
+                    .encode(StandardCharsets.UTF_8)
+                    .build()
+                    .toUri();
+
+            log.info("최종 호출 URL: {}", uri);
 
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", "KakaoAK " + kakaoApiKey);
             HttpEntity<String> entity = new HttpEntity<>(headers);
 
-            ResponseEntity<JsonNode> response = restTemplate.exchange(url, HttpMethod.GET, entity, JsonNode.class);
+            ResponseEntity<JsonNode> response = restTemplate.exchange(uri, HttpMethod.GET, entity, JsonNode.class);
 
             log.info("키워드 검색 API 응답 상태: {}", response.getStatusCode());
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 JsonNode documents = response.getBody().get("documents");
+                log.info("API 결과 documents: {}", documents.toPrettyString());
 
                 if (documents.isArray() && documents.size() > 0) {
                     JsonNode first = documents.get(0);
 
                     if (first.has("x") && first.has("y")) {
-                        double longitude = first.get("x").asDouble();
-                        double latitude = first.get("y").asDouble();
+                        double longitude = Double.parseDouble(first.get("x").asText());
+                        double latitude = Double.parseDouble(first.get("y").asText());
+                        log.info("first.get(\"x\") as text: {}, asDouble: {}", first.get("x").asText(), first.get("x").asDouble());
+
 
                         log.info("키워드 검색 성공: {} -> lat: {}, lng: {}", originalKeyword, latitude, longitude);
                         return Optional.of(new double[]{latitude, longitude});
@@ -244,33 +299,4 @@ public class KakaoGeoService {
         }
         return Optional.empty();
     }
-
-    // 기존 지오코딩 메소드 (필요시 사용)
-//    public Optional<double[]> getCoordinatesFromGeocoding(String address) {
-//        try {
-//            String encodedAddress = URLEncoder.encode(address, StandardCharsets.UTF_8);
-//            String url = "https://dapi.kakao.com/v2/local/search/address.json?query=" + encodedAddress;
-//
-//            HttpHeaders headers = new HttpHeaders();
-//            headers.set("Authorization", "KakaoAK " + kakaoApiKey);
-//            HttpEntity<String> entity = new HttpEntity<>(headers);
-//
-//            ResponseEntity<JsonNode> response = restTemplate.exchange(url, HttpMethod.GET, entity, JsonNode.class);
-//
-//            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-//                JsonNode documents = response.getBody().get("documents");
-//
-//                if (documents.isArray() && documents.size() > 0) {
-//                    JsonNode first = documents.get(0);
-//                    double longitude = first.get("x").asDouble();
-//                    double latitude = first.get("y").asDouble();
-//                    log.info("지오코딩 성공: {} -> lat: {}, lng: {}", address, latitude, longitude);
-//                    return Optional.of(new double[]{latitude, longitude});
-//                }
-//            }
-//        } catch (Exception e) {
-//            log.error("지오코딩 에러: {}", address, e);
-//        }
-//        return Optional.empty();
-//    }
 }

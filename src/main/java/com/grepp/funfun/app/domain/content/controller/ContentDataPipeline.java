@@ -9,10 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import com.grepp.funfun.app.infra.response.ResponseCode;
 
 import java.util.HashMap;
@@ -126,7 +123,7 @@ public class ContentDataPipeline {
 
     // 3. 전체 프로세스 테스트 (키워드 → 위경도 → 주소)
     @Operation(summary = "전체 프로세스 테스트", description = "키워드 → 위경도 → 주소로 이어지는 전체 흐름을 테스트합니다.")
-    @PostMapping("/full-process")
+    @GetMapping("/full-process")
     public ResponseEntity<ApiResponse<Map<String, Object>>> testFullProcess(@RequestParam String keyword) {
         Map<String, Object> result = new HashMap<>();
 
@@ -151,6 +148,7 @@ public class ContentDataPipeline {
             }
 
             double[] coords = coordinates.get();
+            log.info("위경도 검색 결과: lat={}, lng={}", coords[0], coords[1]);
             result.put("latitude", coords[0]);
             result.put("longitude", coords[1]);
 
@@ -163,19 +161,19 @@ public class ContentDataPipeline {
             result.put("step2_time", (step2End - step2Start) + "ms");
 
             if (address.isPresent()) {
+                String finalAddress = address.get();
                 result.put("finalAddress", address.get());
+                result.put("rawAddress", finalAddress);
                 result.put("success", true);
                 result.put("message", "전체 프로세스 성공");
                 log.info("전체 프로세스 성공: {} -> lat: {}, lng: {} -> {}",
-                        keyword, coords[0], coords[1], address.get());
+                        keyword, coords[0], coords[1], finalAddress);
             } else {
                 result.put("success", false);
                 result.put("message", "2단계 실패: 위경도로 주소를 찾을 수 없습니다.");
             }
 
-            long totalEndTime = System.currentTimeMillis();
-            result.put("totalTime", (totalEndTime - totalStartTime) + "ms");
-
+            result.put("totalTime", (System.currentTimeMillis() - totalStartTime) + "ms");
             return ResponseEntity.ok(ApiResponse.success(result));
 
         } catch (Exception e) {
