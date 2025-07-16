@@ -10,6 +10,7 @@ import com.grepp.funfun.app.domain.group.entity.QGroupHashtag;
 import com.grepp.funfun.app.domain.group.vo.GroupClassification;
 import com.grepp.funfun.app.domain.group.vo.GroupStatus;
 import com.grepp.funfun.app.domain.participant.vo.ParticipantStatus;
+import com.grepp.funfun.app.domain.user.entity.QUser;
 import com.grepp.funfun.app.domain.user.entity.User;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
