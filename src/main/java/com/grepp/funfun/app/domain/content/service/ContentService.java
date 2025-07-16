@@ -52,6 +52,7 @@ public class ContentService {
     public Page<ContentDTO> findByFiltersWithSort(ContentFilterRequest request, Pageable pageable) {
         Page<Content> contents;
         if (request.isBookmarkSort()) {
+            log.info("sortBy: {}", request.getSortBy());
             contents = findByFiltersOrderByBookmark(request, pageable);
         } else if (request.isEndDateSort()) {
             contents = findByFiltersOrderByEndDate(request, pageable);
@@ -74,7 +75,10 @@ public class ContentService {
                 Sort.by(Sort.Direction.DESC, "bookmarkCount")
         );
 
-        return contentRepository.findFilteredContents(
+        log.info("생성된 sortedPageable: {}", sortedPageable.getSort());
+        log.info("북마크순 정렬을 위해 repository 호출");
+
+        Page<Content> result = contentRepository.findFilteredContents(
                 request.getCategory(),
                 request.getGuname(),
                 request.getStartDate(),
@@ -82,6 +86,18 @@ public class ContentService {
                 false,
                 sortedPageable
         );
+
+        log.info("repository에서 반환된 결과 개수: {}", result.getContent().size());
+        if (!result.getContent().isEmpty()) {
+            Content first = result.getContent().get(0);
+            log.info("첫 번째 결과 - ID: {}, bookmarkCount: {}", first.getId(), first.getBookmarkCount());
+            if (result.getContent().size() > 1) {
+                Content second = result.getContent().get(1);
+                log.info("두 번째 결과 - ID: {}, bookmarkCount: {}", second.getId(), second.getBookmarkCount());
+            }
+        }
+
+        return result;
     }
 
     // 마감 임박순 정렬
@@ -148,38 +164,44 @@ public class ContentService {
 
     // 거리순 컨텐츠 노출
     @Transactional(readOnly = true)
-    public List<ContentDTO> findNearbyContents(Long id, double radiusInKm, int limit){
+    public List<ContentDTO> findNearbyContents(Long id, double radiusInKm, int limit, boolean includeExpired) {
         Content content = contentRepository.findById(id)
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
 
-        double lat = content.getLatitude();
-        double lng = content.getLongitude();
+        Double latitude = content.getLatitude();
+        Double longitude = content.getLongitude();
 
-        if (lat == 0.0 || lng == 0.0) {
+        if (latitude == null || longitude == null || latitude == 0.0 || longitude == 0.0) {
+            log.warn("위경도 정보가 없는 컨텐츠: {}", id);
             return Collections.emptyList();
         }
 
-        List<Content> nearby = contentRepository.findNearby(lat, lng, radiusInKm, id, limit);
-
-        return nearby.stream()
-                .map(this::toDTO)
-                .toList();
-
+        try {
+            List<Content> nearby = contentRepository.findNearby(latitude, longitude, radiusInKm, id, limit, includeExpired);
+            return nearby.stream()
+                    .map(this::toDTO)
+                    .toList();
+        } catch (Exception e) {
+            log.error("주변 컨텐츠 조회 실패: contentId={}, lat={}, lng={}", id, latitude, longitude, e);
+            return Collections.emptyList();
+        }
     }
 
     // 카테고리별 컨텐츠 노출
     @Transactional(readOnly = true)
-    public List<ContentDTO> findRandomByCategory(Long id, int limit){
+    public List<ContentDTO> findRandomByCategory(Long id, int limit, boolean includeExpired) {
         Content content = contentRepository.findById(id)
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
 
         ContentClassification category = content.getCategory().getCategory();
 
-        List<Content> sameCategoryContents = contentRepository.findByCategoryCategory(category);
+        List<Content> sameCategoryContents = contentRepository.findByCategoryCategory(category, includeExpired);
 
         List<Content> filtered = sameCategoryContents.stream()
                 .filter(c -> !c.getId().equals(id))
                 .collect(Collectors.toList());
+
+        Collections.shuffle(filtered);
 
         return filtered.stream()
                 .limit(limit)

@@ -21,6 +21,7 @@ ALTER TABLE content
 ALTER TABLE content
     ALTER COLUMN modified_at SET DEFAULT CURRENT_TIMESTAMP;
 
+
 -- 총 content 데이터(208개)
 -- 행사 데이터 (총 145개)
 -- 장소 데이터 (총  63개)
@@ -931,9 +932,6 @@ VALUES ((SELECT id FROM content_category WHERE category = 'GUKAK'), 'RE: TUAL DA
         'http://tong.visitkorea.or.kr/cms/resource/18/3053618_image3_1.jpg', 'PLACE');
 
 
--- UPDATE content
--- SET content_title = TRIM(REGEXP_REPLACE(REGEXP_REPLACE(content_title, '\([^)]*\)', '', 'g'), '\[[^]]*\]', '', 'g'))
--- WHERE content_title ~ '\([^)]*\)|\[[^]]*\]';
 
 INSERT INTO content_image (content_id, image_url)
 VALUES (1, 'http://www.kopis.or.kr/upload/pfmIntroImage/PF_PF269273_202507110224587580.jpg'),
@@ -1506,6 +1504,10 @@ VALUES (1, '네이버N예약', 'https://booking.naver.com/booking/12/bizes/60762
        (207, NULL, 'www.sdyouth.net'),
        (208, NULL, NULL);
 
+UPDATE content
+SET latitude = ROUND((RANDOM() * (37.58 - 37.50) + 37.50)::numeric, 7),
+    longitude = ROUND((RANDOM() * (127.10 - 126.89) + 126.89)::numeric, 7)
+WHERE latitude IS NULL OR longitude IS NULL;
 
 
 -- UserInfo 테이블 데이터 삽입

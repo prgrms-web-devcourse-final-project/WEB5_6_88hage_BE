@@ -8,8 +8,6 @@ import com.grepp.funfun.app.domain.content.vo.ContentClassification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import java.util.Optional;
-
 
 public interface ContentRepository extends JpaRepository<Content, Long>, ContentRepositoryCustom {
 

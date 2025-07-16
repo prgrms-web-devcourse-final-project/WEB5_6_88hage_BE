@@ -36,9 +36,9 @@ public interface ContentRepositoryCustom {
             Pageable pageable
     );
 
-    List<Content> findNearby(double lat, double lng, double radiusInKm, Long excludeId, int limit);
+    List<Content> findNearby(double latitude, double longitude, double radiusInKm, Long excludeId, int limit, boolean includeExpired);
 
-    List<Content> findByCategoryCategory(ContentClassification category);
+    List<Content> findByCategoryCategory(ContentClassification category, boolean includeExpired);
 
     List<Content> findContentsByIdsWithAllRelations(List<Long> recommendIds);
 }

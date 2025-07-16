@@ -225,7 +225,7 @@ class KakaoGeoServiceTest {
                 .thenReturn(responseEntity);
 
         // When
-        Optional<double[]> result = kakaoGeoService.getCoordinatesFromAddress(address);
+        Optional<double[]> result = kakaoGeoService.getCoordinatesFromKeywordSearch(address);
 
         // Then
         System.out.println("=== 지오코딩 API 성공 테스트 ===");
@@ -268,7 +268,7 @@ class KakaoGeoServiceTest {
                 .thenReturn(responseEntity);
 
         // When
-        Optional<double[]> result = kakaoGeoService.getCoordinatesFromAddress(address);
+        Optional<double[]> result = kakaoGeoService.getCoordinatesFromKeywordSearch(address);
 
         // Then
         System.out.println("=== 지오코딩 API 빈 응답 테스트 ===");
@@ -429,7 +429,7 @@ class KakaoGeoServiceTest {
                 .thenThrow(new RuntimeException("API 호출 실패"));
 
         // When
-        Optional<double[]> result = kakaoGeoService.getCoordinatesFromAddress(address);
+        Optional<double[]> result = kakaoGeoService.getCoordinatesFromKeywordSearch(address);
 
         // Then
         System.out.println("=== API 에러 처리 테스트 ===");
