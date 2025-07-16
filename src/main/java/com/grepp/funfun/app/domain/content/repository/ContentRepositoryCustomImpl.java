@@ -6,12 +6,15 @@ import com.grepp.funfun.app.domain.content.vo.ContentClassification;
 import com.grepp.funfun.app.domain.content.entity.Content;
 import com.grepp.funfun.app.domain.content.entity.QContent;
 import com.grepp.funfun.app.domain.content.entity.QContentCategory;
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -20,10 +23,12 @@ import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
+@Slf4j
 public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport implements ContentRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
@@ -52,47 +57,70 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
             String guname,
             LocalDate startDate,
             LocalDate endDate,
+            String keyword,
             boolean includeExpired,
             Pageable pageable) {
+
+        BooleanBuilder where = new BooleanBuilder()
+                .and(categoryEq(categoryParam))
+                .and(gunameEq(guname))
+                .and(startDateGoe(startDate))
+                .and(endDateLoe(endDate));
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            where.and(content.contentTitle.containsIgnoreCase(keyword)
+                    .or(content.address.containsIgnoreCase(keyword)));
+        }
+
+        if (!includeExpired) {
+            where.and(content.endDate.goe(LocalDate.now()));
+        }
+
+        OrderSpecifier<?> orderSpecifier = null;
+        Sort sort = pageable.getSort();
+        log.info("정렬 조건 확인: {}", sort);
+
+        if (sort.isSorted()) {
+            String property = sort.iterator().next().getProperty();
+            log.info("정렬 필드명: {}", property);
+            log.info("북마크 기준 정렬 여부: {}", "bookmarkCount".equals(property));
+
+            if ("bookmarkCount".equals(property)) {
+                orderSpecifier = content.bookmarkCount.desc();
+                log.info("북마크 DESC OrderSpecifier 생성: {}", orderSpecifier);
+            } else if ("endDate".equals(property)) {
+                orderSpecifier = content.endDate.asc();
+                log.info("마감일 ASC OrderSpecifier 생성: {}", orderSpecifier);
+            }
+        }
+        long total = queryFactory
+                .selectFrom(content)
+                .join(content.category, category)
+                .where(where)
+                .fetchCount();
 
         JPAQuery<Content> query = queryFactory
                 .selectFrom(content)
                 .join(content.category, category)
-                .where(
-                        categoryEq(categoryParam),
-                        gunameEq(guname),
-                        startDateGoe(startDate),
-                        endDateLoe(endDate),
-                        includeExpired ? null : content.endDate.goe(LocalDate.now())
-                );
+                .where(where)
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize());
 
-        long total = query.fetchCount();
-
-        if (pageable.getSort().isSorted()) {
-            for (Sort.Order order : pageable.getSort()) {
-                String property = order.getProperty();
-                Sort.Direction direction = order.getDirection();
-
-                if ("bookmarkCount".equals(property)) {
-                    if (direction == Sort.Direction.ASC) {
-                        query.orderBy(content.bookmarkCount.asc());
-                    } else {
-                        query.orderBy(content.bookmarkCount.desc());
-                    }
-                } else if ("endDate".equals(property)) {
-                    if (direction == Sort.Direction.ASC) {
-                        query.orderBy(content.endDate.asc());
-                    } else {
-                        query.orderBy(content.endDate.desc());
-                    }
-                }
-            }
+        if (orderSpecifier != null) {
+            log.info("OrderSpecifier 적용 전 쿼리");
+            query.orderBy(orderSpecifier);
+            log.info("OrderSpecifier 적용 완료: {}", orderSpecifier);
         }
 
-        List<Content> results = query
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
+        log.info("최종 쿼리 실행 전");
+        List<Content> results = query.fetch();
+        log.info("쿼리 실행 완료");
+
+        log.info("조회된 결과들:");
+        for (int i = 0; i < Math.min(5, results.size()); i++) {
+            Content c = results.get(i);
+            log.info("{}번째 - ID: {}, bookmarkCount: {}", i+1, c.getId(), c.getBookmarkCount());
+        }
 
         return new PageImpl<>(results, pageable, total);
     }
@@ -103,6 +131,7 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
             String guname,
             LocalDate startDate,
             LocalDate endDate,
+            String keyword,
             double userLat,
             double userLng,
             boolean includeExpired,
@@ -119,6 +148,7 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
                         gunameEq(guname),
                         startDateGoe(startDate),
                         endDateLoe(endDate),
+                        keywordEq(keyword),
                         content.latitude.isNotNull(),
                         content.longitude.isNotNull(),
                         includeExpired ? null : content.endDate.goe(LocalDate.now())
@@ -133,6 +163,7 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
                         gunameEq(guname),
                         startDateGoe(startDate),
                         endDateLoe(endDate),
+                        keywordEq(keyword),
                         content.latitude.isNotNull(),
                         content.longitude.isNotNull(),
                         includeExpired ? null : content.endDate.goe(LocalDate.now())
@@ -147,8 +178,14 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
 
 
     @Override
-    public List<Content> findNearby(double lat, double lng, double radiusInKm, Long excludeId, int limit) {
-        NumberExpression<Double> distance = createDistanceExpression(lat, lng);
+    public List<Content> findNearby(double latitude, double longitude, double radiusInKm, Long excludeId, int limit, boolean includeExpired) {
+        NumberExpression<Double> distance = createDistanceExpression(latitude, longitude);
+
+        BooleanExpression notExpired = includeExpired
+                ? null
+                : content.endDate.isNull()
+                .or(content.endDate.goe(LocalDate.now()));
+
 
         return queryFactory
                 .selectFrom(content)
@@ -157,7 +194,7 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
                         content.latitude.isNotNull(),
                         content.longitude.isNotNull(),
                         distance.lt(radiusInKm),
-                        content.endDate.goe(LocalDate.now())
+                        notExpired
                 )
                 .orderBy(distance.asc())
                 .limit(limit)
@@ -165,13 +202,18 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
     }
 
     @Override
-    public List<Content> findByCategoryCategory(ContentClassification categoryParam) {
+    public List<Content> findByCategoryCategory(ContentClassification categoryParam, boolean includeExpired) {
+        BooleanExpression notExpired = includeExpired
+                ? null
+                : content.endDate.isNull()
+                .or(content.endDate.goe(LocalDate.now()));
+
         return queryFactory
                 .selectFrom(content)
                 .join(content.category, category).fetchJoin()
                 .where(
                         category.category.eq(categoryParam),
-                        content.endDate.goe(LocalDate.now())
+                        notExpired
                 )
                 .fetch();
     }
@@ -202,6 +244,69 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
 
     private BooleanExpression endDateLoe(LocalDate endDate) {
         return endDate != null ? content.endDate.loe(endDate) : null;
+    }
+
+    private BooleanExpression keywordEq(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return null;
+        }
+        BooleanExpression titleCondition = content.contentTitle.containsIgnoreCase(keyword);
+        BooleanExpression addressCondition = content.address.containsIgnoreCase(keyword);
+        BooleanExpression gunameCondition = content.guname.containsIgnoreCase(keyword);
+
+        // 카테고리 한글 검색 매핑
+        BooleanExpression categoryCondition = getCategoryCondition(keyword);
+
+        BooleanExpression result = titleCondition.or(addressCondition).or(gunameCondition);
+
+        if (categoryCondition != null) {
+            result = result.or(categoryCondition);
+        }
+
+        return result;
+    }
+
+    private BooleanExpression getCategoryCondition(String keyword) {
+        String lowerKeyword = keyword.toLowerCase().trim();
+
+        return switch (lowerKeyword) {
+            case "연극", "theater", "theatre" ->
+                    content.category.category.eq(ContentClassification.THEATER);
+            case "무용", "서양무용", "한국무용", "발레", "ballet", "dance" ->
+                    content.category.category.eq(ContentClassification.DANCE);
+
+            case "대중무용", "pop dance", "힙합", "hiphop", "현대무용" ->
+                    content.category.category.eq(ContentClassification.POP_DANCE);
+
+            case "클래식", "서양음악", "classic", "classical", "오케스트라", "심포니" ->
+                    content.category.category.eq(ContentClassification.CLASSIC);
+
+            case "국악", "한국음악", "gukak", "전통음악", "판소리", "가야금" ->
+                    content.category.category.eq(ContentClassification.GUKAK);
+
+            case "대중음악", "pop", "팝", "콘서트", "concert", "음악", "music", "가요" ->
+                    content.category.category.eq(ContentClassification.POP_MUSIC);
+
+            case "복합", "mix", "혼합" ->
+                    content.category.category.eq(ContentClassification.MIX);
+
+            case "서커스", "마술", "magic", "circus", "매직" ->
+                    content.category.category.eq(ContentClassification.MAGIC);
+
+            case "뮤지컬", "musical" ->
+                    content.category.category.eq(ContentClassification.MUSICAL);
+
+            case "관광지", "tour", "여행", "관광", "투어" ->
+                    content.category.category.eq(ContentClassification.TOUR);
+
+            case "문화시설", "culture", "박물관", "미술관", "갤러리", "전시관" ->
+                    content.category.category.eq(ContentClassification.CULTURE);
+
+            case "레포츠", "스포츠", "sports", "운동", "체육", "레저" ->
+                    content.category.category.eq(ContentClassification.SPORTS);
+
+            default -> null;
+        };
     }
 
     private NumberExpression<Double> createDistanceExpression(double baseLat, double baseLng) {

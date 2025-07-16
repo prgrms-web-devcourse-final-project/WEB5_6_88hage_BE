@@ -22,6 +22,7 @@ public interface ContentRepositoryCustom {
             String guname,
             LocalDate startDate,
             LocalDate endDate,
+            String keyword,
             boolean includeExpired,
             Pageable pageable);
 
@@ -30,15 +31,16 @@ public interface ContentRepositoryCustom {
             String guname,
             LocalDate startDate,
             LocalDate endDate,
+            String keyword,
             double userLat,
             double userLng,
             boolean includeExpired,
             Pageable pageable
     );
 
-    List<Content> findNearby(double lat, double lng, double radiusInKm, Long excludeId, int limit);
+    List<Content> findNearby(double latitude, double longitude, double radiusInKm, Long excludeId, int limit, boolean includeExpired);
 
-    List<Content> findByCategoryCategory(ContentClassification category);
+    List<Content> findByCategoryCategory(ContentClassification category, boolean includeExpired);
 
     List<Content> findContentsByIdsWithAllRelations(List<Long> recommendIds);
 }

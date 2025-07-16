@@ -57,6 +57,8 @@ public class Content extends BaseEntity {
 
     private Double longitude;
 
+    private String area;
+
     private String guname; // 자치구
 
     private String time;

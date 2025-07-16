@@ -32,6 +32,8 @@ public class ContentDTO {
 
     private String address;
 
+    private String area;
+
     private String guname;
 
     private String time;

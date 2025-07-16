@@ -25,6 +25,8 @@ public class ContentFilterRequest {
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate endDate;
 
+    private String keyword;
+
     @Parameter(description = "정렬 기준",
             schema = @Schema(allowableValues = {"bookmarkCount", "endDate", "distance"}))
     private String sortBy = "distance";
