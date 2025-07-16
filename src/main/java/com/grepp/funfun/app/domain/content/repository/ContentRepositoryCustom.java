@@ -22,6 +22,7 @@ public interface ContentRepositoryCustom {
             String guname,
             LocalDate startDate,
             LocalDate endDate,
+            String keyword,
             boolean includeExpired,
             Pageable pageable);
 
@@ -30,6 +31,7 @@ public interface ContentRepositoryCustom {
             String guname,
             LocalDate startDate,
             LocalDate endDate,
+            String keyword,
             double userLat,
             double userLng,
             boolean includeExpired,

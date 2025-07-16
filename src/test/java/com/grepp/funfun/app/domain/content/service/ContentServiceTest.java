@@ -83,7 +83,7 @@ class ContentServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Content> mockPage = new PageImpl<>(mockContents, pageable, mockContents.size());
         given(contentRepository.findFilteredContentsByDistance(
-                any(), any(), any(), any(), eq(37.4981), eq(127.0276), eq(false), eq(pageable)))
+                any(), any(), any(), any(), any(), eq(37.4981), eq(127.0276), eq(false), eq(pageable)))
                 .willReturn(mockPage);
 
         Page<ContentDTO> result = contentService.findByFiltersWithSort(request, pageable);
@@ -102,7 +102,7 @@ class ContentServiceTest {
         );
 
         verify(contentRepository).findFilteredContentsByDistance(
-                any(), any(), any(), any(), eq(37.4981), eq(127.0276), eq(false), eq(pageable));
+                any(), any(), any(), any(), any(), eq(37.4981), eq(127.0276), eq(false), eq(pageable));
     }
 
     @Test
@@ -119,7 +119,7 @@ class ContentServiceTest {
         Page<Content> mockPage = new PageImpl<>(danceContents, pageable, danceContents.size());
 
         given(contentRepository.findFilteredContentsByDistance(
-                eq(ContentClassification.DANCE), any(), any(), any(), eq(37.4981), eq(127.0276), eq(false), eq(pageable)))
+                eq(ContentClassification.DANCE), any(), any(), any(), any(), eq(37.4981), eq(127.0276), eq(false), eq(pageable)))
                 .willReturn(mockPage);
 
         Page<ContentDTO> result = contentService.findByFiltersWithSort(request, pageable);
@@ -152,7 +152,7 @@ class ContentServiceTest {
         Page<Content> mockPage = new PageImpl<>(gangnamContents, pageable, gangnamContents.size());
 
         given(contentRepository.findFilteredContentsByDistance(
-                any(), eq("강남구"), any(), any(), eq(37.4981), eq(127.0276), eq(false), eq(pageable)))
+                any(), eq("강남구"), any(), any(), any(), eq(37.4981), eq(127.0276), eq(false), eq(pageable)))
                 .willReturn(mockPage);
 
         Page<ContentDTO> result = contentService.findByFiltersWithSort(request, pageable);
@@ -182,7 +182,7 @@ class ContentServiceTest {
         Page<Content> mockPage = new PageImpl<>(mockContents, pageable, mockContents.size());
 
         given(contentRepository.findFilteredContentsByDistance(
-                any(), any(), any(), any(), eq(37.4981), eq(127.0276),  eq(false),eq(pageable)))
+                any(), any(), any(), any(), any(),eq(37.4981), eq(127.0276),  eq(false),eq(pageable)))
                 .willReturn(mockPage);
 
         Page<ContentDTO> result = contentService.findByFiltersWithSort(request, pageable);
@@ -203,7 +203,7 @@ class ContentServiceTest {
         });
 
         verify(contentRepository).findFilteredContentsByDistance(
-                any(), any(), any(), any(), eq(37.4981), eq(127.0276),  eq(false),eq(pageable));
+                any(), any(), any(), any(), any(), eq(37.4981), eq(127.0276),  eq(false),eq(pageable));
     }
 
     @Test
@@ -217,7 +217,7 @@ class ContentServiceTest {
         Page<Content> mockPage = new PageImpl<>(mockContents, pageable, mockContents.size());
 
         given(contentRepository.findFilteredContents(
-                any(), any(), any(), any(), eq(false),
+                any(), any(), any(), any(), any(), eq(false),
                 argThat(p -> p.getSort().equals(Sort.by(Sort.Direction.DESC, "bookmarkCount")))))
                 .willReturn(mockPage);
 
@@ -235,7 +235,7 @@ class ContentServiceTest {
         );
 
         verify(contentRepository).findFilteredContents(
-                any(), any(), any(), any(), eq(false),
+                any(), any(), any(), any(), any(), eq(false),
                 argThat(p -> {
                     Sort sort = p.getSort();
                     boolean isCorrectSort = sort.isSorted() &&
@@ -260,7 +260,7 @@ class ContentServiceTest {
         Page<Content> mockPage = new PageImpl<>(sortedByEndDate, pageable, sortedByEndDate.size());
 
         Pageable sortedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "endDate"));  // endDate 정렬
-        given(contentRepository.findFilteredContents(any(), any(), any(), any(), eq(false), eq(sortedPageable)))
+        given(contentRepository.findFilteredContents(any(), any(), any(), any(), any(), eq(false), eq(sortedPageable)))
                 .willReturn(mockPage);
 
         Page<ContentDTO> result = contentService.findByFiltersWithSort(request, pageable);
@@ -281,7 +281,7 @@ class ContentServiceTest {
                         " - 마감일: " + content.getEndDate())
         );
 
-        verify(contentRepository).findFilteredContents(any(), any(), any(), any(), eq(false), any());
+        verify(contentRepository).findFilteredContents(any(), any(), any(), any(), any(), eq(false), any());
     }
 
     @Test
@@ -293,7 +293,7 @@ class ContentServiceTest {
         Page<Content> mockPage = new PageImpl<>(mockContents.subList(0, 3), pageable, 3);
 
         given(contentRepository.findFilteredContentsByDistance(
-                any(), any(), any(), any(), eq(37.4981), eq(127.0276),  eq(false),eq(pageable)))
+                any(), any(), any(), any(), any(), eq(37.4981), eq(127.0276),  eq(false),eq(pageable)))
                 .willReturn(mockPage);
 
         Page<ContentDTO> result = contentService.findByFiltersWithSort(request, pageable);
@@ -314,7 +314,7 @@ class ContentServiceTest {
         );
 
         verify(contentRepository).findFilteredContentsByDistance(
-                any(), any(), any(), any(), eq(37.4981), eq(127.0276),  eq(false),eq(pageable));
+                any(), any(), any(), any(), any(), eq(37.4981), eq(127.0276),  eq(false),eq(pageable));
     }
 
     @Test
@@ -336,7 +336,7 @@ class ContentServiceTest {
         Page<Content> mockPage = new PageImpl<>(sortedByStartDate, pageable, sortedByStartDate.size());
 
         Pageable fallbackPageable = PageRequest.of(0, 5, Sort.by(Sort.Direction.ASC, "startDate"));
-        given(contentRepository.findFilteredContents(any(), any(), any(), any(),  eq(false),eq(fallbackPageable)))
+        given(contentRepository.findFilteredContents(any(), any(), any(), any(),  any(), eq(false),eq(fallbackPageable)))
                 .willReturn(mockPage);
 
         Page<ContentDTO> result = contentService.findByFiltersWithSort(request, pageable);
@@ -358,10 +358,116 @@ class ContentServiceTest {
                         " - 시작일: " + content.getStartDate())
         );
 
-        verify(contentRepository).findFilteredContents(any(), any(), any(), any(), eq(false), any());
+        verify(contentRepository).findFilteredContents(any(), any(), any(), any(), any(), eq(false), any());
         verify(contentRepository, never()).findFilteredContentsByDistance(
-                any(), any(), any(), any(), anyDouble(), anyDouble(), anyBoolean(), any());
+                any(), any(), any(), any(), any(), anyDouble(), anyDouble(), anyBoolean(), any());
     }
+
+    @Test
+    @DisplayName("키워드 검색 테스트")
+    void testKeywordSearch() {
+        setupDistanceSortMocks();
+        ContentFilterRequest request = new ContentFilterRequest();
+        request.setKeyword("음악");
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        List<Content> keywordResults = mockContents.stream()
+                .filter(content -> content.getContentTitle().contains("음악"))
+                .toList();
+        Page<Content> mockPage = new PageImpl<>(keywordResults, pageable, keywordResults.size());
+
+        given(contentRepository.findFilteredContentsByDistance(
+                any(), any(), any(), any(), eq("음악"), // keyword 파라미터
+                eq(37.4981), eq(127.0276), eq(false), eq(pageable)))
+                .willReturn(mockPage);
+
+        Page<ContentDTO> result = contentService.findByFiltersWithSort(request, pageable);
+
+        assertThat(result).isNotNull();
+
+        System.out.println("========== 키워드 검색 테스트 ==========");
+        System.out.println("검색어: 음악");
+        result.getContent().forEach(content ->
+                System.out.println(content.getContentTitle() + " - 검색어 포함 확인"));
+
+        verify(contentRepository).findFilteredContentsByDistance(
+                any(), any(), any(), any(), eq("음악"),
+                eq(37.4981), eq(127.0276), eq(false), eq(pageable));
+    }
+
+    @Test
+    @DisplayName("키워드 검색 테스트 - 카테고리 한글 검색")
+    void testKeywordSearchByKoreanCategory() {
+        setupDistanceSortMocks();
+        ContentFilterRequest request = new ContentFilterRequest();
+        request.setKeyword("무용");
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        List<Content> keywordResults = mockContents.stream()
+                .filter(content -> content.getCategory().getCategory() == ContentClassification.DANCE)
+                .toList();
+        Page<Content> mockPage = new PageImpl<>(keywordResults, pageable, keywordResults.size());
+
+        given(contentRepository.findFilteredContentsByDistance(
+                any(), any(), any(), any(), eq("무용"),
+                eq(37.4981), eq(127.0276), eq(false), eq(pageable)))
+                .willReturn(mockPage);
+
+        Page<ContentDTO> result = contentService.findByFiltersWithSort(request, pageable);
+
+        assertThat(result).isNotNull();
+
+        System.out.println("========== 키워드 검색 테스트 (카테고리-한글) ==========");
+        System.out.println("검색어: 무용");
+        result.getContent().forEach(content ->
+                System.out.println(content.getContentTitle() + " - 카테고리: " + content.getCategory()));
+
+        verify(contentRepository).findFilteredContentsByDistance(
+                any(), any(), any(), any(), eq("무용"),
+                eq(37.4981), eq(127.0276), eq(false), eq(pageable));
+    }
+
+    @Test
+    @DisplayName("키워드 검색 테스트 - 주소 검색")
+    void testKeywordSearchByAddress() {
+        setupDistanceSortMocks();
+        ContentFilterRequest request = new ContentFilterRequest();
+        request.setKeyword("예술의전당");
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        List<Content> updatedContents = mockContents.stream()
+                .peek(content -> {
+                    if (content.getId() == 1L) {
+                        content.setAddress("예술의전당 콘서트홀");
+                    }
+                })
+                .filter(content -> content.getAddress() != null && content.getAddress().contains("예술의전당"))
+                .toList();
+
+        Page<Content> mockPage = new PageImpl<>(updatedContents, pageable, updatedContents.size());
+
+        given(contentRepository.findFilteredContentsByDistance(
+                any(), any(), any(), any(), eq("예술의전당"),
+                eq(37.4981), eq(127.0276), eq(false), eq(pageable)))
+                .willReturn(mockPage);
+
+        Page<ContentDTO> result = contentService.findByFiltersWithSort(request, pageable);
+
+        assertThat(result).isNotNull();
+
+        System.out.println("========== 키워드 검색 테스트 (주소) ==========");
+        System.out.println("검색어: 예술의전당");
+        result.getContent().forEach(content ->
+                System.out.println(content.getContentTitle() + " - 주소: " + content.getAddress()));
+
+        verify(contentRepository).findFilteredContentsByDistance(
+                any(), any(), any(), any(), eq("예술의전당"),
+                eq(37.4981), eq(127.0276), eq(false), eq(pageable));
+    }
+
 
     private List<Content> createMockContents() {
         ContentCategory category1 = new ContentCategory();
@@ -377,6 +483,7 @@ class ContentServiceTest {
         content1.setStartDate(LocalDate.of(2025, 8, 1));
         content1.setEndDate(LocalDate.of(2025, 8, 31));
         content1.setGuname("강남구");
+        content1.setAddress("서울특별시 강남구 테헤란로 123 문화센터");
         content1.setLatitude(37.5000);
         content1.setLongitude(127.0300);
         content1.setCategory(category1);
@@ -390,6 +497,7 @@ class ContentServiceTest {
         content2.setStartDate(LocalDate.of(2025, 7, 15));
         content2.setEndDate(LocalDate.of(2025, 7, 30));
         content2.setGuname("서초구");
+        content2.setAddress("서울특별시 서초구 예술의전당로 456");
         content2.setLatitude(37.4800);
         content2.setLongitude(127.0200);
         content2.setCategory(category2);
@@ -403,6 +511,7 @@ class ContentServiceTest {
         content3.setStartDate(LocalDate.of(2025, 9, 1));
         content3.setEndDate(LocalDate.of(2025, 9, 15));
         content3.setGuname("강남구");
+        content3.setAddress("서울특별시 강남구 압구정로 789 아트홀");
         content3.setLatitude(37.5100);
         content3.setLongitude(127.0400);
         content3.setCategory(category1);

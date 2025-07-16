@@ -3,6 +3,8 @@ package com.grepp.funfun.app.domain.content.controller;
 import com.grepp.funfun.app.domain.content.repository.ContentRepository;
 import com.grepp.funfun.app.domain.content.service.KakaoGeoService;
 import com.grepp.funfun.app.infra.response.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -26,6 +28,7 @@ public class ContentDataPipeline {
     private final KakaoGeoService kakaoGeoService;
     private final ContentRepository contentRepository;
 
+    @Operation(summary = "전체 콘텐츠 좌표 업데이트", description = "Kakao 주소 검색 API를 활용하여 DB의 모든 콘텐츠 좌표 정보를 갱신합니다.")
     @PostMapping("/update")
     public ResponseEntity<ApiResponse<Map<String, String>>> updateAllCoordinates() {
         Map<String, String> response = new HashMap<>();
@@ -43,6 +46,7 @@ public class ContentDataPipeline {
     }
 
     // 1. 키워드 검색으로 위경도 가져오기 테스트
+    @Operation(summary = "키워드 → 위경도 조회", description = "카카오 키워드 검색 API를 이용해 키워드로 위도/경도를 조회합니다.")
     @PostMapping("/keyword-coordinates")
     public ResponseEntity<ApiResponse<Map<String, Object>>> testKeywordToCoordinates(@RequestParam String keyword) {
         Map<String, Object> result = new HashMap<>();
@@ -81,6 +85,7 @@ public class ContentDataPipeline {
     }
 
     // 2. 위경도로 주소 가져오기 테스트 (역지오코딩)
+    @Operation(summary = "위경도 → 주소 조회", description = "카카오 좌표→주소 API를 이용해 위도/경도로 주소를 조회합니다.")
     @PostMapping("/coordinates-address")
     public ResponseEntity<ApiResponse<Map<String, Object>>> testCoordinesToAddress(
             @RequestParam double latitude,
@@ -120,6 +125,7 @@ public class ContentDataPipeline {
     }
 
     // 3. 전체 프로세스 테스트 (키워드 → 위경도 → 주소)
+    @Operation(summary = "전체 프로세스 테스트", description = "키워드 → 위경도 → 주소로 이어지는 전체 흐름을 테스트합니다.")
     @PostMapping("/full-process")
     public ResponseEntity<ApiResponse<Map<String, Object>>> testFullProcess(@RequestParam String keyword) {
         Map<String, Object> result = new HashMap<>();

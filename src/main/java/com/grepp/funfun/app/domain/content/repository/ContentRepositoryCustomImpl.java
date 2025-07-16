@@ -57,6 +57,7 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
             String guname,
             LocalDate startDate,
             LocalDate endDate,
+            String keyword,
             boolean includeExpired,
             Pageable pageable) {
 
@@ -65,6 +66,11 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
                 .and(gunameEq(guname))
                 .and(startDateGoe(startDate))
                 .and(endDateLoe(endDate));
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            where.and(content.contentTitle.containsIgnoreCase(keyword)
+                    .or(content.address.containsIgnoreCase(keyword)));
+        }
 
         if (!includeExpired) {
             where.and(content.endDate.goe(LocalDate.now()));
@@ -125,6 +131,7 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
             String guname,
             LocalDate startDate,
             LocalDate endDate,
+            String keyword,
             double userLat,
             double userLng,
             boolean includeExpired,
@@ -141,6 +148,7 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
                         gunameEq(guname),
                         startDateGoe(startDate),
                         endDateLoe(endDate),
+                        keywordEq(keyword),
                         content.latitude.isNotNull(),
                         content.longitude.isNotNull(),
                         includeExpired ? null : content.endDate.goe(LocalDate.now())
@@ -155,6 +163,7 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
                         gunameEq(guname),
                         startDateGoe(startDate),
                         endDateLoe(endDate),
+                        keywordEq(keyword),
                         content.latitude.isNotNull(),
                         content.longitude.isNotNull(),
                         includeExpired ? null : content.endDate.goe(LocalDate.now())
@@ -235,6 +244,69 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
 
     private BooleanExpression endDateLoe(LocalDate endDate) {
         return endDate != null ? content.endDate.loe(endDate) : null;
+    }
+
+    private BooleanExpression keywordEq(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return null;
+        }
+        BooleanExpression titleCondition = content.contentTitle.containsIgnoreCase(keyword);
+        BooleanExpression addressCondition = content.address.containsIgnoreCase(keyword);
+        BooleanExpression gunameCondition = content.guname.containsIgnoreCase(keyword);
+
+        // 카테고리 한글 검색 매핑
+        BooleanExpression categoryCondition = getCategoryCondition(keyword);
+
+        BooleanExpression result = titleCondition.or(addressCondition).or(gunameCondition);
+
+        if (categoryCondition != null) {
+            result = result.or(categoryCondition);
+        }
+
+        return result;
+    }
+
+    private BooleanExpression getCategoryCondition(String keyword) {
+        String lowerKeyword = keyword.toLowerCase().trim();
+
+        return switch (lowerKeyword) {
+            case "연극", "theater", "theatre" ->
+                    content.category.category.eq(ContentClassification.THEATER);
+            case "무용", "서양무용", "한국무용", "발레", "ballet", "dance" ->
+                    content.category.category.eq(ContentClassification.DANCE);
+
+            case "대중무용", "pop dance", "힙합", "hiphop", "현대무용" ->
+                    content.category.category.eq(ContentClassification.POP_DANCE);
+
+            case "클래식", "서양음악", "classic", "classical", "오케스트라", "심포니" ->
+                    content.category.category.eq(ContentClassification.CLASSIC);
+
+            case "국악", "한국음악", "gukak", "전통음악", "판소리", "가야금" ->
+                    content.category.category.eq(ContentClassification.GUKAK);
+
+            case "대중음악", "pop", "팝", "콘서트", "concert", "음악", "music", "가요" ->
+                    content.category.category.eq(ContentClassification.POP_MUSIC);
+
+            case "복합", "mix", "혼합" ->
+                    content.category.category.eq(ContentClassification.MIX);
+
+            case "서커스", "마술", "magic", "circus", "매직" ->
+                    content.category.category.eq(ContentClassification.MAGIC);
+
+            case "뮤지컬", "musical" ->
+                    content.category.category.eq(ContentClassification.MUSICAL);
+
+            case "관광지", "tour", "여행", "관광", "투어" ->
+                    content.category.category.eq(ContentClassification.TOUR);
+
+            case "문화시설", "culture", "박물관", "미술관", "갤러리", "전시관" ->
+                    content.category.category.eq(ContentClassification.CULTURE);
+
+            case "레포츠", "스포츠", "sports", "운동", "체육", "레저" ->
+                    content.category.category.eq(ContentClassification.SPORTS);
+
+            default -> null;
+        };
     }
 
     private NumberExpression<Double> createDistanceExpression(double baseLat, double baseLng) {

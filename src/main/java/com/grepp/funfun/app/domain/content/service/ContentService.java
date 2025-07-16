@@ -83,6 +83,7 @@ public class ContentService {
                 request.getGuname(),
                 request.getStartDate(),
                 request.getEndDate(),
+                request.getKeyword(),
                 false,
                 sortedPageable
         );
@@ -113,6 +114,7 @@ public class ContentService {
                 request.getGuname(),
                 request.getStartDate(),
                 request.getEndDate(),
+                request.getKeyword(),
                 false,
                 sortedPageable
         );
@@ -155,6 +157,7 @@ public class ContentService {
                 request.getGuname(),
                 request.getStartDate(),
                 request.getEndDate(),
+                request.getKeyword(),
                 userLat,
                 userLng,
                 false,
