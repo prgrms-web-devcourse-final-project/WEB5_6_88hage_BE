@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -98,6 +99,7 @@ public class UserApiController {
         String email = authentication.getName();
         userService.unActive(email, accessTokenId);
 
+        SecurityContextHolder.clearContext();
         TokenCookieFactory.setAllExpiredCookies(response);
 
         return ResponseEntity.ok(ApiResponse.success("회원 탈퇴되었습니다."));

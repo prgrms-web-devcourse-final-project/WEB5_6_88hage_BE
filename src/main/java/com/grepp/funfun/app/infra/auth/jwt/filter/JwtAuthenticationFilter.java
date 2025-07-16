@@ -5,6 +5,9 @@ import com.grepp.funfun.app.domain.auth.token.RefreshTokenService;
 import com.grepp.funfun.app.domain.auth.token.UserBlackListRepository;
 import com.grepp.funfun.app.domain.auth.token.entity.RefreshToken;
 import com.grepp.funfun.app.domain.auth.token.entity.UserBlackList;
+import com.grepp.funfun.app.domain.user.entity.User;
+import com.grepp.funfun.app.domain.user.repository.UserRepository;
+import com.grepp.funfun.app.domain.user.vo.UserStatus;
 import com.grepp.funfun.app.infra.auth.jwt.JwtTokenProvider;
 import com.grepp.funfun.app.infra.auth.jwt.TokenCookieFactory;
 import com.grepp.funfun.app.infra.auth.jwt.dto.AccessTokenDto;
@@ -33,6 +36,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final RefreshTokenService refreshTokenService;
     private final UserBlackListRepository userBlackListRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final UserRepository userRepository;
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
@@ -57,6 +61,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             if (jwtTokenProvider.validateToken(accessToken, request)) {
                 Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
+
+                String email = authentication.getName();
+                User user = userRepository.findById(email)
+                    .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+                // ACTIVE 사용자인지 검증
+                if (!user.getStatus().equals(UserStatus.ACTIVE)) {
+                    Claims claims = jwtTokenProvider.getClaims(accessToken);
+                    // 리프레시 토큰 삭제
+                    refreshTokenService.deleteByAccessTokenId(claims.getId());
+                    // 쿠키 만료
+                    SecurityContextHolder.clearContext();
+                    TokenCookieFactory.setAllExpiredCookies(response);
+
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
                 if (userBlackListRepository.existsById(authentication.getName())) {
                     filterChain.doFilter(request, response);
                     return;
