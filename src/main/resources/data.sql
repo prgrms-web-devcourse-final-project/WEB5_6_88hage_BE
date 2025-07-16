@@ -1552,46 +1552,6 @@ VALUES
     ('t10@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '임소라', '19860128', 'FEMALE', '서울특별시 동작구 상도동 상도로 741', 37.5013, 126.9486,
      'ROLE_USER', 'ACTIVE', NULL, NULL, NULL, true, true, 't10@aaa.aaa', true, NOW(), NOW());
 
-INSERT INTO user_hashtag (tag, info_id)
-VALUES
--- t1
-('맛집탐방', 't1@aaa.aaa'),
-('여행', 't1@aaa.aaa'),
-
--- t2
-('공연관람', 't2@aaa.aaa'),
-
--- t3
-('전시회', 't3@aaa.aaa'),
-('야외활동', 't3@aaa.aaa'),
-('음악', 't3@aaa.aaa'),
-
--- t4
-('독서', 't4@aaa.aaa'),
-('문화생활', 't4@aaa.aaa'),
-
--- t5
-('카페투어', 't5@aaa.aaa'),
-
--- t6
-('스포츠', 't6@aaa.aaa'),
-('음악', 't6@aaa.aaa'),
-
--- t7
-('여행', 't7@aaa.aaa'),
-('공연관람', 't7@aaa.aaa'),
-
--- t8
-('전시회', 't8@aaa.aaa'),
-
--- t9
-('문화생활', 't9@aaa.aaa'),
-('맛집탐방', 't9@aaa.aaa'),
-('카페투어', 't9@aaa.aaa'),
-
--- t10
-('야외활동', 't10@aaa.aaa'),
-('독서', 't10@aaa.aaa');
 
 -- GroupPreference 테이블 데이터 삽입
 INSERT INTO group_preference (category, user_id, activated, created_at, modified_at)
@@ -2098,6 +2058,7 @@ VALUES
 ('t10@aaa.aaa', '2025-07-18 19:00:00', 'CONTENT', 10, NULL, true, NOW(), NOW()),
 ('t10@aaa.aaa', NULL, 'GROUP', NULL, 10, true, NOW(), NOW());
 
+ALTER TABLE report ALTER COLUMN resolved SET DEFAULT false;
 -- Report 테이블 데이터 삽입 (모임 게시글 신고)
 INSERT INTO report (reason, type, target_id, reporting_user_id, reported_user_id, activated, created_at, modified_at)
 VALUES
