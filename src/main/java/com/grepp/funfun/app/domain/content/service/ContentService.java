@@ -40,6 +40,7 @@ public class ContentService {
     private final CalendarRepository calendarRepository;
     private final UserService userService;
 
+    // 컨텐츠 상세 조회
     @Transactional
     public ContentDTO getContents(final Long id) {
         Content content = contentRepository.findByIdWithCategory(id)
@@ -47,7 +48,7 @@ public class ContentService {
         return toDTO(content);
     }
 
-    // 컨텐츠 필터링
+    // 컨텐츠 필터링(컨텐츠 조회)
     @Transactional(readOnly = true)
     public Page<ContentDTO> findByFiltersWithSort(ContentFilterRequest request, Pageable pageable) {
         Page<Content> contents;

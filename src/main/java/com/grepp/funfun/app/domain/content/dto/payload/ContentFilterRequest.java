@@ -29,11 +29,7 @@ public class ContentFilterRequest {
 
     @Parameter(description = "정렬 기준",
             schema = @Schema(allowableValues = {"bookmarkCount", "endDate", "distance"}))
-    private String sortBy = "distance";
-
-    public boolean isDistanceSort() {
-        return "distance".equals(sortBy);
-    }
+    private String sortBy = "distance"; // 디폴트
 
     public boolean isBookmarkSort() {
         return "bookmarkCount".equals(sortBy);
