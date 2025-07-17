@@ -7,16 +7,26 @@ import com.grepp.funfun.app.domain.group.service.GroupService;
 import com.grepp.funfun.app.domain.recommend.dto.RecommendContentDTO;
 import com.grepp.funfun.app.domain.recommend.dto.RecommendDTO;
 import com.grepp.funfun.app.domain.recommend.dto.RecommendGroupDTO;
+import com.grepp.funfun.app.domain.recommend.dto.payload.ChatBotMessage;
+import com.grepp.funfun.app.domain.recommend.dto.payload.ChatBotRequest;
 import com.grepp.funfun.app.domain.recommend.dto.payload.RecommendGroupResponse;
 import com.grepp.funfun.app.domain.recommend.dto.payload.RecommendRequest;
 import com.grepp.funfun.app.domain.recommend.dto.payload.RecommendTwoListResponse;
+import com.grepp.funfun.app.domain.recommend.entity.ChatBot;
+import com.grepp.funfun.app.domain.recommend.service.AiRequestQueue;
+import com.grepp.funfun.app.domain.recommend.service.AiRequestQueue.AiRequestTask;
+import com.grepp.funfun.app.domain.recommend.service.ChatBotAiService;
 import com.grepp.funfun.app.domain.recommend.service.ChatBotService;
 import com.grepp.funfun.app.domain.recommend.service.ContentAiService;
 import com.grepp.funfun.app.domain.recommend.service.GroupAiService;
 import com.grepp.funfun.app.domain.user.service.UserService;
 import com.grepp.funfun.app.infra.response.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +38,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-
+@Tag(name = "AI 추천 API", description = "추천과 관련된 기능들입니다.")
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -41,21 +51,72 @@ public class ChatBotApiController {
     private final ContentService contentService;
     private final GroupService groupService;
     private final UserService userService;
+    private final AiRequestQueue aiRequestQueue;
+    private final ChatBotAiService chatBotAiService;
 
     @PostMapping("chat")
-    public String chat(@RequestBody String message) {
-        return contentAiService.chat(message);
+    @Operation(summary = "챗봇 대화 기능", description = "챗봇과 대화하여 사용자의 취향을 분석함")
+    public CompletableFuture<ResponseEntity<ApiResponse<String>>> chat(@RequestBody ChatBotRequest request) {
+        String prompt = buildChatBotPrompt(request.getChatBotHistory(), request.getUserMessage());
+
+        log.info("프롬프트 {}",prompt);
+
+        CompletableFuture<String> future = new CompletableFuture<>();
+        aiRequestQueue.addRequest(
+            new AiRequestTask(() -> {
+                String response = chatBotAiService.chat(prompt);
+                return response;
+                // return ApiResponse.success(response);
+            }, future)
+        );
+
+        // future가 완료될 때 ApiResponse로 변환
+        return future.thenApply(result ->
+                                    ResponseEntity.ok(ApiResponse.success(result))
+        );
     }
 
+    @PostMapping("end")
+    @Operation(summary = "챗봇 대화내용 요약 기능", description = "챗봇과의 대화내용을 바타응로 사용자의 취향을 분석하여 저장")
+    public CompletableFuture<ResponseEntity<ApiResponse<String>>> chatBotCloseAndSummary(@RequestBody ChatBotRequest request, Authentication authentication) {
+        String prompt = buildChatBotPrompt(request.getChatBotHistory(), null);
+        String email = authentication.getName();
+        Optional<ChatBot> chatBot = chatBotService.findChatBotSummary(email);
+
+        log.info("최종 대화 내역: {}", prompt);
+        CompletableFuture<String> future = new CompletableFuture<>();
+        aiRequestQueue.addRequest(
+            new AiRequestTask(() -> {
+                String summary = chatBotAiService.summary(prompt);
+                log.info("취향 요약: {}", summary);
+                if(chatBot.isPresent()) {
+                    chatBotService.updateSummary(chatBot.get().getId() , summary);
+                } else {
+                    ChatBot newChatBot = ChatBot.builder()
+                                                .email(email)
+                                                .contentSummary(summary)
+                                                .build();
+                    chatBotService.registSummary(newChatBot);
+                }
+                return summary;
+            }, future)
+        );
+        return future.thenApply(result ->
+                                    ResponseEntity.ok(ApiResponse.success(result))
+        );
+    }
+
+    // 나이에 대한 값을 구해서 프롬프트에 추가 해야함!!
     @PostMapping("content")
+    @Operation(summary = "AI 빠른추천 기능 (컨텐츠)", description = "시간, 장소를 입력하여 추천을 받습니다.")
     public ResponseEntity<ApiResponse<RecommendTwoListResponse>> quickRecommendContent(
         @RequestBody RecommendRequest request, Authentication authentication) {
-//        String email = authentication.getName();
-//        String kind = request.getEventType().toString();
-//        String preference = userService.getUserPreferenceDescription(email, kind);
+        String email = authentication.getName();
+        String kind = request.getEventType().toString();
+        String preference = userService.getUserPreferenceDescription(email, kind);
         String prompt = request.getStartTime() + "부터 " + request.getEndTime()
             + "까지 여가시간인데 이 때 할만한활동을 추천해주는데 "
-            //+ preference
+            + preference
             + "내가 선호하는 활동을 고려해서 장소, 시간 조건에 맞게 실제로 실행할 수 있는 활동들을 추천해줘";
         RecommendContentDTO contents = contentAiService.recommendContent(prompt);
         List<RecommendDTO> recommendList = contents.event();
@@ -98,17 +159,19 @@ public class ChatBotApiController {
                                                .filter(java.util.Objects::nonNull)
                                                .toList();
 
-        log.info(" 추천 결과 ==================");
-        for (RecommendDTO dto : recommendList) {
-            log.info("id: {}", dto.id());
-            log.info("title: {}", dto.title());
-        }
-
-        log.info(" 장소데이터 ==================");
-        for (RecommendDTO dto : recommendPlaceList) {
-            log.info("id: {}", dto.id());
-            log.info("title: {}", dto.title());
-        }
+//        log.info("컨텐츠 추천 결과 ==================");
+//        for (RecommendDTO dto : recommendList) {
+//            log.info("id: {}", dto.id());
+//            log.info("title: {}", dto.title());
+//            log.info("추천이유 : {}", dto.reason());
+//        }
+//
+//        log.info("장소 추천 결과 ==================");
+//        for (RecommendDTO dto : recommendPlaceList) {
+//            log.info("id: {}", dto.id());
+//            log.info("title: {}", dto.title());
+//            log.info("추천이유 : {}", dto.reason());
+//        }
 
         List<ContentWithReasonDTO> recommendContents = contentService.findByIds(recommendIds);
 
@@ -133,18 +196,21 @@ public class ChatBotApiController {
     }
 
     @PostMapping("group")
+    @Operation(summary = "AI 빠른추천 기능 (모임)", description = "시간, 장소를 입력하여 추천을 받습니다.")
     public ResponseEntity<ApiResponse<RecommendGroupResponse>> quickRecommendGroup(
         @RequestBody RecommendRequest request,
         Authentication authentication) {
-//        String email = authentication.getName();
-//        String kind = request.getEventType().toString();
-//        String preference = userService.getUserPreferenceDescription(email, kind);
+        String email = authentication.getName();
+        String kind = request.getEventType().toString();
+        String preference = userService.getUserPreferenceDescription(email, kind);
 
         String prompt = request.getStartTime() + "부터 " + request.getEndTime()
-            + "까지 여가시간인데 이 때 할만한활동을 추천해주는데 "
-            //+ preference
-            + "내가 선호하는 활동을 고려해서 장소, 시간 조건에 맞게 실제로 실행할 수 있는 활동들을 추천해줘";
+            + "까지 여가시간이고 나는 " + request.getAddress()
+            + " 주변에서 할만한 활동을 추천받고 싶어 "
+            + preference
+            + "내가 선호하는 활동을 고려해서 시간과 장소에 맞게 실제로 실행할 수 있는 활동들을 추천해줘";
         RecommendGroupDTO groups = groupAiService.recommend(prompt);
+        log.info("사용자 프롬프트 {}", prompt);
         List<RecommendDTO> recommendList = groups.group();
 
         Map<Long, String> reasonMap = recommendList.stream()
@@ -165,10 +231,10 @@ public class ChatBotApiController {
                                                .filter(java.util.Objects::nonNull)
                                                .toList();
 
-        log.info(" 추천 결과 ==================");
+        log.info("모임 추천 결과 ==================");
         for (RecommendDTO dto : recommendList) {
             log.info("id: {}", dto.id());
-            log.info("title: {}", dto.title());
+            log.info("추천이유 : {}", dto.reason());
         }
 
         List<GroupWithReasonDTO> recommendGroups = groupService.findByIds(recommendIds);
@@ -183,6 +249,29 @@ public class ChatBotApiController {
 
         return ResponseEntity.ok(ApiResponse.success(finalResponse));
 
+    }
+
+    private String buildChatBotPrompt(List<ChatBotMessage> chatBotHistory, String userMessage) {
+        StringBuilder prompt = appendChatBotHistory(chatBotHistory, userMessage);
+        return prompt.toString();
+
+    }
+
+    private StringBuilder appendChatBotHistory(List<ChatBotMessage> chatBotHistory, String userMessage) {
+        StringBuilder prompt = new StringBuilder("--대화 내용--");
+        if(chatBotHistory != null && !chatBotHistory.isEmpty()) {
+            for(ChatBotMessage msg : chatBotHistory) {
+                prompt.append("\n사용자: ").append(msg.getUser());
+                prompt.append("\n당신: ").append(msg.getAi());
+            }
+        }
+
+        if(userMessage != null){
+            prompt.append("\n사용자: ").append(userMessage);
+            prompt.append("\n당신: ");
+        }
+
+        return prompt;
     }
 
 //    @GetMapping
