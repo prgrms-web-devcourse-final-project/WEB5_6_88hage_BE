@@ -1,9 +1,13 @@
 package com.grepp.funfun.app.domain.participant.repository;
 
-import com.grepp.funfun.app.domain.participant.vo.ParticipantStatus;
+import com.grepp.funfun.app.domain.group.entity.QGroup;
+import com.grepp.funfun.app.domain.group.vo.GroupStatus;
+import com.grepp.funfun.app.domain.participant.dto.payload.GroupCompletedStatsResponse;
 import com.grepp.funfun.app.domain.participant.entity.Participant;
 import com.grepp.funfun.app.domain.participant.entity.QParticipant;
+import com.grepp.funfun.app.domain.participant.vo.ParticipantStatus;
 import com.grepp.funfun.app.domain.user.entity.QUser;
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import java.util.Optional;
@@ -19,6 +23,7 @@ public class ParticipantRepositoryCustomImpl implements ParticipantRepositoryCus
     private final JPAQueryFactory queryFactory;
     private final QParticipant qParticipant = QParticipant.participant;
     private final QUser qUser = QUser.user;
+    private final QGroup group = QGroup.group;
 
     // 모임 참여 신청 대기자 조회
     @Override
@@ -82,4 +87,24 @@ public class ParticipantRepositoryCustomImpl implements ParticipantRepositoryCus
 
         return Optional.ofNullable(participant);
     }
+
+
+    @Override
+    public List<GroupCompletedStatsResponse> findGroupCompletedStats(String email) {
+        return queryFactory
+            .select(Projections.constructor(GroupCompletedStatsResponse.class,
+                group.category,
+                group.count()
+            ))
+            .from(qParticipant)
+            .join(qParticipant.group, group)
+            .where(
+                qParticipant.user.email.eq(email),
+                qParticipant.status.eq(ParticipantStatus.GROUP_COMPLETE),
+                group.status.eq(GroupStatus.COMPLETED)
+            )
+            .groupBy(group.category)
+            .fetch();
+    }
+
 }

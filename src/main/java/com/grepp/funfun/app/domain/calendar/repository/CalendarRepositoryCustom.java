@@ -5,6 +5,8 @@ import com.grepp.funfun.app.domain.calendar.dto.payload.CalendarDailyResponse;
 import com.grepp.funfun.app.domain.calendar.dto.payload.CalendarMonthlyResponse;
 import java.time.LocalDateTime;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -13,5 +15,5 @@ public interface CalendarRepositoryCustom {
     List<CalendarMonthlyResponse> findMonthlyGroupCalendars(String email, LocalDateTime start, LocalDateTime end);
     List<CalendarDailyResponse> findDailyContentCalendars(String email, LocalDateTime start, LocalDateTime end);
     List<CalendarDailyResponse> findDailyGroupCalendars(String email, LocalDateTime start, LocalDateTime end);
-    List<CalendarContentResponse> findContentByEmail(String email);
+    Page<CalendarContentResponse> findContentByEmail(String email, boolean pastIncluded, Pageable pageable);
 }

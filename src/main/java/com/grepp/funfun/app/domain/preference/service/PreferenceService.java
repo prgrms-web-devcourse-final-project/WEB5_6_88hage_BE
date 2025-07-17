@@ -82,4 +82,8 @@ public class PreferenceService {
             .build();
     }
 
+    public boolean hasPreferences(String email) {
+        return !contentPreferenceRepository.findByUserEmail(email).isEmpty()
+            && !groupPreferenceRepository.findByUserEmail(email).isEmpty();
+    }
 }

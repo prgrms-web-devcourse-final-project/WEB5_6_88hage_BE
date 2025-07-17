@@ -65,7 +65,7 @@ public class JwtTokenProvider {
     }
     
     // Access Token 생성
-    public AccessTokenDto generateAccessToken(String username, String roles) {
+    public AccessTokenDto generateAccessToken(String username, String nickname, String roles) {
         String id = UUID.randomUUID().toString();
         long now = (new Date()).getTime();
         // ms 단위
@@ -74,6 +74,7 @@ public class JwtTokenProvider {
                            .subject(username)
                            .id(id)
                            .claim("roles", roles)
+                           .claim("nickname", nickname)
                            .expiration(accessTokenExpiresIn)
                            .signWith(getSecretKey())
                            .compact();

@@ -33,7 +33,6 @@ import org.hibernate.annotations.BatchSize;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "content")
 public class Content extends BaseEntity {
 
     @Id
@@ -57,6 +56,8 @@ public class Content extends BaseEntity {
     private Double latitude;
 
     private Double longitude;
+
+    private String area;
 
     private String guname; // 자치구
 
@@ -88,7 +89,7 @@ public class Content extends BaseEntity {
     private ContentCategory category;
 
     @Column(nullable = false)
-    private Integer bookmarkCount = 0;
+    private Integer bookmarkCount;
 
     @Override
     public String toString() {
@@ -111,6 +112,9 @@ public class Content extends BaseEntity {
             '}';
     }
     public void increaseBookmark() {
+        if (this.bookmarkCount == null) {
+            this.bookmarkCount = 0;
+        }
         this.bookmarkCount++;
     }
 

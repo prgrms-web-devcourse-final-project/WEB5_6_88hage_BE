@@ -1,6 +1,8 @@
 package com.grepp.funfun.app.domain.user.dto.payload;
 
-import java.util.List;
+import com.grepp.funfun.app.domain.content.vo.ContentClassification;
+import com.grepp.funfun.app.domain.group.vo.GroupClassification;
+import java.util.Set;
 import lombok.Builder;
 import lombok.Data;
 
@@ -11,9 +13,8 @@ public class UserDetailResponse {
     private String nickname;
     private String introduction;
     private String imageUrl;
-    private List<String> hashtags;
+    private Set<ContentClassification> contentPreferences;
+    private Set<GroupClassification> groupPreferences;
     private long followerCount;
     private long followingCount;
-    private long groupLeadCount;
-    private long groupJoinCount;
 }

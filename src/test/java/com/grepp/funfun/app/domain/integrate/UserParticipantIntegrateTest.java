@@ -2,7 +2,7 @@ package com.grepp.funfun.app.domain.integrate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.grepp.funfun.app.domain.auth.payload.LoginRequest;
+import com.grepp.funfun.app.domain.auth.dto.payload.LoginRequest;
 import com.grepp.funfun.app.domain.auth.service.AuthService;
 import com.grepp.funfun.app.domain.auth.vo.Role;
 import com.grepp.funfun.app.domain.group.vo.GroupStatus;
@@ -84,7 +84,7 @@ public class UserParticipantIntegrateTest {
         memberLoginRequest.setPassword(rawPassword);
 
         //로그인 실행
-        authService.signin(memberLoginRequest);
+        authService.login(memberLoginRequest);
         System.out.println("로그인 완료");
 
         //모임 참여 신청

@@ -4,8 +4,13 @@ import com.grepp.funfun.app.domain.social.dto.payload.FollowsResponse;
 import com.grepp.funfun.app.domain.social.service.FollowService;
 import com.grepp.funfun.app.infra.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
-import java.util.List;
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -42,17 +47,71 @@ public class FollowApiController {
     }
 
     @GetMapping("/followers")
-    @Operation(summary = "팔로워 조회", description = "팔로워 목록을 조회합니다.")
-    public ResponseEntity<ApiResponse<List<FollowsResponse>>> getFollowers(Authentication authentication) {
+    @Operation(summary = "팔로워 조회", description = """
+        팔로워 목록을 조회합니다.
+        
+        기본 정렬은 닉네임 오름차순입니다.
+        
+        • page: 0 ~ N, 보고 싶은 페이지를 지정할 수 있습니다.
+        
+            - 기본값: 0
+        
+        • size: 기본 페이지당 항목 수
+        
+            - 기본값 : 10
+        
+        • sort: 정렬
+        
+            - 정렬 가능한 필드:
+                        - `nickname` (닉네임)
+                        - `createdAt` (팔로우한 시간)
+        
+            - 정렬 방식 예시:
+                        - `?sort=createdAt,desc` (최신순)
+                        - `?sort=createdAt,asc` (오래된순)
+                        - `?sort=nickname,asc` (기본값, 닉네임 오름차순)
+        """)
+    public ResponseEntity<ApiResponse<Page<FollowsResponse>>> getFollowers(
+        Authentication authentication,
+        @Parameter(hidden = true)
+        @ParameterObject
+        @PageableDefault(sort = "nickname", direction = Sort.Direction.ASC) Pageable pageable) {
         String email = authentication.getName();
-        return ResponseEntity.ok(ApiResponse.success(followService.getFollowers(email)));
+        return ResponseEntity.ok(ApiResponse.success(followService.getFollowers(email, pageable)));
     }
 
     @GetMapping("/followings")
-    @Operation(summary = "팔로잉 조회", description = "팔로잉 목록을 조회합니다.")
-    public ResponseEntity<ApiResponse<List<FollowsResponse>>> getFollowings(Authentication authentication) {
+    @Operation(summary = "팔로잉 조회", description = """
+        팔로잉 목록을 조회합니다.
+        
+        기본 정렬은 닉네임 오름차순입니다.
+        
+        • page: 0 ~ N, 보고 싶은 페이지를 지정할 수 있습니다.
+        
+            - 기본값: 0
+        
+        • size: 기본 페이지당 항목 수
+        
+            - 기본값 : 10
+        
+        • sort: 정렬
+        
+            - 정렬 가능한 필드:
+                        - `nickname` (닉네임)
+                        - `createdAt` (팔로우한 시간)
+        
+            - 정렬 방식 예시:
+                        - `?sort=createdAt,desc` (최신순)
+                        - `?sort=createdAt,asc` (오래된순)
+                        - `?sort=nickname,asc` (기본값, 닉네임 오름차순)
+        """)
+    public ResponseEntity<ApiResponse<Page<FollowsResponse>>> getFollowings(
+        Authentication authentication,
+        @Parameter(hidden = true)
+        @ParameterObject
+        @PageableDefault(sort = "nickname", direction = Sort.Direction.ASC) Pageable pageable) {
         String email = authentication.getName();
-        return ResponseEntity.ok(ApiResponse.success(followService.getFollowings(email)));
+        return ResponseEntity.ok(ApiResponse.success(followService.getFollowings(email, pageable)));
     }
 
     @GetMapping("/count/followers")

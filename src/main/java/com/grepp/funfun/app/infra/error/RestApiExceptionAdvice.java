@@ -8,6 +8,7 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.ui.Model;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -54,6 +55,14 @@ public class RestApiExceptionAdvice {
                    .body(ApiResponse.error(ResponseCode.UNAUTHORIZED));
     }
     
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<String>> httpMessageNotReadableExceptionHandler(HttpMessageNotReadableException ex) {
+        log.error(ex.getMessage(), ex);
+        return ResponseEntity
+                   .badRequest()
+                   .body(ApiResponse.error(ResponseCode.BAD_REQUEST, ex.getMessage()));
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse<String>> runtimeExceptionHandler(RuntimeException ex) {
         log.error(ex.getMessage(), ex);

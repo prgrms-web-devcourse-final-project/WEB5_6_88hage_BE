@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>모임 해시태그 자동완성 테스트</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      padding: 40px;
+      text-align: center;
+      color: white;
+    }
+
+    .header h1 {
+      font-size: 2.2em;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .header p {
+      font-size: 1.1em;
+      opacity: 0.9;
+    }
+
+    .search-section {
+      padding: 40px;
+    }
+
+    .search-container {
+      position: relative;
+      margin-bottom: 30px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 20px 60px 20px 25px;
+      border: 3px solid #e8ecf4;
+      border-radius: 15px;
+      font-size: 18px;
+      transition: all 0.3s ease;
+      outline: none;
+      background: #f8f9ff;
+    }
+
+    .search-input:focus {
+      border-color: #4facfe;
+      box-shadow: 0 0 25px rgba(79, 172, 254, 0.4);
+      background: white;
+    }
+
+    .search-icon {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 24px;
+      color: #666;
+    }
+
+    .autocomplete-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 2px solid #e8ecf4;
+      border-radius: 15px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+      z-index: 1000;
+      max-height: 350px;
+      overflow-y: auto;
+      margin-top: 8px;
+      display: none;
+    }
+
+    .autocomplete-item {
+      padding: 18px 25px;
+      cursor: pointer;
+      border-bottom: 1px solid #f5f6fa;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      font-size: 16px;
+    }
+
+    .autocomplete-item:hover {
+      background: linear-gradient(135deg, #f8f9ff 0%, #e8f4ff 100%);
+      color: #4facfe;
+      transform: translateX(5px);
+    }
+
+    .autocomplete-item:last-child {
+      border-bottom: none;
+    }
+
+    .autocomplete-icon {
+      margin-right: 15px;
+      font-size: 20px;
+      width: 25px;
+      text-align: center;
+    }
+
+    .autocomplete-text {
+      flex: 1;
+    }
+
+    .autocomplete-type {
+      font-size: 12px;
+      color: #888;
+      background: #f0f2f5;
+      padding: 4px 8px;
+      border-radius: 8px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .api-info {
+      background: #f8f9ff;
+      border: 2px solid #e8f4ff;
+      border-radius: 15px;
+      padding: 25px;
+      margin-top: 30px;
+    }
+
+    .api-title {
+      font-size: 1.3em;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .api-url {
+      background: #2d3748;
+      color: #68d391;
+      padding: 15px 20px;
+      border-radius: 10px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 14px;
+      margin-bottom: 15px;
+      word-break: break-all;
+    }
+
+    .api-params {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    .test-status {
+      margin-top: 20px;
+      padding: 15px 20px;
+      border-radius: 10px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .status-success {
+      background: #d4edda;
+      color: #155724;
+      border: 2px solid #c3e6cb;
+    }
+
+    .status-loading {
+      background: #fff3cd;
+      color: #856404;
+      border: 2px solid #ffeaa7;
+    }
+
+    .status-error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 2px solid #f5c6cb;
+    }
+
+    .no-results {
+      padding: 20px;
+      text-align: center;
+      color: #888;
+      font-style: italic;
+    }
+
+    .save-section {
+      margin-top: 30px;
+      padding: 20px;
+      background: #f8f9ff;
+      border-radius: 15px;
+      border: 2px solid #e8f4ff;
+    }
+
+    .save-title {
+      font-size: 1.2em;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 15px;
+    }
+
+    .save-controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .save-input {
+      flex: 1;
+      padding: 12px 15px;
+      border: 2px solid #e8ecf4;
+      border-radius: 10px;
+      font-size: 16px;
+      outline: none;
+    }
+
+    .save-input:focus {
+      border-color: #4facfe;
+    }
+
+    .save-button {
+      padding: 12px 25px;
+      background: #4facfe;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+    }
+
+    .save-button:hover {
+      background: #3a8ae8;
+      transform: translateY(-2px);
+    }
+
+    .save-button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        margin: 0 10px;
+      }
+
+      .header {
+        padding: 30px 20px;
+      }
+
+      .header h1 {
+        font-size: 1.8em;
+      }
+
+      .search-section {
+        padding: 30px 20px;
+      }
+
+      .search-input {
+        padding: 18px 50px 18px 20px;
+        font-size: 16px;
+      }
+
+      .save-controls {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🏷️ 해시태그 자동완성 테스트</h1>
+    <p>모임 해시태그 자동완성 API 테스트 페이지</p>
+  </div>
+
+  <div class="search-section">
+    <!-- 해시태그 저장 섹션 -->
+    <div class="save-section">
+      <div class="save-title">📝 새 해시태그 저장</div>
+      <div class="save-controls">
+        <input
+            type="text"
+            class="save-input"
+            placeholder="저장할 해시태그를 입력하세요... (예: 축구, 독서, 요리)"
+            id="saveInput"
+        >
+        <button class="save-button" id="saveButton">저장</button>
+      </div>
+      <div id="saveStatus" class="test-status" style="display: none; margin-top: 10px;"></div>
+    </div>
+
+    <!-- 자동완성 검색 섹션 -->
+    <div class="search-container">
+      <input
+          type="text"
+          class="search-input"
+          placeholder="해시태그를 검색하세요... (예: 축, 독, 요)"
+          id="searchInput"
+          th:value="${prefix ?: ''}"
+      >
+      <span class="search-icon">🔍</span>
+
+      <div class="autocomplete-dropdown" id="autocompleteDropdown">
+        <!-- 자동완성 결과가 여기에 표시됩니다 -->
+      </div>
+    </div>
+
+    <div class="api-info">
+      <div class="api-title">
+        ⚡ API 엔드포인트
+      </div>
+      <div class="api-url">
+        GET /api/groupHashtags/complete?prefix={prefix}
+      </div>
+      <div class="api-url">
+        POST /api/groupHashtags/save?keyword={keyword}
+      </div>
+      <div class="api-params">
+        <strong>파라미터:</strong><br>
+        • prefix: 검색할 접두어 (최소 1글자)<br>
+        • keyword: 저장할 키워드<br>
+        <span th:if="${#strings.isEmpty(prefix)}" style="color: #999;">
+          • 현재 검색어: 없음
+        </span>
+        <span th:unless="${#strings.isEmpty(prefix)}" style="color: #4facfe;">
+          • 현재 검색어: <strong th:text="${prefix}"></strong>
+        </span>
+      </div>
+
+      <div id="testStatus" class="test-status status-loading" style="display: none;">
+        API 호출 중...
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Thymeleaf에서 JavaScript 변수 전달 -->
+<script th:inline="javascript">
+  /*<![CDATA[*/
+  const API_BASE_URL = /*[[${@environment.getProperty('server.servlet.context-path', '')}]]*/ '';
+  const CSRF_TOKEN = /*[[${_csrf?.token}]]*/ null;
+  const CSRF_HEADER = /*[[${_csrf?.headerName}]]*/ null;
+  /*]]>*/
+</script>
+
+<script>
+  const searchInput = document.getElementById('searchInput');
+  const autocompleteDropdown = document.getElementById('autocompleteDropdown');
+  const testStatus = document.getElementById('testStatus');
+  const saveInput = document.getElementById('saveInput');
+  const saveButton = document.getElementById('saveButton');
+  const saveStatus = document.getElementById('saveStatus');
+
+  let searchTimeout;
+
+  // CSRF 토큰 헤더 설정
+  function getHeaders() {
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+
+    if (CSRF_TOKEN && CSRF_HEADER) {
+      headers[CSRF_HEADER] = CSRF_TOKEN;
+    }
+
+    return headers;
+  }
+
+  // 자동완성 API 호출
+  async function callAutocompleteAPI(prefix) {
+    try {
+      const url = `${API_BASE_URL}/api/groupHashtags/complete?prefix=${encodeURIComponent(prefix)}`;
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: getHeaders()
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+
+      if (result.code === "0000" && Array.isArray(result.data)) {
+        // result.data가 자동완성 배열이라고 가정
+        return result.data.map(text => ({
+          text,
+          type: 'hashtag',
+          icon: '#'
+        }));
+      } else {
+        throw new Error(result.message || '알 수 없는 오류');
+      }
+
+    } catch (error) {
+      console.error('API Error:', error);
+      throw error;
+    }
+  }
+
+  // 해시태그 저장 API 호출
+  async function saveHashtagAPI(keyword) {
+    try {
+      const url = `${API_BASE_URL}/api/groupHashtags/save?keyword=${encodeURIComponent(keyword)}`;
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: getHeaders()
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      return result;
+
+    } catch (error) {
+      console.error('Save API Error:', error);
+      throw error;
+    }
+  }
+
+  // 자동완성 결과 표시
+  function showAutocomplete(suggestions) {
+    if (!Array.isArray(suggestions) || suggestions.length === 0) {
+      autocompleteDropdown.innerHTML = '<div class="no-results">검색 결과가 없습니다</div>';
+      autocompleteDropdown.style.display = 'block';
+      return;
+    }
+
+    autocompleteDropdown.innerHTML = suggestions.map(item => `
+    <div class="autocomplete-item" onclick="selectAutocomplete('${escapeHtml(item.text)}')">
+      <span class="autocomplete-icon">${escapeHtml(item.icon || '#')}</span>
+      <span class="autocomplete-text">${escapeHtml(item.text)}</span>
+      <span class="autocomplete-type">${escapeHtml(item.type || 'hashtag')}</span>
+    </div>
+  `).join('');
+
+    autocompleteDropdown.style.display = 'block';
+  }
+
+  // HTML 이스케이프 함수
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // 자동완성 항목 선택
+  function selectAutocomplete(text) {
+    searchInput.value = text;
+    autocompleteDropdown.style.display = 'none';
+
+    testStatus.className = 'test-status status-success';
+    testStatus.textContent = `✅ "#${text}" 선택됨`;
+    testStatus.style.display = 'block';
+  }
+
+  // 해시태그 저장 버튼 클릭
+  saveButton.addEventListener('click', async function() {
+    const keyword = saveInput.value.trim();
+
+    if (!keyword) {
+      saveStatus.className = 'test-status status-error';
+      saveStatus.textContent = '❌ 저장할 해시태그를 입력하세요';
+      saveStatus.style.display = 'block';
+      return;
+    }
+
+    saveButton.disabled = true;
+    saveStatus.className = 'test-status status-loading';
+    saveStatus.textContent = `🔄 "${keyword}" 저장 중...`;
+    saveStatus.style.display = 'block';
+
+    try {
+      const result = await saveHashtagAPI(keyword);
+
+      if (result.code === "0000") {
+        saveStatus.className = 'test-status status-success';
+        saveStatus.textContent = `✅ "${keyword}" 저장 완료`;
+        saveInput.value = '';
+      } else {
+        saveStatus.className = 'test-status status-error';
+        saveStatus.textContent = `❌ 저장 실패: ${result.message || '알 수 없는 오류'}`;
+      }
+    } catch (error) {
+      saveStatus.className = 'test-status status-error';
+      saveStatus.textContent = `❌ 저장 실패: ${error.message}`;
+    } finally {
+      saveButton.disabled = false;
+    }
+  });
+
+  // 검색 입력 이벤트
+  searchInput.addEventListener('input', function(e) {
+    const prefix = e.target.value.trim();
+
+    clearTimeout(searchTimeout);
+
+    if (prefix.length >= 1) {
+      testStatus.className = 'test-status status-loading';
+      testStatus.textContent = `🔄 "${prefix}" 검색 중...`;
+      testStatus.style.display = 'block';
+
+      searchTimeout = setTimeout(async () => {
+        try {
+          const suggestions = await callAutocompleteAPI(prefix);
+          showAutocomplete(suggestions);
+
+          testStatus.className = 'test-status status-success';
+          testStatus.textContent = `✅ ${suggestions.length}개 결과 찾음`;
+
+        } catch (error) {
+          testStatus.className = 'test-status status-error';
+          testStatus.textContent = `❌ API 호출 실패: ${error.message}`;
+          autocompleteDropdown.style.display = 'none';
+        }
+      }, 300);
+
+    } else {
+      autocompleteDropdown.style.display = 'none';
+      testStatus.style.display = 'none';
+    }
+  });
+
+  // Enter 키로 저장
+  saveInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      saveButton.click();
+    }
+  });
+
+  // 외부 클릭 시 자동완성 숨기기
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.search-container')) {
+      autocompleteDropdown.style.display = 'none';
+    }
+  });
+
+  // 키보드 네비게이션
+  let selectedIndex = -1;
+  searchInput.addEventListener('keydown', function(e) {
+    const items = autocompleteDropdown.querySelectorAll('.autocomplete-item');
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+      updateSelection(items);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      selectedIndex = Math.max(selectedIndex - 1, -1);
+      updateSelection(items);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (selectedIndex >= 0 && items[selectedIndex]) {
+        items[selectedIndex].click();
+      }
+    } else if (e.key === 'Escape') {
+      autocompleteDropdown.style.display = 'none';
+      selectedIndex = -1;
+    }
+  });
+
+  function updateSelection(items) {
+    items.forEach((item, index) => {
+      if (index === selectedIndex) {
+        item.style.background = 'linear-gradient(135deg, #f8f9ff 0%, #e8f4ff 100%)';
+        item.style.color = '#4facfe';
+      } else {
+        item.style.background = '';
+        item.style.color = '';
+      }
+    });
+  }
+
+
+  // 페이지 로드 시 초기화
+  document.addEventListener('DOMContentLoaded', function() {
+    // URL 파라미터에서 prefix가 있으면 자동 검색
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialPrefix = urlParams.get('prefix');
+
+    if (initialPrefix && searchInput.value === initialPrefix) {
+      // 초기 prefix로 자동완성 테스트
+      setTimeout(() => {
+        const event = new Event('input', { bubbles: true });
+        searchInput.dispatchEvent(event);
+      }, 500);
+    }
+  });
+</script>
+</body>
+</html>

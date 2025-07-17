@@ -1,5 +1,7 @@
 package com.grepp.funfun.app.domain.participant.service;
 
+import com.grepp.funfun.app.domain.group.vo.GroupClassification;
+import com.grepp.funfun.app.domain.participant.dto.payload.GroupCompletedStatsResponse;
 import com.grepp.funfun.app.domain.participant.dto.payload.ParticipantResponse;
 import com.grepp.funfun.app.domain.calendar.service.CalendarService;
 import com.grepp.funfun.app.domain.group.vo.GroupStatus;
@@ -15,6 +17,7 @@ import com.grepp.funfun.app.domain.user.repository.UserRepository;
 import com.grepp.funfun.app.domain.user.vo.UserStatus;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -60,6 +63,8 @@ public class ParticipantService {
             ParticipantStatus status = existingParticipant.get().getStatus();
 
             switch (status) {
+                case REJECTED ->
+                    throw new CommonException(ResponseCode.BAD_REQUEST, "이미 거절 당한 모임입니다.");
                 case PENDING ->
                     throw new CommonException(ResponseCode.BAD_REQUEST, "이미 신청한 모임입니다.");
                 case APPROVED ->
@@ -68,6 +73,7 @@ public class ParticipantService {
                     throw new CommonException(ResponseCode.BAD_REQUEST, "강제퇴장으로 인해 참여할 수 없습니다.");
                 case LEAVE -> {
                     existingParticipant.get().setStatus(ParticipantStatus.PENDING);
+                    participantRepository.save(existingParticipant.get());
                     return;
                 }
             }
@@ -123,7 +129,6 @@ public class ParticipantService {
         // 승인
         for(String userEmail : userEmails) {
             Participant participant = participantRepository.findByGroupIdAndUserEmail(groupId,userEmail).orElseThrow(()-> new CommonException(ResponseCode.NOT_FOUND));
-            log.info(participant.toString());
             participant.setStatus(ParticipantStatus.APPROVED);
             // 모임 생성 시 참여자의 캘린더에 자동으로 일정 추가하기
             calendarService.addGroupCalendar(userEmail, group);
@@ -163,8 +168,7 @@ public class ParticipantService {
             Participant participant = participantRepository.findByGroupIdAndUserEmail(groupId,userEmail)
                 .orElseThrow(()-> new CommonException(ResponseCode.NOT_FOUND));
 
-            log.info(participant.toString());
-            participant.setStatus(ParticipantStatus.REJECTED);
+            participant.changeStatusAndActivated(ParticipantStatus.REJECTED);
             participantRepository.save(participant);
         }
     }
@@ -192,8 +196,7 @@ public class ParticipantService {
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND, "참가자를 찾을 수 없습니다."));
 
         // 5. 강제 퇴장 : status -GROUP_KICKOUT + 비활성화 처리
-        participant.setStatus(ParticipantStatus.GROUP_KICKOUT);
-        participant.unActivated();
+        participant.changeStatusAndActivated(ParticipantStatus.GROUP_KICKOUT);
 
         group.setNowPeople(group.getNowPeople() - 1);
 
@@ -251,7 +254,7 @@ public class ParticipantService {
             .collect(Collectors.toList());
     }
 
-    // 모임 신청한 승인 조회
+    // 모임 신청한 승인 사용자 조회
     @Transactional(readOnly = true)
     public List<ParticipantResponse> getApproveParticipants(Long groupId) {
         // 1. 모임 존재 확인
@@ -270,12 +273,27 @@ public class ParticipantService {
             .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public long countJoinGroupByEmail(String email) {
         return participantRepository.countByUserEmailAndRoleAndStatus(
             email,
             ParticipantRole.MEMBER,
             ParticipantStatus.GROUP_COMPLETE
         );
+    }
+
+    @Transactional(readOnly = true)
+    public List<GroupCompletedStatsResponse> getGroupCompletionStats(String email) {
+        List<GroupCompletedStatsResponse> stats = participantRepository.findGroupCompletedStats(email);
+
+        return Arrays.stream(GroupClassification.values())
+            .map(category ->
+                stats.stream()
+                    .filter(stat -> stat.getCategory() == category)
+                    .findFirst()
+                    .orElse(new GroupCompletedStatsResponse(category, 0L))
+            )
+            .toList();
     }
     // ------------------------------여기 까지 ------------------------------------
 

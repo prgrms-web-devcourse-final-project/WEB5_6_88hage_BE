@@ -15,7 +15,6 @@ import lombok.Setter;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor
 public class PersonalChatRoom extends BaseEntity {
     @Id
@@ -27,14 +26,14 @@ public class PersonalChatRoom extends BaseEntity {
 
     private String name;
 
-    private String user1Email;
-    private String user2Email;
+    private String userAEmail;
+    private String userBEmail;
 
     @Builder
-    public PersonalChatRoom(ChatRoomType status, String name, String user1Email, String user2Email) {
+    public PersonalChatRoom(ChatRoomType status, String name, String userAEmail, String userBEmail) {
         this.status = status;
         this.name = name;
-        this.user1Email = user1Email;
-        this.user2Email = user2Email;
+        this.userAEmail = userAEmail;
+        this.userBEmail = userBEmail;
     }
 }

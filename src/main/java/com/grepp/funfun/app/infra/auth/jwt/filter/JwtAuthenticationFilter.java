@@ -5,6 +5,9 @@ import com.grepp.funfun.app.domain.auth.token.RefreshTokenService;
 import com.grepp.funfun.app.domain.auth.token.UserBlackListRepository;
 import com.grepp.funfun.app.domain.auth.token.entity.RefreshToken;
 import com.grepp.funfun.app.domain.auth.token.entity.UserBlackList;
+import com.grepp.funfun.app.domain.user.entity.User;
+import com.grepp.funfun.app.domain.user.repository.UserRepository;
+import com.grepp.funfun.app.domain.user.vo.UserStatus;
 import com.grepp.funfun.app.infra.auth.jwt.JwtTokenProvider;
 import com.grepp.funfun.app.infra.auth.jwt.TokenCookieFactory;
 import com.grepp.funfun.app.infra.auth.jwt.dto.AccessTokenDto;
@@ -33,12 +36,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final RefreshTokenService refreshTokenService;
     private final UserBlackListRepository userBlackListRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final UserRepository userRepository;
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         List<String> excludePath = new ArrayList<>();
         excludePath.addAll(List.of("/error", "/favicon.ico", "/img", "/js", "/css"));
-        excludePath.addAll(List.of("/auth/login", "/oauth2/authorization", "/login/oauth2/code",
+        excludePath.addAll(List.of("/api/auth/login", "/oauth2/authorization", "/login/oauth2/code",
             "/api/users/signup", "/api/users/verify/signup", "/api/users/send/signup",
             "/api/users/send/code", "/api/users/verify/code", "/api/users/verify/nickname"));
         String path = request.getRequestURI();
@@ -57,6 +61,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             if (jwtTokenProvider.validateToken(accessToken, request)) {
                 Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
+
+                String email = authentication.getName();
+                User user = userRepository.findById(email)
+                    .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+                // ACTIVE 사용자인지 검증
+                if (!user.getStatus().equals(UserStatus.ACTIVE)) {
+                    Claims claims = jwtTokenProvider.getClaims(accessToken);
+                    // 리프레시 토큰 삭제
+                    refreshTokenService.deleteByAccessTokenId(claims.getId());
+                    // 쿠키 만료
+                    SecurityContextHolder.clearContext();
+                    TokenCookieFactory.setAllExpiredCookies(response);
+
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
                 if (userBlackListRepository.existsById(authentication.getName())) {
                     filterChain.doFilter(request, response);
                     return;
@@ -96,7 +117,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private void addToken(HttpServletResponse response, Claims claims, RefreshToken refreshToken) {
         String username = claims.getSubject();
-        AccessTokenDto newAccessToken = jwtTokenProvider.generateAccessToken(username,
+        AccessTokenDto newAccessToken = jwtTokenProvider.generateAccessToken(username, (String) claims.get("nickname"),
             (String) claims.get("roles"));
         Authentication authentication = jwtTokenProvider.getAuthentication(
             newAccessToken.getToken());

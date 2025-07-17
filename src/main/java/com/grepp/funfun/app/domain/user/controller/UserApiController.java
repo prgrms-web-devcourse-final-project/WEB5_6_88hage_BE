@@ -1,10 +1,12 @@
 package com.grepp.funfun.app.domain.user.controller;
 
-import com.grepp.funfun.app.domain.auth.payload.TokenResponse;
+import com.grepp.funfun.app.domain.auth.dto.payload.TokenResponse;
 import com.grepp.funfun.app.domain.user.dto.payload.ChangePasswordRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.NicknameRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.OAuth2SignupRequest;
+import com.grepp.funfun.app.domain.user.dto.payload.UserInfoRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.SignupRequest;
+import com.grepp.funfun.app.domain.user.dto.payload.UserInfoResponse;
 import com.grepp.funfun.app.domain.user.dto.payload.VerifyCodeRequest;
 import com.grepp.funfun.app.domain.auth.vo.AuthToken;
 import com.grepp.funfun.app.domain.auth.dto.TokenDto;
@@ -24,9 +26,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -49,12 +54,33 @@ public class UserApiController {
         return ResponseEntity.ok(ApiResponse.success(createdEmail));
     }
 
-    @PatchMapping("/signup/oauth2")
-    @Operation(summary = "OAuth2 회원가입", description = "소셜 로그인 대상의 추가 정보를 입력 받습니다.")
-    public ResponseEntity<ApiResponse<String>> updateOAuth2User(@RequestBody @Valid OAuth2SignupRequest request, Authentication authentication) {
+    @PatchMapping("/oauth2/signup")
+    @Operation(summary = "OAuth2 회원가입", description = "소셜 로그인 대상의 추가 정보를 입력 받습니다.<br>액세스 토큰을 재발급합니다.")
+    public ResponseEntity<ApiResponse<TokenResponse>> updateOAuth2User(@RequestBody @Valid OAuth2SignupRequest request, Authentication authentication, HttpServletResponse response) {
         String email = authentication.getName();
-        userService.updateOAuth2User(email, request);
-        return ResponseEntity.ok(ApiResponse.success(email));
+        TokenDto tokenDto = userService.updateOAuth2User(email, request);
+        TokenCookieFactory.setAllAuthCookies(response, tokenDto);
+
+        return ResponseEntity.ok(ApiResponse.success(TokenResponse.builder().
+            accessToken(tokenDto.getAccessToken())
+            .grantType(tokenDto.getGrantType())
+            .expiresIn(tokenDto.getExpiresIn())
+            .build()));
+    }
+
+    @GetMapping("/info")
+    @Operation(summary = "회원 정보 조회", description = "회원 정보를 조회합니다.")
+    public ResponseEntity<ApiResponse<UserInfoResponse>> getUser(Authentication authentication) {
+        String email = authentication.getName();
+        return ResponseEntity.ok(ApiResponse.success(userService.getUserInfo(email)));
+    }
+
+    @PutMapping("/info")
+    @Operation(summary = "회원 정보 수정", description = "회원 정보를 수정합니다.")
+    public ResponseEntity<ApiResponse<String>> updateUser(@RequestBody @Valid UserInfoRequest request, Authentication authentication) {
+        String email = authentication.getName();
+        userService.updateUserInfo(email, request);
+        return ResponseEntity.ok(ApiResponse.success("회원 정보 수정했습니다."));
     }
 
     @PatchMapping
@@ -74,6 +100,7 @@ public class UserApiController {
         String email = authentication.getName();
         userService.unActive(email, accessTokenId);
 
+        SecurityContextHolder.clearContext();
         TokenCookieFactory.setAllExpiredCookies(response);
 
         return ResponseEntity.ok(ApiResponse.success("회원 탈퇴되었습니다."));
@@ -126,13 +153,18 @@ public class UserApiController {
     }
 
     @PatchMapping("/change/nickname")
-    @Operation(summary = "닉네임 변경", description = "인증 코드로 인증된 사용자에 한해서 닉네임 변경을 진행합니다.")
-    public ResponseEntity<ApiResponse<String>> changeNickname(@RequestBody @Valid
-    NicknameRequest request, Authentication authentication) {
+    @Operation(summary = "닉네임 변경", description = "닉네임 변경을 합니다.<br>액세스 토큰을 재발급합니다.")
+    public ResponseEntity<ApiResponse<TokenResponse>> changeNickname(@RequestBody @Valid
+    NicknameRequest request, Authentication authentication, HttpServletResponse response) {
         String email = authentication.getName();
-        userService.changeNickname(email, request.getNickname());
+        TokenDto tokenDto = userService.changeNickname(email, request.getNickname());
+        TokenCookieFactory.setAllAuthCookies(response, tokenDto);
 
-        return ResponseEntity.ok(ApiResponse.success("닉네임 변경이 완료되었습니다."));
+        return ResponseEntity.ok(ApiResponse.success(TokenResponse.builder().
+            accessToken(tokenDto.getAccessToken())
+            .grantType(tokenDto.getGrantType())
+            .expiresIn(tokenDto.getExpiresIn())
+            .build()));
     }
 
     @PostMapping("/verify/nickname")
