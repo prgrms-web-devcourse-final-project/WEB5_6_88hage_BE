@@ -37,15 +37,17 @@ public class FollowService {
         }
 
         boolean exists = followRepository.existsByFollowerEmailAndFolloweeEmail(followerEmail, followeeEmail);
-        if (!exists) {
-            Follow follow = new Follow();
-            follow.setFollower(getUser(followerEmail));
-            follow.setFollowee(getUser(followeeEmail));
-            followRepository.save(follow);
-        } else {
+        if (exists) {
             // 이미 팔로우한 사용자입니다.
             throw new CommonException(ResponseCode.BAD_REQUEST, "이미 팔로우한 사용자입니다.");
         }
+
+        followRepository.save(
+            Follow.builder()
+                .follower(getUser(followerEmail))
+                .followee(getUser(followeeEmail))
+                .build()
+        );
     }
 
     @Transactional
@@ -122,11 +124,12 @@ public class FollowService {
     private Follow mapToEntity(final FollowDTO followDTO, final Follow follow) {
         final User follower = followDTO.getFollower() == null ? null : userRepository.findById(followDTO.getFollower())
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        follow.setFollower(follower);
         final User followee = followDTO.getFollowee() == null ? null : userRepository.findById(followDTO.getFollowee())
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        follow.setFollowee(followee);
-        return follow;
+        return Follow.builder()
+            .follower(follower)
+            .followee(followee)
+            .build();
     }
 
 }
