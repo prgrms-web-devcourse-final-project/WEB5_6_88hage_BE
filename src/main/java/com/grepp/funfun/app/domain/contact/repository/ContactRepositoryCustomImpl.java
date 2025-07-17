@@ -43,7 +43,6 @@ public class ContactRepositoryCustomImpl implements ContactRepositoryCustom {
             .orderBy(getOrderSpecifiers(pageable.getSort()))
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())
-            .orderBy(contact.createdAt.desc())
             .fetch();
 
         JPAQuery<Long> countQuery = queryFactory
