@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.domain.user.service;
 
+import com.grepp.funfun.app.domain.user.dto.payload.CoordinateResponse;
 import com.grepp.funfun.app.domain.user.dto.payload.OAuth2SignupRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.UserInfoRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.SignupRequest;
@@ -285,6 +286,15 @@ public class UserService {
         userRepository.save(user);
 
         refreshTokenService.deleteByAccessTokenId(accessTokenId);
+    }
+
+    public CoordinateResponse getCoordinate(String email) {
+        User user = userRepository.findById(email).orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+        return CoordinateResponse.builder()
+            .email(email)
+            .latitude(user.getLatitude())
+            .longitude(user.getLongitude())
+            .build();
     }
 
     public void update(final String email, final UserDTO userDTO) {
