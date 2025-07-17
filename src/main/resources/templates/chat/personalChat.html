@@ -501,10 +501,11 @@
   let currentChatRoomType = 'PERSONAL_CHAT';
   let myChats = [];
   let currentUserEmail = /*[[${userEmail}]]*/ 'test@example.com';
-  let currentUserNickname = '';
+  let currentUserNickname = /*[[${userNickname}]]*/ '김철수';
 
   // 페이지 로드 시 초기화
   window.addEventListener('DOMContentLoaded', function() {
+    updateUserInfo();
     loadMyChats();
   });
 
@@ -520,15 +521,6 @@
 
       if (result.code === '0000' && Array.isArray(result.data)) {
         myChats = result.data;
-
-        // 사용자 정보 업데이트
-        if (myChats.length > 0) {
-          currentUserNickname = myChats[0].currentUserEmail.split('@')[0];
-        } else {
-          currentUserNickname = currentUserEmail.split('@')[0];
-        }
-
-        updateUserInfo();
         displayChats(myChats);
         console.log('✅ 개인 채팅 목록 표시 완료:', myChats);
       } else if (result.code === '0000' && result.data.length === 0) {
@@ -570,14 +562,15 @@
     }
 
     const chatsHtml = chats.map(chat => {
-      const chatInitials = chat.otherUserNickname.substring(0, 2).toUpperCase();
+      // API 응답에서 targetUserNickname 사용
+      const chatInitials = chat.targetUserNickname.substring(0, 2).toUpperCase();
 
       return `
-          <div class="chat-item" onclick="selectChat(${chat.roomId}, '${chat.otherUserNickname}')">
+          <div class="chat-item" onclick="selectChat(${chat.roomId}, '${chat.targetUserNickname}', event)">
             <div class="chat-avatar">${chatInitials}</div>
             <div class="chat-info">
-              <div class="chat-name">${chat.otherUserNickname}</div>
-              <div class="chat-subtitle">${chat.otherUserEmail}</div>
+              <div class="chat-name">${chat.targetUserNickname}</div>
+              <div class="chat-subtitle">${chat.targetUserEmail}</div>
             </div>
           </div>
         `;
@@ -588,7 +581,7 @@
   }
 
   // 채팅 선택
-  async function selectChat(roomId, otherUserNickname) {
+  function selectChat(roomId, otherUserNickname, event) {
     // 기존 연결 해제
     if (stompClient && stompClient.connected) {
       stompClient.disconnect();
@@ -692,7 +685,8 @@
 
       console.log('📤 메시지 전송:', chatData);
 
-      stompClient.send('/send/chats/message', {}, JSON.stringify(chatData));
+      // 즉시 표시하지 말고 서버 응답만 기다리기
+      stompClient.send('/send/message', {}, JSON.stringify(chatData));
       messageInput.value = '';
     } else {
       console.error('❌ WebSocket 연결 또는 채팅방 ID가 없음');

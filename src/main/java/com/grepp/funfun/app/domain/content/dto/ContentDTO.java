@@ -32,6 +32,8 @@ public class ContentDTO {
 
     private String address;
 
+    private String area;
+
     private String guname;
 
     private String time;
@@ -54,5 +56,9 @@ public class ContentDTO {
     private EventType eventType;
 
     private Integer bookmarkCount;
+
+    private Double latitude;
+
+    private Double longitude;
 
 }

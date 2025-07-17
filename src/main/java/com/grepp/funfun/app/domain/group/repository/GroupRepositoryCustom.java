@@ -3,6 +3,8 @@ package com.grepp.funfun.app.domain.group.repository;
 import com.grepp.funfun.app.domain.group.entity.Group;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -15,7 +17,7 @@ public interface GroupRepositoryCustom {
     List<Group> findMyGroups(String userEmail);
 
     // 모임 조회
-    List<Group> findGroups(String category, String keyword, String sortBy, String userEmail);
+    Page<Group> findGroups(String category, String keyword, String sortBy, String userEmail, Pageable pageable);
 
     // 모임 상세 조회
     Optional<Group> findByIdWithFullInfo(Long groupId);

@@ -1,6 +1,7 @@
 package com.grepp.funfun.app.domain.auth.service;
 
-import com.grepp.funfun.app.domain.auth.payload.LoginRequest;
+import com.grepp.funfun.app.domain.auth.domain.Principal;
+import com.grepp.funfun.app.domain.auth.dto.payload.LoginRequest;
 import com.grepp.funfun.app.domain.auth.dto.TokenDto;
 import com.grepp.funfun.app.domain.auth.token.RefreshTokenService;
 import com.grepp.funfun.app.domain.auth.token.UserBlackListRepository;
@@ -34,7 +35,7 @@ public class AuthService {
     private final UserBlackListRepository userBlackListRepository;
     private final UserRepository userRepository;
 
-    public TokenDto signin(LoginRequest loginRequest) {
+    public TokenDto login(LoginRequest loginRequest) {
         UsernamePasswordAuthenticationToken authenticationToken =
             new UsernamePasswordAuthenticationToken(loginRequest.getEmail(),
                 loginRequest.getPassword());
@@ -69,6 +70,10 @@ public class AuthService {
             }
         }
 
+        if(user.getStatus() == UserStatus.NONACTIVE) {
+            user.setStatus(UserStatus.ACTIVE);
+        }
+
         // 비활성화한 사용자 (Soft Delete)
         if (!user.getActivated()) {
             throw new CommonException(ResponseCode.USER_INACTIVE);
@@ -77,18 +82,18 @@ public class AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String roles = String.join(",",
             authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
-        return processTokenSignin(authentication.getName(), roles, loginRequest.isRememberMe());
+        return processTokenLogin(authentication.getName(), user.getNickname(), roles, loginRequest.isRememberMe());
     }
 
     @Transactional
-    public TokenDto processTokenSignin(String email, String roles, boolean rememberMe) {
+    public TokenDto processTokenLogin(String email, String nickname, String roles, boolean rememberMe) {
         // black list 에 있다면 해제
         userBlackListRepository.deleteById(email);
 
         long refreshTokenExpiration = jwtTokenProvider.getRefreshTokenExpiration(rememberMe);
 
         // 3. 인증 정보를 기반으로 JWT 토큰 생성
-        AccessTokenDto accessToken = jwtTokenProvider.generateAccessToken(email, roles);
+        AccessTokenDto accessToken = jwtTokenProvider.generateAccessToken(email, nickname, roles);
         RefreshToken refreshToken = refreshTokenService.saveWithAtId(accessToken.getJti(), refreshTokenExpiration);
 
         return TokenDto.builder()
@@ -101,4 +106,26 @@ public class AuthService {
             .build();
     }
 
+    @Transactional
+    public TokenDto reissueAccessToken(String nickname, String roles) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        Principal principal = (Principal) authentication.getPrincipal();
+        String accessToken = principal.getAccessToken().orElseThrow(() -> new CommonException(ResponseCode.UNAUTHORIZED));
+        String atId = jwtTokenProvider.getClaims(accessToken).getId();
+
+        // 새로운 닉네임이나 권한으로 Access Token 재발급
+        AccessTokenDto newAccessToken = jwtTokenProvider.generateAccessToken(authentication.getName(), nickname, roles);
+        // 기존 Refresh Token 재사용
+        RefreshToken refreshToken = refreshTokenService.renewingToken(atId, newAccessToken.getJti());
+
+        return TokenDto.builder()
+            .accessToken(newAccessToken.getToken())
+            .atId(newAccessToken.getJti())
+            .refreshToken(refreshToken.getToken())
+            .grantType("Bearer")
+            .refreshExpiresIn(refreshToken.getTtl())
+            .expiresIn(jwtTokenProvider.getAccessTokenExpiration())
+            .build();
+    }
 }

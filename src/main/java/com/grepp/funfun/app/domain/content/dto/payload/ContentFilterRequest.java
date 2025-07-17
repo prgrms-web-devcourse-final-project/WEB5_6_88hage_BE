@@ -1,6 +1,7 @@
 package com.grepp.funfun.app.domain.content.dto.payload;
 
 import com.grepp.funfun.app.domain.content.vo.ContentClassification;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -10,7 +11,7 @@ import java.time.LocalDate;
 @Data
 public class ContentFilterRequest {
 
-    @Schema(description = "카테고리", example = "THEATER")
+    @Parameter(description = "카테고리 필터")
     private ContentClassification category;
 
     @Schema(description = "지역구", example = "강남구")
@@ -23,5 +24,19 @@ public class ContentFilterRequest {
     @Schema(description = "종료일", example = "2025-12-31")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate endDate;
+
+    private String keyword;
+
+    @Parameter(description = "정렬 기준",
+            schema = @Schema(allowableValues = {"bookmarkCount", "endDate", "distance"}))
+    private String sortBy = "distance"; // 디폴트
+
+    public boolean isBookmarkSort() {
+        return "bookmarkCount".equals(sortBy);
+    }
+
+    public boolean isEndDateSort() {
+        return "endDate".equals(sortBy);
+    }
 
 }

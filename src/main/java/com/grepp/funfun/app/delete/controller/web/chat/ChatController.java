@@ -40,7 +40,7 @@ public class ChatController {
         try {
             // roomType 설정 (프론트에서 보내지 않는 경우 대비)
             if (chatResponse.getRoomType() == null) {
-                throw new IllegalArgumentException("roomType이 필요합니다.");
+                throw new IllegalArgumentException("roomType 이 필요합니다.");
             }
 
             Long chatRoomId = chatResponse.getRoomId();
@@ -70,6 +70,12 @@ public class ChatController {
         String userEmail = authentication.getName();
         model.addAttribute("userEmail", userEmail);
         return "chat/groupChat";
+    }
+
+    @GetMapping("/autoSearch")
+    public String autoSearch(Model model,String keyword) {
+        model.addAttribute("keyword", keyword);
+        return "chat/autoSearch";
     }
 
     @GetMapping("/personalChat")

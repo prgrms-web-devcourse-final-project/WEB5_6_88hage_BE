@@ -40,16 +40,25 @@ public class ContactApiController {
         사용자의 문의 목록을 조회합니다.
         
         • status: 상태 필터를 지정할 수 있습니다.
-            - all, pending, complete
+        
+            - all(모두), pending(답변 대기), complete(답변 완료)
         
         • page: 0 ~ N, 보고 싶은 페이지를 지정할 수 있습니다.
+        
             - 기본값: 0
         
         • size: 기본 페이지당 항목 수
+        
             - 기본값 : 10
         
         • sort: 정렬
-            - 기본값 : createdAt, DESC (최신순)
+        
+            - 정렬 가능한 필드:
+                        - `createdAt` (문의 작성한 시간)
+        
+            - 정렬 방식 예시:
+                        - `?sort=createdAt,desc` (기본값, 최신순)
+                        - `?sort=createdAt,asc` (오래된순)
         """)
     public ResponseEntity<ApiResponse<Page<ContactResponse>>> getAllContacts(
         Authentication authentication,

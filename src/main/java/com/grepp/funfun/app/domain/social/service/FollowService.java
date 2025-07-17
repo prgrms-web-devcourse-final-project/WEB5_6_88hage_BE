@@ -10,6 +10,8 @@ import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +33,7 @@ public class FollowService {
     public void follow(String followerEmail, String followeeEmail) {
         if (followerEmail.equals(followeeEmail)) {
             // 자기 자신은 팔로우할 수 없습니다.
-            throw new CommonException(ResponseCode.BAD_REQUEST);
+            throw new CommonException(ResponseCode.BAD_REQUEST, "자기 자신은 팔로우할 수 없습니다.");
         }
 
         boolean exists = followRepository.existsByFollowerEmailAndFolloweeEmail(followerEmail, followeeEmail);
@@ -42,7 +44,7 @@ public class FollowService {
             followRepository.save(follow);
         } else {
             // 이미 팔로우한 사용자입니다.
-            throw new CommonException(ResponseCode.BAD_REQUEST);
+            throw new CommonException(ResponseCode.BAD_REQUEST, "이미 팔로우한 사용자입니다.");
         }
     }
 
@@ -51,17 +53,17 @@ public class FollowService {
         boolean exists = followRepository.existsByFollowerEmailAndFolloweeEmail(followerEmail, followeeEmail);
         if (!exists) {
             // 팔로우 관계가 아닙니다.
-         throw new CommonException(ResponseCode.BAD_REQUEST);
+         throw new CommonException(ResponseCode.BAD_REQUEST, "팔로우 관계가 아닙니다.");
         }
         followRepository.deleteByFollowerEmailAndFolloweeEmail(followerEmail, followeeEmail);
     }
 
-    public List<FollowsResponse> getFollowers(String email) {
-        return followRepository.findFollowersByFolloweeEmail(email);
+    public Page<FollowsResponse> getFollowers(String email, Pageable pageable) {
+        return followRepository.findFollowersByFolloweeEmail(email, pageable);
     }
 
-    public List<FollowsResponse> getFollowings(String email) {
-        return followRepository.findFollowingsByFollowerEmail(email);
+    public Page<FollowsResponse> getFollowings(String email, Pageable pageable) {
+        return followRepository.findFollowingsByFollowerEmail(email, pageable);
     }
 
     public long countFollowers(String email) {
