@@ -41,17 +41,17 @@ public class ChatBotController {
     public String add(@ModelAttribute("chatBot") final ChatBotDTO chatBotDTO) {
         return "chatBot/add";
     }
-
-    @PostMapping("/add")
-    public String add(@ModelAttribute("chatBot") @Valid final ChatBotDTO chatBotDTO,
-            final BindingResult bindingResult, final RedirectAttributes redirectAttributes) {
-        if (bindingResult.hasErrors()) {
-            return "chatBot/add";
-        }
-        chatBotService.create(chatBotDTO);
-        redirectAttributes.addFlashAttribute(WebUtils.MSG_SUCCESS, WebUtils.getMessage("chatBot.create.success"));
-        return "redirect:/chatBots";
-    }
+//
+//    @PostMapping("/add")
+//    public String add(@ModelAttribute("chatBot") @Valid final ChatBotDTO chatBotDTO,
+//            final BindingResult bindingResult, final RedirectAttributes redirectAttributes) {
+//        if (bindingResult.hasErrors()) {
+//            return "chatBot/add";
+//        }
+//        chatBotService.create(chatBotDTO);
+//        redirectAttributes.addFlashAttribute(WebUtils.MSG_SUCCESS, WebUtils.getMessage("chatBot.create.success"));
+//        return "redirect:/chatBots";
+//    }
 
     @GetMapping("/edit/{id}")
     public String edit(@PathVariable(name = "id") final Long id, final Model model) {
@@ -59,17 +59,17 @@ public class ChatBotController {
         return "chatBot/edit";
     }
 
-    @PostMapping("/edit/{id}")
-    public String edit(@PathVariable(name = "id") final Long id,
-            @ModelAttribute("chatBot") @Valid final ChatBotDTO chatBotDTO,
-            final BindingResult bindingResult, final RedirectAttributes redirectAttributes) {
-        if (bindingResult.hasErrors()) {
-            return "chatBot/edit";
-        }
-        chatBotService.update(id, chatBotDTO);
-        redirectAttributes.addFlashAttribute(WebUtils.MSG_SUCCESS, WebUtils.getMessage("chatBot.update.success"));
-        return "redirect:/chatBots";
-    }
+//    @PostMapping("/edit/{id}")
+//    public String edit(@PathVariable(name = "id") final Long id,
+//            @ModelAttribute("chatBot") @Valid final ChatBotDTO chatBotDTO,
+//            final BindingResult bindingResult, final RedirectAttributes redirectAttributes) {
+//        if (bindingResult.hasErrors()) {
+//            return "chatBot/edit";
+//        }
+//        chatBotService.update(id, chatBotDTO);
+//        redirectAttributes.addFlashAttribute(WebUtils.MSG_SUCCESS, WebUtils.getMessage("chatBot.update.success"));
+//        return "redirect:/chatBots";
+//    }
 
     @PostMapping("/delete/{id}")
     public String delete(@PathVariable(name = "id") final Long id,

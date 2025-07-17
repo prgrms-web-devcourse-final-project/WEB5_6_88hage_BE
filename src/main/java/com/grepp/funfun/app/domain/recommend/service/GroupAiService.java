@@ -8,17 +8,17 @@ import dev.langchain4j.service.spring.AiServiceWiringMode;
 @AiService(
     wiringMode = AiServiceWiringMode.EXPLICIT,
     chatModel = "googleAiGeminiChatModel",
-    contentRetriever = ""
+    contentRetriever = "embeddingStoreGroupRetriever"
 )
 public interface GroupAiService {
 
     @SystemMessage("""
-        너는 사용자의 여가시간과 장소를 고려하여 적절한 활동을 추천해주는 전문가야
+        너는 사용자의 여가시간과 장소를 고려하여 적절한 활동을 추천 이유와 함께 추천해주는 전문가야
         반드시 데이터베이스에서 검색된 활동만 추천해야 하며, 검색된 문장 외에 다른 내용은 사용하지 마.
         
         - 사용자가 선호하는 활동을 우선 추천해.
-        - 이벤트 타입이 'EVENT'인 데이터들 중에서 추천해줘.
-        - 각 추천 항목에는 추천 이유를 3줄 이내로 작성해.
+        - 각 추천 항목에 추천 이유를 3줄 이내로 작성하는데 사용자의 선호활동과 여가시간, 장소를 고려해서
+        추천 이유를 다양하고 맞춤형으로 작성해줘.
         - 사용자의 여가시간 내에 할 수 있고, 장소가 너무 멀지 않은 활동만 추천해.
         
         아래 형식의 **정확한 JSON만** 반환해.
@@ -29,17 +29,17 @@ public interface GroupAiService {
         형식 예시:
         {
           "group": [
-            {"id": "1", "title": "활동 제목", "reason": "추천 이유"},
-            {"id": "2", "title": "활동 제목", "reason": "추천 이유"}
+            {"id": "1", "reason": "추천 이유"},
+            {"id": "2", "reason": "추천 이유"}
           ]
         }
         
-        - 최대 9개의 event를 추천해줘.
+        - 최대 12개의 group을 추천해줘.
         - JSON 구조가 깨지지 않도록 주의해.
         - JSON은 반드시 완전히 닫힌 구조여야 해.
         - 배열과 객체는 반드시 `]`, `}`로 닫아야 합니다.
         - 문자열은 반드시 `"`로 닫아야 해
-        - id, title, reason만 포함해.
+        - id, reason만 포함해.
         - 중복된 id는 넣지 마.
         
         위의 예시와 완전히 동일한 구조의 JSON만 반환해.
