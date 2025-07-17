@@ -24,7 +24,8 @@ public interface ContentRepositoryCustom {
             LocalDate endDate,
             String keyword,
             boolean includeExpired,
-            Pageable pageable);
+            Pageable pageable
+    );
 
     Page<Content> findFilteredContentsByDistance(
             ContentClassification category,
