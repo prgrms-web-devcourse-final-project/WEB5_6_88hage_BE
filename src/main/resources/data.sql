@@ -1504,11 +1504,6 @@ VALUES (1, '네이버N예약', 'https://booking.naver.com/booking/12/bizes/60762
        (207, NULL, 'www.sdyouth.net'),
        (208, NULL, NULL);
 
--- UPDATE content
--- SET latitude = ROUND((RANDOM() * (37.58 - 37.50) + 37.50)::numeric, 7),
---     longitude = ROUND((RANDOM() * (127.10 - 126.89) + 126.89)::numeric, 7)
--- WHERE latitude IS NULL OR longitude IS NULL;
-
 
 -- UserInfo 테이블 데이터 삽입
 INSERT INTO user_info (email, image_url, introduction, activated, created_at, modified_at)

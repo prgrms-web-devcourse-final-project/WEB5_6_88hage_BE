@@ -185,5 +185,4 @@ public class ContentDataPipeline {
                     .body(ApiResponse.error(ResponseCode.BAD_REQUEST, result));
         }
     }
-
 }
