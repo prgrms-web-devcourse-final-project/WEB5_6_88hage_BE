@@ -59,9 +59,4 @@ public class Contact extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    private Boolean activated = true;
-
-    public void unActivated() {
-        this.activated = false;
-    }
 }
