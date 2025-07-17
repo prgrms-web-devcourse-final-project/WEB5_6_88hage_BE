@@ -9,6 +9,4 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ContactRepositoryCustom {
     Page<Contact> findAllByEmailAndStatus(String email, ContactStatus status, Pageable pageable);
-
-    Page<Contact> findAllForAdmin(ContactStatus status, Pageable pageable);
 }
