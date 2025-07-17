@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,7 +69,7 @@ public class CalendarService {
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
 
         if(calendar.getType() == ActivityType.GROUP) {
-            throw new CommonException(ResponseCode.BAD_REQUEST);
+            throw new CommonException(ResponseCode.BAD_REQUEST, "모임 일정은 직접 삭제할 수 없습니다.");
         }
 
         // bookmarkCount--;
@@ -85,7 +87,7 @@ public class CalendarService {
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
 
         if (calendar.getType() == ActivityType.GROUP) {
-            throw new CommonException(ResponseCode.BAD_REQUEST);
+            throw new CommonException(ResponseCode.BAD_REQUEST, "모임 일정은 직접 수정할 수 없습니다.");
         }
 
         calendar.setSelectedDate(selectedDate);
@@ -129,8 +131,8 @@ public class CalendarService {
     }
 
     @Transactional(readOnly = true)
-    public List<CalendarContentResponse> getContent(String email) {
-        return calendarRepository.findContentByEmail(email);
+    public Page<CalendarContentResponse> getContent(String email, boolean pastIncluded, Pageable pageable) {
+        return calendarRepository.findContentByEmail(email, pastIncluded, pageable);
     }
 
     @Transactional

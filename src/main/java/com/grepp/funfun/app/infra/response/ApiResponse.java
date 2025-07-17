@@ -30,6 +30,6 @@ public record ApiResponse<T>(
     }
 
     public static <T> ApiResponse<T> error(ResponseCode code, T data) {
-        return new ApiResponse<>(code.code(), code.message(), null, null);
+        return new ApiResponse<>(code.code(), code.message(), null, data);
     }
 }

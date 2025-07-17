@@ -29,6 +29,7 @@ public class ChatService {
 
     @Transactional
     public Chat saveChatMessage(ChatResponse chatResponse) {
+        // todo 나중에 지울 코드
         log.info("Saving message for RoomId: {}, RoomType: {}",
             chatResponse.getRoomId(), chatResponse.getRoomType());
 
@@ -42,15 +43,13 @@ public class ChatService {
             .message(chatResponse.getMessage())
             .build();
 
-        Chat savedChat = chatRepository.save(chat);
-        log.info("메시지 저장 완료, chatId: {}", savedChat.getId());
-
-        return savedChat;
+        return chatRepository.save(chat);
     }
 
     @Transactional(readOnly = true)
     public List<ChatResponse> getChatHistory(Long roomId, ChatRoomType roomType) {
-        log.debug("Getting chat history for teamId: {}", roomId);
+        // todo : 나중에 지울 코드
+        log.debug("Getting chat history for roomId: {}", roomId);
         List<Chat> chatList = chatRepository.findByRoomIdAndRoomTypeOrderByCreatedAt(roomId, roomType);
 
         return chatList.stream()
@@ -62,14 +61,14 @@ public class ChatService {
         switch (roomType) {
             case GROUP_CHAT:
                 groupChatRoomRepository.findById(roomId)
-                    .orElseThrow(() -> new IllegalArgumentException("그룹 채팅방을 찾을 수 없습니다. roomId: " + roomId));
+                    .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND,"그룹 채팅방을 찾을 수 없습니다. roomId: " + roomId));
                 break;
             case PERSONAL_CHAT:
                 personalChatRoomRepository.findById(roomId)
-                    .orElseThrow(() -> new IllegalArgumentException("개인 채팅방을 찾을 수 없습니다. roomId: " + roomId));
+                    .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND,"그룹 채팅방을 찾을 수 없습니다. roomId: " + roomId));
                 break;
             default:
-                throw new IllegalArgumentException("알 수 없는 채팅방 타입입니다: " + roomType);
+                throw new CommonException(ResponseCode.NOT_FOUND,"알 수 없는 채팅방 타입입니다: " + roomType);
         }
     }
 

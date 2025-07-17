@@ -35,23 +35,26 @@ public class ChatRoomService {
     private final UserRepository userRepository;
 
     // 개인 채팅방 생성
+    @Transactional
     public void createPersonalChatRoom(String currentUserEmail, String targetUserEmail) {
+
+        //todo : 팔로워 팔로잉 관계가 맞는지 확인하기 -> 근데 굳이 해야할까? 애초에 팔로워 팔로잉 관계가 아니면 이 메서드가 호출될 수가없음
 
         String[] emails = {currentUserEmail, targetUserEmail};
         Arrays.sort(emails);
 
         Optional<PersonalChatRoom> existingRoom = personalChatRoomRepository
-            .findByUser1EmailAndUser2Email(emails[0], emails[1]);
+            .findByUserAEmailAndUserBEmail(emails[0], emails[1]);
 
         if (existingRoom.isPresent()) {
-            throw new IllegalStateException("이미 존재하는 채팅방입니다");
+            throw new CommonException(ResponseCode.BAD_REQUEST,"이미 존재하는 채팅방입니다");
         }
 
         // 새 채팅방 생성
         PersonalChatRoom personalChatRoom = PersonalChatRoom.builder()
             .status(ChatRoomType.PERSONAL_CHAT)
-            .user1Email(emails[0])
-            .user2Email(emails[1])
+            .userAEmail(emails[0])
+            .userBEmail(emails[1])
             .name(targetUserEmail + "님과의 채팅")
             .build();
 
@@ -64,22 +67,19 @@ public class ChatRoomService {
         log.info("개인 채팅방 목록 조회 for user: {}", userEmail);
 
         List<PersonalChatRoom> chatRooms = personalChatRoomRepository
-            .findByUser1EmailOrUser2Email(userEmail, userEmail);
+            .findByUserAEmailOrUserBEmail(userEmail, userEmail);
 
         User currentuser = userRepository.findByEmail(userEmail);
 
-        List<PersonalChatRoomResponse> responses = chatRooms.stream()
+        return chatRooms.stream()
             .map(room -> {
                 // 상대방 이메일 결정
-                String targetUserEmail = room.getUser1Email().equals(userEmail)
-                    ? room.getUser2Email()
-                    : room.getUser1Email();
+                String targetUserEmail = room.getUserAEmail().equals(userEmail)
+                    ? room.getUserBEmail()
+                    : room.getUserAEmail();
 
-                // 상대방 닉네임 조회
+                // 상대방 조회
                 User targetUser = userRepository.findByEmail(targetUserEmail);
-                String targetNickname = (targetUser != null)
-                    ? targetUser.getNickname()
-                    : targetUserEmail.split("@")[0]; // 사용자가 없으면 이메일에서 추출
 
                 return PersonalChatRoomResponse.builder()
                     .roomId(room.getId())
@@ -88,13 +88,9 @@ public class ChatRoomService {
                     .currentUserEmail(currentuser.getEmail())
                     .currentUserNickname(currentuser.getNickname())
                     .targetUserEmail(targetUserEmail)
-                    .targetUserEmail(targetNickname)
+                    .targetUserNickname(targetUser.getNickname())
                     .build();
             })
             .collect(Collectors.toList());
-
-        log.info("조회된 개인 채팅방 수: {}", responses.size());
-
-        return responses;
     }
 }

@@ -11,6 +11,7 @@ import com.grepp.funfun.app.delete.util.ReferencedWarning;
 import com.grepp.funfun.app.delete.util.WebUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -42,10 +43,10 @@ public class GroupController {
     }
 
     @GetMapping
-    public String list(final Model model, Authentication authentication) {
+    public String list(final Model model, Authentication authentication, Pageable pageable) {
         String userEmail = authentication.getName();
 
-        model.addAttribute("groups", groupService.getGroups(null, null, null, userEmail));
+        model.addAttribute("groups", groupService.getGroups(null, null, null, userEmail, pageable));
         return "group/list";
     }
 

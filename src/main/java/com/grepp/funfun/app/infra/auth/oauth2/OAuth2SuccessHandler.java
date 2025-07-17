@@ -1,8 +1,8 @@
 package com.grepp.funfun.app.infra.auth.oauth2;
 
+import com.grepp.funfun.app.domain.auth.dto.TokenDto;
 import com.grepp.funfun.app.domain.auth.service.AuthService;
 import com.grepp.funfun.app.domain.auth.vo.Role;
-import com.grepp.funfun.app.domain.auth.dto.TokenDto;
 import com.grepp.funfun.app.domain.preference.repository.ContentPreferenceRepository;
 import com.grepp.funfun.app.domain.preference.repository.GroupPreferenceRepository;
 import com.grepp.funfun.app.domain.user.entity.User;
@@ -36,7 +36,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final PasswordEncoder passwordEncoder;
 
     @Value("${front-server.domain}")
-    private String front;
+    String front;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -64,32 +64,33 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             userRepository.save(newUser);
             log.info("OAuth2 사용자 기본 정보 저장: {}", email);
 
-            TokenDto tokenDto = authService.processTokenSignin(email, newUser.getRole().name(), false);
-
+            TokenDto tokenDto = authService.processTokenLogin(email, "", newUser.getRole().name(), false);
             TokenCookieFactory.setAllAuthCookies(response, tokenDto);
 
-            // NOTE : 프론트 측 URI 로 변경 필요
-            response.sendRedirect(front + "/users/oauth2/signup");
-
+            // NOTE : 프론트 경로로 변경 필요
+            //  OAuth2 추가 회원 가입 페이지로
+            getRedirectStrategy().sendRedirect(request, response, front+ "/user/oauth2/signup");
         } else {
             User user = userRepository.findById(email).orElse(null);
 
             if (user != null) {
-                TokenDto tokenDto = authService.processTokenSignin(email, user.getRole().name(), false);
+                TokenDto tokenDto = authService.processTokenLogin(email, user.getNickname() ,user.getRole().name(), false);
 
                 TokenCookieFactory.setAllAuthCookies(response, tokenDto);
 
                 if (user.getRole().equals(Role.ROLE_GUEST)) {
-                    // NOTE : 프론트 측 URI 로 변경 필요
-                    response.sendRedirect(front + "/users/oauth2/signup");
+                    // NOTE : 프론트 경로로 변경 필요
+                    //  OAuth2 추가 회원 가입 페이지로
+                    getRedirectStrategy().sendRedirect(request, response, front+ "/user/oauth2/signup");
                     return;
                 }
 
                 if (groupPreferenceRepository.findByUserEmail(email).isEmpty() || contentPreferenceRepository.findByUserEmail(email).isEmpty()) {
-                    // NOTE : 프론트 측 URI 로 변경 필요
-                    response.sendRedirect(front + "/users/preference");
+                    // NOTE : 프론트 경로로 변경 필요
+                    //  유저 취향 설정 페이지로
+                    getRedirectStrategy().sendRedirect(request, response, front+ "/user/preference");
                 } else {
-                    response.sendRedirect(front + "/");
+                    getRedirectStrategy().sendRedirect(request, response, front+ "/");
                 }
             }
         }

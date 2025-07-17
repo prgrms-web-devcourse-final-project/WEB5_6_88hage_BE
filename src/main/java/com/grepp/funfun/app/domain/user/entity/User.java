@@ -3,6 +3,8 @@ package com.grepp.funfun.app.domain.user.entity;
 import com.grepp.funfun.app.domain.auth.vo.Role;
 import com.grepp.funfun.app.domain.preference.entity.ContentPreference;
 import com.grepp.funfun.app.domain.preference.entity.GroupPreference;
+import com.grepp.funfun.app.domain.user.dto.payload.OAuth2SignupRequest;
+import com.grepp.funfun.app.domain.user.dto.payload.UserInfoRequest;
 import com.grepp.funfun.app.domain.user.vo.Gender;
 import com.grepp.funfun.app.domain.user.vo.UserStatus;
 import com.grepp.funfun.app.infra.entity.BaseEntity;
@@ -79,6 +81,25 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user")
     private List<ContentPreference> contentPreferences = new ArrayList<>();
 
+    public void updateUser(UserInfoRequest request) {
+        this.address = request.getAddress();
+        this.latitude = request.getLatitude();
+        this.longitude = request.getLongitude();
+        this.isMarketingAgreed = request.getIsMarketingAgreed();
+    }
+
+    public void updateOAuth2User(OAuth2SignupRequest request) {
+        this.nickname = request.getNickname();
+        this.address = request.getAddress();
+        this.latitude = request.getLatitude();
+        this.longitude = request.getLongitude();
+        this.birthDate = request.getBirthDate();
+        this.gender = request.getGender();
+        this.isMarketingAgreed = request.getIsMarketingAgreed();
+        // OAuth2 사용자가 추가 정보 기입 완료하면 ROLE_USER 로 전환
+        this.role = Role.ROLE_USER;
+    }
+
     public boolean isAdmin() {
         return this.role == Role.ROLE_ADMIN;
     }
@@ -106,5 +127,4 @@ public class User extends BaseEntity {
 
         return "나는" + preferences + "활동을 선호해.";
     }
-
 }

@@ -3,34 +3,30 @@ package com.grepp.funfun.app.domain.content.service;
 import com.grepp.funfun.app.domain.content.dto.ContentUrlDTO;
 import com.grepp.funfun.app.domain.content.dto.ContentWithReasonDTO;
 import com.grepp.funfun.app.domain.content.dto.payload.ContentFilterRequest;
-import com.grepp.funfun.app.domain.bookmark.entity.ContentBookmark;
-import com.grepp.funfun.app.domain.bookmark.repository.ContentBookmarkRepository;
 import com.grepp.funfun.app.domain.calendar.entity.Calendar;
 import com.grepp.funfun.app.domain.calendar.repository.CalendarRepository;
-import com.grepp.funfun.app.domain.content.entity.ContentUrl;
 import com.grepp.funfun.app.domain.content.vo.ContentClassification;
 import com.grepp.funfun.app.domain.content.dto.ContentDTO;
 import com.grepp.funfun.app.domain.content.dto.ContentImageDTO;
 import com.grepp.funfun.app.domain.content.entity.Content;
-import com.grepp.funfun.app.domain.content.entity.ContentCategory;
 import com.grepp.funfun.app.domain.content.entity.ContentImage;
 import com.grepp.funfun.app.domain.content.repository.ContentCategoryRepository;
 import com.grepp.funfun.app.domain.content.repository.ContentRepository;
+import com.grepp.funfun.app.domain.user.dto.UserDTO;
+import com.grepp.funfun.app.domain.user.service.UserService;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
 import com.grepp.funfun.app.delete.util.ReferencedWarning;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,97 +37,174 @@ import org.springframework.transaction.annotation.Transactional;
 public class ContentService {
 
     private final ContentRepository contentRepository;
-    private final ContentCategoryRepository contentCategoryRepository;
-    private final ContentBookmarkRepository contentBookmarkRepository;
     private final CalendarRepository calendarRepository;
+    private final UserService userService;
 
+    @Transactional
     public ContentDTO getContents(final Long id) {
         Content content = contentRepository.findByIdWithCategory(id)
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        return ContentDTO.builder()
-                .id(content.getId())
-                .contentTitle(content.getContentTitle())
-                .age(content.getAge())
-                .startDate(content.getStartDate())
-                .endDate(content.getEndDate())
-                .fee(content.getFee())
-                .address(content.getAddress())
-                .guname(content.getGuname())
-                .time(content.getTime())
-                .runTime(content.getRunTime())
-                .startTime(content.getStartTime())
-                .poster(content.getPoster())
-                .description(content.getDescription())
-                .bookmarkCount(content.getBookmarkCount())
-                .eventType(content.getEventType())
-                .category(content.getCategory() != null ? content.getCategory().getCategory().name() : null)
-                .images(content.getImages().stream()
-                        .map(img -> ContentImageDTO.builder()
-                                .id(img.getId())
-                                .imageUrl(img.getImageUrl())
-                                .build())
-                        .toList())
-                .urls(content.getUrls().stream()            // 추가: URLs 매핑
-                        .map(url -> ContentUrlDTO.builder()
-                                .id(url.getId())
-                                .siteName(url.getSiteName())
-                                .url(url.getUrl())
-                                .build())
-                        .toList())
-                .build();
+        return toDTO(content);
     }
 
     // 컨텐츠 필터링
     @Transactional(readOnly = true)
-    public Page<ContentDTO> findByFilters(ContentFilterRequest request, Pageable pageable) {
-        Page<Content> contents = contentRepository.findFilteredContents(
-                request.getCategory(),
-                request.getGuname(),
-                request.getStartDate(),
-                request.getEndDate(),
-                pageable
-        );
+    public Page<ContentDTO> findByFiltersWithSort(ContentFilterRequest request, Pageable pageable) {
+        Page<Content> contents;
+        if (request.isBookmarkSort()) {
+            log.info("sortBy: {}", request.getSortBy());
+            contents = findByFiltersOrderByBookmark(request, pageable);
+        } else if (request.isEndDateSort()) {
+            contents = findByFiltersOrderByEndDate(request, pageable);
+        } else {
+            contents = findByFiltersOrderByDistance(request, pageable);
+        }
 
         if (contents.isEmpty()) {
             throw new CommonException(ResponseCode.NOT_FOUND);
         }
+
         return contents.map(this::toDTO);
+    }
+
+    // 북마크순 정렬
+    private Page<Content> findByFiltersOrderByBookmark(ContentFilterRequest request, Pageable pageable) {
+        Pageable sortedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "bookmarkCount")
+        );
+
+        log.info("생성된 sortedPageable: {}", sortedPageable.getSort());
+        log.info("북마크순 정렬을 위해 repository 호출");
+
+        Page<Content> result = contentRepository.findFilteredContents(
+                request.getCategory(),
+                request.getGuname(),
+                request.getStartDate(),
+                request.getEndDate(),
+                request.getKeyword(),
+                false,
+                sortedPageable
+        );
+
+        log.info("repository에서 반환된 결과 개수: {}", result.getContent().size());
+        if (!result.getContent().isEmpty()) {
+            Content first = result.getContent().get(0);
+            log.info("첫 번째 결과 - ID: {}, bookmarkCount: {}", first.getId(), first.getBookmarkCount());
+            if (result.getContent().size() > 1) {
+                Content second = result.getContent().get(1);
+                log.info("두 번째 결과 - ID: {}, bookmarkCount: {}", second.getId(), second.getBookmarkCount());
+            }
+        }
+
+        return result;
+    }
+
+    // 마감 임박순 정렬
+    private Page<Content> findByFiltersOrderByEndDate(ContentFilterRequest request, Pageable pageable) {
+        Pageable sortedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.ASC, "endDate")
+        );
+
+        return contentRepository.findFilteredContents(
+                request.getCategory(),
+                request.getGuname(),
+                request.getStartDate(),
+                request.getEndDate(),
+                request.getKeyword(),
+                false,
+                sortedPageable
+        );
+    }
+
+    // 사용자 기본 위치 조회
+    private Double[] getUserDefaultLocation() {
+        try {
+            String currentUserEmail = SecurityContextHolder.getContext()
+                    .getAuthentication().getName();
+
+            UserDTO user = userService.get(currentUserEmail);
+            if (user != null && user.getLatitude() != null && user.getLongitude() != null) {
+                log.info("사용자 기본 위치 조회 : 위도={}, 경도={}",
+                        user.getLatitude(), user.getLongitude());
+                return new Double[]{user.getLatitude(), user.getLongitude()};
+            } else {
+                log.warn("사용자의 기본 위치 정보가 존재하지 않습니다.");
+                return new Double[]{null, null};
+            }
+        } catch (Exception e) {
+            log.warn("사용자 기본 위치 조회 중 오류 발생: {}", e.getMessage());
+            return new Double[]{null, null};
+        }
+    }
+
+    // 가까운순 정렬
+    private Page<Content> findByFiltersOrderByDistance(ContentFilterRequest request, Pageable pageable) {
+        Double[] userLocation = getUserDefaultLocation();
+        Double userLat = userLocation[0];
+        Double userLng = userLocation[1];
+
+        if (userLat == null || userLng == null) {
+            log.warn("사용자 위치 정보를 확인할 수 없어 '마감 임박순'으로 정렬 방식을 변경합니다.");
+            return findByFiltersOrderByEndDate(request, pageable);
+        }
+
+        return contentRepository.findFilteredContentsByDistance(
+                request.getCategory(),
+                request.getGuname(),
+                request.getStartDate(),
+                request.getEndDate(),
+                request.getKeyword(),
+                userLat,
+                userLng,
+                false,
+                pageable
+        );
     }
 
     // 거리순 컨텐츠 노출
     @Transactional(readOnly = true)
-    public List<ContentDTO> findNearbyContents(Long id, double radiusInKm, int limit){
+    public List<ContentDTO> findNearbyContents(Long id, double radiusInKm, int limit, boolean includeExpired) {
         Content content = contentRepository.findById(id)
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
 
-        double lat = content.getLatitude();
-        double lng = content.getLongitude();
+        Double latitude = content.getLatitude();
+        Double longitude = content.getLongitude();
 
-        if (lat == 0.0 || lng == 0.0) {
+        if (latitude == null || longitude == null || latitude == 0.0 || longitude == 0.0) {
+            log.warn("위경도 정보가 없는 컨텐츠: {}", id);
             return Collections.emptyList();
         }
 
-        List<Content> nearby = contentRepository.findNearby(lat, lng, radiusInKm, id, limit);
-
-        return nearby.stream()
-                .map(this::toDTO)
-                .toList();
-
+        try {
+            List<Content> nearby = contentRepository.findNearby(latitude, longitude, radiusInKm, id, limit, includeExpired);
+            return nearby.stream()
+                    .map(this::toDTO)
+                    .toList();
+        } catch (Exception e) {
+            log.error("주변 컨텐츠 조회 실패: contentId={}, lat={}, lng={}", id, latitude, longitude, e);
+            return Collections.emptyList();
+        }
     }
 
     // 카테고리별 컨텐츠 노출
     @Transactional(readOnly = true)
-    public List<ContentDTO> findRandomByCategory(Long id, int limit){
+    public List<ContentDTO> findRandomByCategory(Long id, int limit, boolean includeExpired) {
         Content content = contentRepository.findById(id)
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
 
         ContentClassification category = content.getCategory().getCategory();
 
-        List<Content> sameCategoryContents = contentRepository.findByCategoryCategory(category);
+        List<Content> sameCategoryContents = contentRepository.findByCategoryCategory(category, includeExpired);
 
         List<Content> filtered = sameCategoryContents.stream()
-                .filter(c -> !c.getId().equals(id)) // 자기 자신 제외
+                .filter(c -> !c.getId().equals(id))
                 .collect(Collectors.toList());
+
+        Collections.shuffle(filtered);
 
         return filtered.stream()
                 .limit(limit)
@@ -148,14 +221,17 @@ public class ContentService {
                 .endDate(content.getEndDate())
                 .fee(content.getFee())
                 .address(content.getAddress())
+                .area(content.getArea())
                 .guname(content.getGuname())
                 .time(content.getTime())
                 .runTime(content.getRunTime())
                 .startTime(content.getStartTime())
                 .poster(content.getPoster())
                 .description(content.getDescription())
-                .bookmarkCount(content.getBookmarkCount())
+                .bookmarkCount(Optional.ofNullable(content.getBookmarkCount()).orElse(0))
                 .eventType(content.getEventType())
+                .latitude(content.getLatitude())
+                .longitude(content.getLongitude())
                 .category(content.getCategory() != null ? content.getCategory().getCategory().name() : null)
                 .images(content.getImages().stream()
                         .map(img -> ContentImageDTO.builder()
@@ -163,7 +239,7 @@ public class ContentService {
                                 .imageUrl(img.getImageUrl())
                                 .build())
                         .toList())
-                .urls(content.getUrls().stream()            // 추가: URLs 매핑
+                .urls(content.getUrls().stream()
                         .map(url -> ContentUrlDTO.builder()
                                 .id(url.getId())
                                 .siteName(url.getSiteName())
@@ -176,7 +252,7 @@ public class ContentService {
     // view
     @Transactional(readOnly = true)
     public List<Content> findAll() {
-        return contentRepository.findAll(Sort.by(Sort.Direction.ASC, "startDate"));
+        return contentRepository.findAll(Sort.by(Sort.Direction.ASC, "endDate"));
     }
 
     @Transactional(readOnly = true)
@@ -313,12 +389,6 @@ public class ContentService {
         final ReferencedWarning referencedWarning = new ReferencedWarning();
         final Content content = contentRepository.findById(id)
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        final ContentBookmark contentContentBookmark = contentBookmarkRepository.findFirstByContent(content);
-        if (contentContentBookmark != null) {
-            referencedWarning.setKey("content.contentBookmark.content.referenced");
-            referencedWarning.addParam(contentContentBookmark.getId());
-            return referencedWarning;
-        }
         final Calendar contentCalendar = calendarRepository.findFirstByContent(content);
         if (contentCalendar != null) {
             referencedWarning.setKey("content.calendar.content.referenced");

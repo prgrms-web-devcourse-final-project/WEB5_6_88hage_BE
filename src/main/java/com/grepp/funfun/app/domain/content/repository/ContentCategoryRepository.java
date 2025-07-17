@@ -6,5 +6,4 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ContentCategoryRepository extends JpaRepository<ContentCategory, Long> {
 
-//    Optional<ContentCategory> findByCategory(ContentClassification category);
 }
