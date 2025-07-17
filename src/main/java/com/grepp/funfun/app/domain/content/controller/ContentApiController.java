@@ -38,6 +38,16 @@ public class ContentApiController {
     public ResponseEntity<ApiResponse<Page<ContentDTO>>> getAllContents(
             @Valid @ParameterObject ContentFilterRequest request,
             @ParameterObject Pageable pageable) {
+        if (request.isBookmarkSort()) {
+            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                    Sort.by(Sort.Direction.DESC, "bookmarkCount"));
+        } else if (request.isEndDateSort()) {
+            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                    Sort.by(Sort.Direction.ASC, "endDate"));
+        } else {
+            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                    Sort.by(Sort.Direction.ASC, "distance"));
+        }
 
         Page<ContentDTO> contents = contentService.findByFiltersWithSort(request, pageable);
         return ResponseEntity.ok(ApiResponse.success(contents));
