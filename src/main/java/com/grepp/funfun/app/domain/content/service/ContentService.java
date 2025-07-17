@@ -40,6 +40,7 @@ public class ContentService {
     private final CalendarRepository calendarRepository;
     private final UserService userService;
 
+    // 컨텐츠 상세 조회
     @Transactional
     public ContentDTO getContents(final Long id) {
         Content content = contentRepository.findByIdWithCategory(id)
@@ -47,7 +48,7 @@ public class ContentService {
         return toDTO(content);
     }
 
-    // 컨텐츠 필터링
+    // 컨텐츠 필터링(컨텐츠 조회)
     @Transactional(readOnly = true)
     public Page<ContentDTO> findByFiltersWithSort(ContentFilterRequest request, Pageable pageable) {
         Page<Content> contents;
@@ -69,13 +70,8 @@ public class ContentService {
 
     // 북마크순 정렬
     private Page<Content> findByFiltersOrderByBookmark(ContentFilterRequest request, Pageable pageable) {
-        Pageable sortedPageable = PageRequest.of(
-                pageable.getPageNumber(),
-                pageable.getPageSize(),
-                Sort.by(Sort.Direction.DESC, "bookmarkCount")
-        );
 
-        log.info("생성된 sortedPageable: {}", sortedPageable.getSort());
+        log.info("생성된 sortedPageable: {}", pageable.getSort());
         log.info("북마크순 정렬을 위해 repository 호출");
 
         Page<Content> result = contentRepository.findFilteredContents(
@@ -85,7 +81,7 @@ public class ContentService {
                 request.getEndDate(),
                 request.getKeyword(),
                 false,
-                sortedPageable
+                pageable
         );
 
         log.info("repository에서 반환된 결과 개수: {}", result.getContent().size());
@@ -103,11 +99,7 @@ public class ContentService {
 
     // 마감 임박순 정렬
     private Page<Content> findByFiltersOrderByEndDate(ContentFilterRequest request, Pageable pageable) {
-        Pageable sortedPageable = PageRequest.of(
-                pageable.getPageNumber(),
-                pageable.getPageSize(),
-                Sort.by(Sort.Direction.ASC, "endDate")
-        );
+
 
         return contentRepository.findFilteredContents(
                 request.getCategory(),
@@ -116,7 +108,7 @@ public class ContentService {
                 request.getEndDate(),
                 request.getKeyword(),
                 false,
-                sortedPageable
+                pageable
         );
     }
 

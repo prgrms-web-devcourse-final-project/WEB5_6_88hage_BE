@@ -65,12 +65,8 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
                 .and(categoryEq(categoryParam))
                 .and(gunameEq(guname))
                 .and(startDateGoe(startDate))
-                .and(endDateLoe(endDate));
-
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            where.and(content.contentTitle.containsIgnoreCase(keyword)
-                    .or(content.address.containsIgnoreCase(keyword)));
-        }
+                .and(endDateLoe(endDate))
+                .and(keywordEq(keyword));
 
         if (!includeExpired) {
             where.and(content.endDate.goe(LocalDate.now()));
@@ -258,7 +254,6 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
         BooleanExpression categoryCondition = getCategoryCondition(keyword);
 
         BooleanExpression result = titleCondition.or(addressCondition).or(gunameCondition);
-
         if (categoryCondition != null) {
             result = result.or(categoryCondition);
         }
@@ -284,7 +279,7 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
             case "국악", "한국음악", "gukak", "전통음악", "판소리", "가야금" ->
                     content.category.category.eq(ContentClassification.GUKAK);
 
-            case "대중음악", "pop", "팝", "콘서트", "concert", "음악", "music", "가요" ->
+            case "대중음악", "pop", "팝", "콘서트", "concert", "음악", "music", "k-pop" ->
                     content.category.category.eq(ContentClassification.POP_MUSIC);
 
             case "복합", "mix", "혼합" ->
