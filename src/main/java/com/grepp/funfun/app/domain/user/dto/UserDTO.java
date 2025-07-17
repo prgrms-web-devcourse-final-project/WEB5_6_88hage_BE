@@ -2,17 +2,20 @@ package com.grepp.funfun.app.domain.user.dto;
 
 import com.grepp.funfun.app.domain.auth.vo.Role;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.grepp.funfun.app.domain.user.entity.User;
 import com.grepp.funfun.app.domain.user.vo.Gender;
 import com.grepp.funfun.app.domain.user.vo.UserStatus;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserDTO {
 
     @Size(max = 255)
@@ -62,4 +65,13 @@ public class UserDTO {
     @Size(max = 255)
     private String info;
 
+public static UserDTO from(User user) {
+    return UserDTO.builder()
+            .email(user.getEmail())
+            .nickname(user.getNickname())
+            .role(user.getRole())
+            .status(user.getStatus())
+            .isVerified(user.getIsVerified())
+            .build();
+    }
 }

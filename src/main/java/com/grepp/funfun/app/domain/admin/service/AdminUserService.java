@@ -86,6 +86,44 @@ public class AdminUserService {
         }
     }
 
+    @Transactional(readOnly = false)
+    public UserDTO get(String email) {
+        User user = userRepository.findOptionalByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저가 존재하지 않습니다."));
+
+        // 상태 복구 조건 검사
+        if ((user.getStatus() == UserStatus.SUSPENDED &&
+                user.getDueDate() != null &&
+                !user.getDueDate().isAfter(LocalDate.now()))|| (UserStatus.NONACTIVE.equals(user.getStatus()))) {
+            user.setStatus(UserStatus.ACTIVE);
+            user.setDueDate(null);
+            user.setSuspendDuration(null);
+            user.setDueReason(null);
+            userRepository.save(user);
+        }
+
+        return UserDTO.from(user);
+    }
+
+    @Transactional
+    public String randomizeNickname(String email) {
+        User user = userRepository.findOptionalByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
+
+        String newNickname;
+        do {
+            newNickname = String.valueOf((int)(Math.random() * 90000000) + 10000000);
+        } while (userRepository.existsByNickname(newNickname));
+
+        user.setNickname(newNickname);
+
+        user.setStatus(UserStatus.NONACTIVE);
+
+        userRepository.save(user);
+
+        return newNickname;
+    }
+
     // 닉네임으로 유저 찾기
     public UserDTO getUserByNickname(String nickname) {
         return userService.getUserByNickname(nickname);
