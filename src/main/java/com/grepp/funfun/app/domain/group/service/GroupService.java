@@ -91,25 +91,16 @@ public class GroupService {
         if (userEmail == null || userEmail.trim().isEmpty()) {
             return;
         }
-
+        //중복 확인(키)
         String key = "group:viewCount:" + groupId + ":user:" + userEmail;
 
         boolean isCounted = redisTemplate.hasKey(key);
         if (!isCounted) {
-            // 조회수 증가
+            // 조회수 증가(키)
             redisTemplate.opsForValue().increment("group:" + groupId + ":viewCount");
 
-            // 현재 시간
-            LocalDateTime now = LocalDateTime.now();
-
-            // 다음 자정
-            LocalDateTime nextMidnight = now.toLocalDate().plusDays(1).atStartOfDay();
-
-            // 자정까지 남은 초
-            long secondsUntilMidnight = Duration.between(now, nextMidnight).getSeconds();
-
-            // 자정까지 TTL 설정
-            redisTemplate.opsForValue().set(key, "1", Duration.ofSeconds(secondsUntilMidnight));
+            // 10분 유지
+            redisTemplate.opsForValue().set(key, "1", Duration.ofMinutes(10));
         }
     }
 
@@ -157,7 +148,7 @@ public class GroupService {
 
         Group savedGroup = groupRepository.save(request.mapToCreate(leader, imageUrl));
 
-        // 해시태그
+        // todo 해시태그 (set 수정 필요)
         if (request.getHashTags() != null && !request.getHashTags().isEmpty()) {
             List<GroupHashtag> hashTags = request.getHashTags().stream()
                 .map(tagName -> {
@@ -351,6 +342,7 @@ public class GroupService {
             .title(group.getTitle())
             .explain(group.getExplain())
             .simpleExplain(group.getSimpleExplain())
+//todo            .imageUrl(group.getImageUrl()) CORS 에러 수정 필요
             .placeName(group.getPlaceName())
             .address(group.getAddress())
             .groupDate(group.getGroupDate())
