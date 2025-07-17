@@ -70,6 +70,10 @@ public class AuthService {
             }
         }
 
+        if(user.getStatus() == UserStatus.NONACTIVE) {
+            user.setStatus(UserStatus.ACTIVE);
+        }
+
         // 비활성화한 사용자 (Soft Delete)
         if (!user.getActivated()) {
             throw new CommonException(ResponseCode.USER_INACTIVE);

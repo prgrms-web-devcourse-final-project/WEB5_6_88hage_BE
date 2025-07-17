@@ -71,4 +71,18 @@ public class AdminUserApiController {
         UserDTO user = adminUserService.getUserByNickname(nickname);
         return ResponseEntity.ok(ApiResponse.success(user));
     }
+
+    // 부적절한 닉네임 임의 숫자값 변경
+    @PostMapping("/{email}/randomize-nickname")
+    public ResponseEntity<ApiResponse<String>> randomizeNickname(
+            @PathVariable String email,
+            Authentication authentication) {
+
+        UserDTO admin = adminUserService.getAuthenticatedUser(authentication);
+        checkAdminRole(admin);
+
+        String newNickname = adminUserService.randomizeNickname(email);
+        return ResponseEntity.ok(ApiResponse.success(newNickname));
+    }
+
 }
