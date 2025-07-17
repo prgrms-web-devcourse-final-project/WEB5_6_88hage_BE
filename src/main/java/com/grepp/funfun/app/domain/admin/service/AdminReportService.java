@@ -16,10 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -30,22 +27,30 @@ public class AdminReportService {
     private final AdminUserService adminUserService;
 
     public List<AdminReportViewDTO> getAllReports(String status) {
-        List<AdminReportViewDTO> combined = new ArrayList<>();
-
         List<Report> reports = reportRepository.findAll();
         List<Contact> contacts = contactRepository.findAll().stream()
                 .filter(c -> c.getCategory() == ContactCategory.REPORT)
                 .toList();
 
-        if(status.equalsIgnoreCase("resolved")) {
-            reports = reports.stream().filter(Report::isResolved).toList();
-            contacts = contacts.stream().filter(c -> c.getStatus() == ContactStatus.COMPLETE).toList();
-        } else if (status.equalsIgnoreCase("unresolved")) {
-            reports = reports.stream().filter(r -> !r.isResolved()).toList();
-            contacts = contacts.stream().filter(c -> c.getStatus() == ContactStatus.PENDING).toList();
+        if (status != null && !status.isBlank()) {
+            switch (status.toLowerCase()) {
+                case "resolved" -> {
+                    reports = reports.stream().filter(Report::isResolved).toList();
+                    contacts = contacts.stream().filter(c -> c.getStatus() == ContactStatus.COMPLETE).toList();
+                }
+                case "unresolved" -> {
+                    reports = reports.stream().filter(r -> !r.isResolved()).toList();
+                    contacts = contacts.stream().filter(c -> c.getStatus() == ContactStatus.PENDING).toList();
+                }
+                case "all" -> {
+                }
+                default -> throw new CommonException(ResponseCode.BAD_REQUEST, "유효하지 않은 status 값입니다.");
+            }
         }
 
-        for(Report r : reports) {
+        List<AdminReportViewDTO> combined = new ArrayList<>();
+
+        for (Report r : reports) {
             AdminReportViewDTO dto = new AdminReportViewDTO();
             dto.setId(r.getId());
             dto.setReportingUserEmail(r.getReportingUser().getEmail());
@@ -84,11 +89,11 @@ public class AdminReportService {
         if (optionalReport.isPresent()) {
             Report report = optionalReport.get();
 
-            if(report.isResolved()) {
+            if (report.isResolved()) {
                 throw new CommonException(ResponseCode.BAD_REQUEST, "이미 처리 완료된 신고입니다.");
             }
 
-            if(request.isTakeAction()) {
+            if (request.isTakeAction()) {
                 adminUserService.suspendUser(
                         report.getReportedUser().getEmail(),
                         request.getSuspendDays(),
@@ -105,16 +110,16 @@ public class AdminReportService {
         Contact contact = contactRepository.findById(id)
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND, "신고(ID=" + id + ")를 찾을 수 없습니다."));
 
-                if (contact.getCategory() != ContactCategory.REPORT) {
-                    throw new CommonException(ResponseCode.BAD_REQUEST, "신고 유형의 문의가 아닙니다.");
-                }
+        if (contact.getCategory() != ContactCategory.REPORT) {
+            throw new CommonException(ResponseCode.BAD_REQUEST, "신고 유형의 문의가 아닙니다.");
+        }
 
-                if (contact.getStatus() == ContactStatus.COMPLETE) {
-                    throw new CommonException(ResponseCode.BAD_REQUEST, "이미 처리 완료된 신고입니다.");
-                }
+        if (contact.getStatus() == ContactStatus.COMPLETE) {
+            throw new CommonException(ResponseCode.BAD_REQUEST, "이미 처리 완료된 신고입니다.");
+        }
 
-                contact.setAnswer(request.getAdminComment());
-                contact.setStatus(ContactStatus.COMPLETE);
-                contact.setAnsweredAt(LocalDateTime.now());
+        contact.setAnswer(request.getAdminComment());
+        contact.setStatus(ContactStatus.COMPLETE);
+        contact.setAnsweredAt(LocalDateTime.now());
     }
 }
