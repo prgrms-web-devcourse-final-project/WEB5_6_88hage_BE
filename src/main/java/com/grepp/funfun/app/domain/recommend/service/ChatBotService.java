@@ -6,17 +6,31 @@ import com.grepp.funfun.app.domain.recommend.repository.ChatBotRepository;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
 import java.util.List;
+import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class ChatBotService {
 
     private final ChatBotRepository chatBotRepository;
 
-    public ChatBotService(final ChatBotRepository chatBotRepository) {
-        this.chatBotRepository = chatBotRepository;
+    public Optional<ChatBot> findChatBotSummary(String email) {
+        Optional<ChatBot> chatBot = chatBotRepository.findByEmailAndActivatedIsTrue(email);
+        return chatBot;
+    }
+
+    @Transactional
+    public void updateSummary(Long id, String summary) {
+        chatBotRepository.updateSummary(id, summary);
+    }
+
+    @Transactional
+    public void registSummary(ChatBot chatBot) {
+        chatBotRepository.save(chatBot);
     }
 
     public List<ChatBotDTO> findAll() {
@@ -32,19 +46,6 @@ public class ChatBotService {
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
     }
 
-    public Long create(final ChatBotDTO chatBotDTO) {
-        final ChatBot chatBot = new ChatBot();
-        mapToEntity(chatBotDTO, chatBot);
-        return chatBotRepository.save(chatBot).getId();
-    }
-
-    public void update(final Long id, final ChatBotDTO chatBotDTO) {
-        final ChatBot chatBot = chatBotRepository.findById(id)
-                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        mapToEntity(chatBotDTO, chatBot);
-        chatBotRepository.save(chatBot);
-    }
-
     public void delete(final Long id) {
         chatBotRepository.deleteById(id);
     }
@@ -58,12 +59,6 @@ public class ChatBotService {
         return chatBotDTO;
     }
 
-    private ChatBot mapToEntity(final ChatBotDTO chatBotDTO, final ChatBot chatBot) {
-        chatBot.setEmail(chatBotDTO.getEmail());
-        chatBot.setGroupSummary(chatBotDTO.getGroupSummary());
-        chatBot.setContentSummary(chatBotDTO.getContentSummary());
-        chatBot.setType(chatBotDTO.getType());
-        return chatBot;
-    }
+
 
 }
