@@ -2,6 +2,7 @@ package com.grepp.funfun.app.domain.user.controller;
 
 import com.grepp.funfun.app.domain.auth.dto.payload.TokenResponse;
 import com.grepp.funfun.app.domain.user.dto.payload.ChangePasswordRequest;
+import com.grepp.funfun.app.domain.user.dto.payload.CoordinateResponse;
 import com.grepp.funfun.app.domain.user.dto.payload.NicknameRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.OAuth2SignupRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.UserInfoRequest;
@@ -172,5 +173,12 @@ public class UserApiController {
     public ResponseEntity<ApiResponse<String>> verifyNickname(@RequestBody @Valid NicknameRequest request) {
         userService.verifyNickname(request.getNickname());
         return ResponseEntity.ok(ApiResponse.success("사용 가능한 닉네임입니다."));
+    }
+
+    @GetMapping("/coordinate")
+    @Operation(summary = "좌표 조회", description = "위도, 경도 값을 조회합니다.")
+    public ResponseEntity<ApiResponse<CoordinateResponse>> getCoordinate(Authentication authentication){
+        String email = authentication.getName();
+        return ResponseEntity.ok(ApiResponse.success(userService.getCoordinate(email)));
     }
 }
