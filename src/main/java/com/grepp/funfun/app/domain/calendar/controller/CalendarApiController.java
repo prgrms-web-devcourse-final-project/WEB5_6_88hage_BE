@@ -8,11 +8,17 @@ import com.grepp.funfun.app.domain.calendar.dto.payload.CalendarUpdateRequest;
 import com.grepp.funfun.app.domain.calendar.service.CalendarService;
 import com.grepp.funfun.app.infra.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -102,10 +108,40 @@ public class CalendarApiController {
     }
 
     @GetMapping("/content")
-    @Operation(summary = "일정 등록한 컨텐츠 조회", description = "캘린더에 일정 등록한 컨텐츠를 조회합니다.")
-    public ResponseEntity<ApiResponse<List<CalendarContentResponse>>> getCalendarForContent(Authentication authentication) {
+    @Operation(summary = "일정 등록한 컨텐츠 목록 조회", description = """
+        캘린더에 일정 등록한 컨텐츠 목록을 조회합니다.
+        
+        기본 정렬은 등록한 일정 날짜 (selectedDate) 최신순입니다.
+        
+        • pastIncluded: 지나간 일정 포함 여부 (기본값 true)
+        
+            - false 면 오늘 00시 이후 일정만 조회됩니다.
+        
+        • page: 0 ~ N, 보고 싶은 페이지를 지정할 수 있습니다.
+       
+            - 기본값: 0
+        
+        • size: 기본 페이지당 항목 수
+        
+            - 기본값 : 10
+        
+        • sort: 정렬
+        
+            - 정렬 가능한 필드:
+                        - `selectedDate` (등록한 일정 날짜)
+        
+            - 정렬 방식 예시:
+                        - `?sort=selectedDate,desc` (기본값, 최신순)
+                        - `?sort=selectedDate,asc` (오래된순)
+        """)
+    public ResponseEntity<ApiResponse<Page<CalendarContentResponse>>> getCalendarForContent(
+        Authentication authentication,
+        @Parameter(description = "지나간 일정 포함 여부")
+        @RequestParam(defaultValue = "true") boolean pastIncluded,
+        @Parameter(hidden = true)
+        @ParameterObject
+        @PageableDefault(sort = "selectedDate", direction = Sort.Direction.DESC) Pageable pageable) {
         String email = authentication.getName();
-        List<CalendarContentResponse> result = calendarService.getContent(email);
-        return ResponseEntity.ok(ApiResponse.success(result));
+        return ResponseEntity.ok(ApiResponse.success(calendarService.getContent(email, pastIncluded, pageable)));
     }
 }

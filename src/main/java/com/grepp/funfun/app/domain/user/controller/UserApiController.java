@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -56,7 +57,8 @@ public class UserApiController {
     @PatchMapping("/oauth2/signup")
     @Operation(summary = "OAuth2 회원가입", description = "소셜 로그인 대상의 추가 정보를 입력 받습니다.<br>액세스 토큰을 재발급합니다.")
     public ResponseEntity<ApiResponse<TokenResponse>> updateOAuth2User(@RequestBody @Valid OAuth2SignupRequest request, Authentication authentication, HttpServletResponse response) {
-        TokenDto tokenDto = userService.updateOAuth2User(authentication, request);
+        String email = authentication.getName();
+        TokenDto tokenDto = userService.updateOAuth2User(email, request);
         TokenCookieFactory.setAllAuthCookies(response, tokenDto);
 
         return ResponseEntity.ok(ApiResponse.success(TokenResponse.builder().
@@ -98,6 +100,7 @@ public class UserApiController {
         String email = authentication.getName();
         userService.unActive(email, accessTokenId);
 
+        SecurityContextHolder.clearContext();
         TokenCookieFactory.setAllExpiredCookies(response);
 
         return ResponseEntity.ok(ApiResponse.success("회원 탈퇴되었습니다."));
@@ -153,7 +156,8 @@ public class UserApiController {
     @Operation(summary = "닉네임 변경", description = "닉네임 변경을 합니다.<br>액세스 토큰을 재발급합니다.")
     public ResponseEntity<ApiResponse<TokenResponse>> changeNickname(@RequestBody @Valid
     NicknameRequest request, Authentication authentication, HttpServletResponse response) {
-        TokenDto tokenDto = userService.changeNickname(authentication, request.getNickname());
+        String email = authentication.getName();
+        TokenDto tokenDto = userService.changeNickname(email, request.getNickname());
         TokenCookieFactory.setAllAuthCookies(response, tokenDto);
 
         return ResponseEntity.ok(ApiResponse.success(TokenResponse.builder().

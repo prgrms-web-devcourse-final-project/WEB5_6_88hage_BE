@@ -7,11 +7,20 @@ import com.grepp.funfun.app.domain.calendar.vo.ActivityType;
 import com.grepp.funfun.app.domain.calendar.entity.QCalendar;
 import com.grepp.funfun.app.domain.content.entity.QContent;
 import com.grepp.funfun.app.domain.group.entity.QGroup;
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.support.PageableExecutionUtils;
 
 @RequiredArgsConstructor
 public class CalendarRepositoryCustomImpl implements CalendarRepositoryCustom{
@@ -104,8 +113,16 @@ public class CalendarRepositoryCustomImpl implements CalendarRepositoryCustom{
     }
 
     @Override
-    public List<CalendarContentResponse> findContentByEmail(String email) {
-        return queryFactory
+    public Page<CalendarContentResponse> findContentByEmail(String email, boolean pastIncluded, Pageable pageable) {
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(calendar.email.eq(email));
+        builder.and(calendar.type.eq(ActivityType.CONTENT));
+        if (!pastIncluded) {
+            LocalDateTime today = LocalDate.now().atStartOfDay();
+            builder.and(calendar.selectedDate.goe(today));
+        }
+
+        List<CalendarContentResponse> result = queryFactory
             .select(Projections.constructor(
                 CalendarContentResponse.class,
                 calendar.id,
@@ -116,9 +133,30 @@ public class CalendarRepositoryCustomImpl implements CalendarRepositoryCustom{
             ))
             .from(calendar)
             .join(calendar.content, content)
-            .where(calendar.type.eq(ActivityType.CONTENT),
-                calendar.email.eq(email))
-            .orderBy(calendar.selectedDate.desc())
+            .where(builder)
+            .orderBy(getOrderSpecifiers(pageable.getSort()))
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize())
             .fetch();
+
+        JPAQuery<Long> countQuery = queryFactory
+            .select(calendar.count())
+            .from(calendar)
+            .where(builder);
+
+        return PageableExecutionUtils.getPage(result, pageable, countQuery::fetchOne);
+    }
+
+    private OrderSpecifier<?>[] getOrderSpecifiers(Sort sort) {
+        return sort.stream()
+            .map(order -> {
+                String property = order.getProperty();
+                Order direction = order.isAscending() ? Order.ASC : Order.DESC;
+
+                return switch (property) {
+                    case "selectedDate" -> new OrderSpecifier<>(direction, calendar.selectedDate);
+                    default -> new OrderSpecifier<>(Order.DESC, calendar.selectedDate);
+                };
+            }).toArray(OrderSpecifier[]::new);
     }
 }

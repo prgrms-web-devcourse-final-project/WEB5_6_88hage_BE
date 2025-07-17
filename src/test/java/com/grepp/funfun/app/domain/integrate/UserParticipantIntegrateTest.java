@@ -84,7 +84,7 @@ public class UserParticipantIntegrateTest {
         memberLoginRequest.setPassword(rawPassword);
 
         //로그인 실행
-        authService.signin(memberLoginRequest);
+        authService.login(memberLoginRequest);
         System.out.println("로그인 완료");
 
         //모임 참여 신청

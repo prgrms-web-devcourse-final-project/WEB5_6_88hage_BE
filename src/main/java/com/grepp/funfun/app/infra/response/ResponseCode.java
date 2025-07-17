@@ -24,6 +24,7 @@ public enum ResponseCode {
     USER_GUEST("4024", HttpStatus.OK, "추가 회원가입이 필요한 OAuth2 사용자입니다."),
     USER_PREFERENCE_NOT_SET("4025", HttpStatus.OK, "사용자의 선호 취향이 아직 설정되지 않았습니다."),
     OAUTH2_AUTHENTICATION_FAILED("4026", HttpStatus.UNAUTHORIZED, "OAuth2 로그인에 실패했습니다."),
+    EXPIRED_AUTH_CODE_VERIFY("4027", HttpStatus.BAD_REQUEST, "인증 코드 검증한 유효 기간(10분)이 지나거나 인증 코드 검증을 하지 않았습니다."),
     INTERNAL_SERVER_ERROR("5000", HttpStatus.INTERNAL_SERVER_ERROR, "서버에러 입니다."),
     SECURITY_INCIDENT("6000", HttpStatus.OK, "비정상적인 로그인 시도가 감지되었습니다.");
     
