@@ -1,27 +1,35 @@
 package com.grepp.funfun.app.domain.notification.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
+import java.time.LocalDateTime;
 
 @Getter
-@Setter
+@Builder
 public class NotificationDTO {
 
-    private Long id;
+    private final Long id;
 
     @Size(max = 255)
-    private String email;
+    private final String email;
 
     @Size(max = 255)
-    private String message;
+    private final String message;
 
-    @Size(max = 255)
-    private String link;
+    private final String link;
 
     @JsonProperty("isRead")
-    private Boolean isRead;
+    private final Boolean isRead;
 
+    private final String type; // NOTICE, SCHEDULE
+
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private final LocalDateTime scheduledAt;
+
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private final LocalDateTime sentAt;
 }
