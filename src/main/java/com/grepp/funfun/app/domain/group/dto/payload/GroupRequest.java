@@ -1,8 +1,8 @@
 package com.grepp.funfun.app.domain.group.dto.payload;
 
+import com.grepp.funfun.app.domain.group.entity.Group;
 import com.grepp.funfun.app.domain.group.vo.GroupClassification;
 import com.grepp.funfun.app.domain.group.vo.GroupStatus;
-import com.grepp.funfun.app.domain.group.entity.Group;
 import com.grepp.funfun.app.domain.user.entity.User;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -28,6 +28,7 @@ public class GroupRequest {
     private String explain;
 
     @NotBlank(message="모임 한 줄 소개는 필수로 입력해야 합니다.")
+//    @Size(max=100, message="모임 한 줄 소개는 100자 이하로 입력해야 합니다.")
     private String simpleExplain;
 
     //모임 장소

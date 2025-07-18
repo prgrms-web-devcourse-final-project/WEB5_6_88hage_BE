@@ -1,4 +1,4 @@
-package com.grepp.funfun.app.delete.controller.web.chat;
+package com.grepp.funfun.app.domain.chat.controller;
 
 import com.grepp.funfun.app.domain.chat.dto.payload.ChatResponse;
 import com.grepp.funfun.app.domain.chat.dto.ChatDTO;

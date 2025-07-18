@@ -18,10 +18,9 @@ public class GroupMyResponse {
     private String groupTitle;
     private String userEmail;// 참여자 이메일 (현재 사용자)
     private String userNickname;
-    private List<String> participantNicknames ;
+    private Integer participantCount;
     private ParticipantStatus status;
     private ChatRoomType type;
-    private List<String> participantEmails; // 참여자들 이메일
 }
 
 
