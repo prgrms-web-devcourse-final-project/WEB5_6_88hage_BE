@@ -59,7 +59,7 @@ class FollowServiceTest {
     }
 
     @Test
-    void follow_self_follow_EX() {
+    void follow_SELF_FOLLOW_EX() {
         // given
         String targetEmail = myEmail;
 
@@ -68,7 +68,7 @@ class FollowServiceTest {
     }
 
     @Test
-    void follow_duplicate_follow_EX() {
+    void follow_DUPLICATE_FOLLOW_EX() {
         // given
         String targetEmail = "target@target.target";
 
