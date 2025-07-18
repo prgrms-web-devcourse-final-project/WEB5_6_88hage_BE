@@ -101,9 +101,7 @@ public class AdminReportService {
                 );
             }
 
-            report.setResolved(true);
-            report.setAdminComment(request.getAdminComment());
-            report.setResolvedAt(LocalDateTime.now());
+            report.resolve(request.getAdminComment());
             return;
         }
 
