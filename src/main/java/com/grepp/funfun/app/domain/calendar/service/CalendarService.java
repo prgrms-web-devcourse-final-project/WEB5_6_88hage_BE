@@ -1,6 +1,5 @@
 package com.grepp.funfun.app.domain.calendar.service;
 
-import com.grepp.funfun.app.domain.calendar.dto.CalendarDTO;
 import com.grepp.funfun.app.domain.calendar.dto.payload.CalendarContentRequest;
 import com.grepp.funfun.app.domain.calendar.dto.payload.CalendarContentResponse;
 import com.grepp.funfun.app.domain.calendar.dto.payload.CalendarDailyResponse;
@@ -11,20 +10,18 @@ import com.grepp.funfun.app.domain.calendar.vo.ActivityType;
 import com.grepp.funfun.app.domain.content.entity.Content;
 import com.grepp.funfun.app.domain.content.repository.ContentRepository;
 import com.grepp.funfun.app.domain.group.entity.Group;
-import com.grepp.funfun.app.domain.group.repository.GroupRepository;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.YearMonth;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,14 +32,9 @@ public class CalendarService {
 
     private final CalendarRepository calendarRepository;
     private final ContentRepository contentRepository;
-    private final GroupRepository groupRepository;
 
     @Transactional
     public void addContentCalendar(String email, CalendarContentRequest request) {
-        Calendar calendar = new Calendar();
-        calendar.setEmail(email);
-        calendar.setType(ActivityType.CONTENT);
-
         Content content = contentRepository.findById(request.getActivityId())
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
 
@@ -57,10 +49,14 @@ public class CalendarService {
         // bookmarkCount++;
         content.increaseBookmark();
 
-        calendar.setContent(content);
-        calendar.setSelectedDate(request.getSelectedDate());
-
-        calendarRepository.save(calendar);
+        calendarRepository.save(
+            Calendar.builder()
+            .email(email)
+            .type(ActivityType.CONTENT)
+            .content(content)
+            .selectedDate(request.getSelectedDate())
+            .build()
+        );
     }
 
     @Transactional
@@ -74,7 +70,7 @@ public class CalendarService {
 
         // bookmarkCount--;
         Content content = calendar.getContent();
-        if (content != null) {
+        if (content != null && content.getBookmarkCount() > 0) {
             content.decreaseBookmark();
         }
 
@@ -85,44 +81,35 @@ public class CalendarService {
     public void updateContentCalendar(Long calendarId, LocalDateTime selectedDate, String email) {
         Calendar calendar = calendarRepository.findByIdAndEmail(calendarId, email)
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-
-        if (calendar.getType() == ActivityType.GROUP) {
-            throw new CommonException(ResponseCode.BAD_REQUEST, "모임 일정은 직접 수정할 수 없습니다.");
-        }
-
-        calendar.setSelectedDate(selectedDate);
+        calendar.updateSelectedDateForContent(selectedDate);
     }
 
+    @Transactional(readOnly = true)
     public List<CalendarMonthlyResponse> getMonthly(String email, YearMonth month) {
         LocalDateTime start = month.atDay(1).atStartOfDay();
         LocalDateTime end = month.atEndOfMonth().atTime(LocalTime.MAX);
 
-        List<CalendarMonthlyResponse> contentList = calendarRepository.findMonthlyContentCalendars(email, start, end);
-        List<CalendarMonthlyResponse> groupList = calendarRepository.findMonthlyGroupCalendars(email, start, end);
-
-        List<CalendarMonthlyResponse> result = new ArrayList<>();
-        result.addAll(contentList);
-        result.addAll(groupList);
-
-        return result;
+        return Stream.concat(
+                calendarRepository.findMonthlyContentCalendars(email, start, end).stream(),
+                calendarRepository.findMonthlyGroupCalendars(email, start, end).stream()
+            )
+            .toList();
     }
 
+    @Transactional(readOnly = true)
     public List<CalendarDailyResponse> getDaily(String email, LocalDate date) {
         LocalDateTime start = date.atStartOfDay();
         LocalDateTime end = start.plusDays(1).minusNanos(1);
 
-        List<CalendarDailyResponse> content = calendarRepository.findDailyContentCalendars(email, start, end);
-        List<CalendarDailyResponse> group = calendarRepository.findDailyGroupCalendars(email, start, end);
-
-        List<CalendarDailyResponse> result = new ArrayList<>();
-        result.addAll(content);
-        result.addAll(group);
-        // 오름차순 정렬
-        result.sort(Comparator.comparing(CalendarDailyResponse::getSelectedDate));
-
-        return result;
+        return Stream.concat(
+                calendarRepository.findDailyContentCalendars(email, start, end).stream(),
+                calendarRepository.findDailyGroupCalendars(email, start, end).stream()
+            )
+            .sorted(Comparator.comparing(CalendarDailyResponse::getSelectedDate))
+            .toList();
     }
 
+    @Transactional(readOnly = true)
     public List<CalendarDailyResponse> getDailyForContent(String email, LocalDate date) {
         LocalDateTime start = date.atStartOfDay();
         LocalDateTime end = start.plusDays(1).minusNanos(1);
@@ -137,11 +124,13 @@ public class CalendarService {
 
     @Transactional
     public void addGroupCalendar(String email, Group group) {
-        Calendar calendar = new Calendar();
-        calendar.setEmail(email);
-        calendar.setType(ActivityType.GROUP);
-        calendar.setGroup(group);
-        calendarRepository.save(calendar);
+        calendarRepository.save(
+            Calendar.builder()
+            .email(email)
+            .type(ActivityType.GROUP)
+            .group(group)
+            .build()
+        );
     }
 
     @Transactional
@@ -155,58 +144,4 @@ public class CalendarService {
         // 특정 유저만 삭제 (모임 나가기, 강퇴)
         calendarRepository.deleteByEmailAndGroupId(email, groupId);
     }
-
-    public List<CalendarDTO> findAll() {
-        final List<Calendar> calendars = calendarRepository.findAll(Sort.by("id"));
-        return calendars.stream()
-                .map(calendar -> mapToDTO(calendar, new CalendarDTO()))
-                .toList();
-    }
-
-    public CalendarDTO get(final Long id) {
-        return calendarRepository.findById(id)
-                .map(calendar -> mapToDTO(calendar, new CalendarDTO()))
-                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-    }
-
-    public Long create(final CalendarDTO calendarDTO) {
-        final Calendar calendar = new Calendar();
-        mapToEntity(calendarDTO, calendar);
-        return calendarRepository.save(calendar).getId();
-    }
-
-    public void update(final Long id, final CalendarDTO calendarDTO) {
-        final Calendar calendar = calendarRepository.findById(id)
-                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        mapToEntity(calendarDTO, calendar);
-        calendarRepository.save(calendar);
-    }
-
-    public void delete(final Long id) {
-        calendarRepository.deleteById(id);
-    }
-
-    private CalendarDTO mapToDTO(final Calendar calendar, final CalendarDTO calendarDTO) {
-        calendarDTO.setId(calendar.getId());
-        calendarDTO.setEmail(calendar.getEmail());
-        calendarDTO.setSelectedDate(calendar.getSelectedDate());
-        calendarDTO.setType(calendar.getType());
-        calendarDTO.setContent(calendar.getContent() == null ? null : calendar.getContent().getId());
-        calendarDTO.setGroup(calendar.getGroup() == null ? null : calendar.getGroup().getId());
-        return calendarDTO;
-    }
-
-    private Calendar mapToEntity(final CalendarDTO calendarDTO, final Calendar calendar) {
-        calendar.setEmail(calendarDTO.getEmail());
-        calendar.setSelectedDate(calendarDTO.getSelectedDate());
-        calendar.setType(calendarDTO.getType());
-        final Content content = calendarDTO.getContent() == null ? null : contentRepository.findById(calendarDTO.getContent())
-                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        calendar.setContent(content);
-        final Group group = calendarDTO.getGroup() == null ? null : groupRepository.findById(calendarDTO.getGroup())
-                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        calendar.setGroup(group);
-        return calendar;
-    }
-
 }
