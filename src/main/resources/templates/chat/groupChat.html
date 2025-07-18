@@ -513,17 +513,16 @@
     console.log('🟡 모임 목록 로드 시작');
 
     try {
-      const response = await fetch('/api/groups/my');
+      const response = await fetch('/api/groups/getMy');
       const result = await response.json();
 
       console.log('📥 API 응답:', result);
 
-      // 수정된 부분: result.data 확인
       if (result.code === '0000' && Array.isArray(result.data) && result.data.length > 0) {
-        myGroups = result.data;  // result.data 사용
+        myGroups = result.data;
 
         // 첫 번째 모임에서 사용자 닉네임 추출
-        const firstGroup = result.data[0];  // result.data[0] 사용
+        const firstGroup = result.data[0];
         currentUserNickname = firstGroup.userNickname || currentUserEmail.split('@')[0];
 
         // UI에 사용자 정보 업데이트
@@ -558,7 +557,7 @@
     userName.textContent = nickname;
   }
 
-  // 모임 목록 표시
+  // 모임 목록 표시 - 수정된 부분
   function displayGroups(groups) {
     console.log('🟢 displayGroups 호출:', groups);
 
@@ -571,14 +570,15 @@
 
     const groupsHtml = groups.map(group => {
       const groupInitials = group.groupTitle.substring(0, 2).toUpperCase();
-      const memberCount = group.participantEmails ? group.participantEmails.length : 0;
+      // participantEmails 배열 대신 participantCount 사용
+      const memberCount = group.participantCount || 0;
 
       return `
-          <div class="group-item" onclick="selectGroup(${group.groupId}, '${group.groupTitle}')">
+          <div class="group-item" onclick="selectGroup(${group.groupId}, '${group.groupTitle.replace(/'/g, "\\'")}', '${group.type}')">
             <div class="group-avatar">${groupInitials}</div>
             <div class="group-info">
               <div class="group-name">${group.groupTitle}</div>
-              <div class="group-subtitle">${memberCount}명 참여</div>
+              <div class="group-subtitle">${memberCount}명 참여 중</div>
             </div>
           </div>
         `;
@@ -588,8 +588,8 @@
     groupsList.innerHTML = groupsHtml;
   }
 
-  // 모임 선택
-  async function selectGroup(groupId, groupTitle) {
+  // 모임 선택 - 수정된 부분
+  async function selectGroup(groupId, groupTitle, roomType) {
     // 기존 연결 해제
     if (stompClient && stompClient.connected) {
       stompClient.disconnect();
@@ -604,6 +604,7 @@
     event.target.closest('.group-item').classList.add('active');
 
     currentGroupId = groupId;
+    currentChatRoomType = roomType; // 채팅방 타입 설정
     document.getElementById('channelName').textContent = groupTitle;
 
     // 채팅 영역 초기화
@@ -613,27 +614,35 @@
     connectToGroup(groupId);
   }
 
-  // 채팅방 연결
+  // 채팅방 연결 - 올바른 구독 주제 (topic prefix 제거)
   function connectToGroup(groupId) {
+    console.log('🔌 채팅방 연결 시도:', groupId);
+
     const socket = new SockJS('/ws');
     stompClient = Stomp.over(socket);
+
+    // 디버그 모드 활성화
+    stompClient.debug = function(str) {
+      console.log('🔧 STOMP Debug:', str);
+    };
 
     stompClient.connect({}, function(frame) {
       console.log('✅ WebSocket 연결 성공:', frame);
       updateConnectionStatus(true);
 
-      // 채팅방 구독
-      stompClient.subscribe(`/group/${groupId}`, function(message) {
+      // 백엔드 설정에 맞는 구독 주제 (/group/{groupId})
+      const subscription = stompClient.subscribe(`/group/${groupId}`, function(message) {
         try {
-          console.log('📨 메시지 수신:', message.body);
+          console.log('📨 메시지 수신 원본:', message.body);
           const chatData = JSON.parse(message.body);
+          console.log('📨 파싱된 메시지:', chatData);
           displayMessage(chatData);
         } catch (error) {
-          console.error('메시지 파싱 오류:', error);
+          console.error('❌ 메시지 파싱 오류:', error, 'Raw message:', message.body);
         }
       });
 
-      console.log(`🔔 구독 완료: /group/${groupId}`);
+      console.log(`🔔 구독 완료: /group/${groupId}`, subscription);
 
       // 채팅 이력 로드
       loadChatHistory(groupId);
@@ -645,6 +654,7 @@
       console.error('❌ WebSocket 연결 실패:', error);
       updateConnectionStatus(false);
       disableChatInput();
+      alert('채팅 서버 연결에 실패했습니다. 페이지를 새로고침해주세요.');
     });
   }
 
@@ -672,36 +682,57 @@
     document.getElementById('sendButton').disabled = true;
   }
 
-  // 메시지 전송 - 수정된 부분
+  // 메시지 전송 - 디버깅 강화
   function sendMessage() {
     const messageInput = document.getElementById('messageInput');
     const messageText = messageInput.value.trim();
+
+    console.log('🔵 메시지 전송 시도:', {
+      messageText,
+      currentGroupId,
+      currentChatRoomType,
+      stompClientConnected: stompClient?.connected,
+      currentUserEmail,
+      currentUserNickname
+    });
 
     if (!messageText) {
       alert('메시지를 입력하세요');
       return;
     }
 
-    if (stompClient && currentGroupId) {
-      const chatData = {
-        roomId: currentGroupId,        // groupId → roomId로 변경
-        roomType: 'GROUP_CHAT',        // roomType 추가
-        senderEmail: currentUserEmail,
-        senderNickname: currentUserNickname || currentUserEmail.split('@')[0],
-        message: messageText
-      };
+    if (!stompClient || !stompClient.connected) {
+      console.error('❌ WebSocket이 연결되지 않음');
+      alert('채팅 서버에 연결되지 않았습니다. 잠시 후 다시 시도해주세요.');
+      return;
+    }
 
-      console.log('📤 메시지 전송:', chatData);
+    if (!currentGroupId) {
+      console.error('❌ 선택된 그룹이 없음');
+      alert('모임을 먼저 선택해주세요.');
+      return;
+    }
 
-      // 메시지 전송 - 올바른 엔드포인트 사용
-      stompClient.send('/send/chats/message', {}, JSON.stringify(chatData));
+    const chatData = {
+      roomId: currentGroupId,
+      roomType: currentChatRoomType,
+      senderEmail: currentUserEmail,
+      senderNickname: currentUserNickname || currentUserEmail.split('@')[0],
+      message: messageText
+    };
+
+    try {
+      console.log('📤 메시지 전송 데이터:', chatData);
+      stompClient.send('/send/message', {}, JSON.stringify(chatData));  // /chats/message → /message 수정
       messageInput.value = '';
-    } else {
-      console.error('❌ WebSocket 연결 또는 그룹 ID가 없음');
+      console.log('✅ 메시지 전송 완료');
+    } catch (error) {
+      console.error('❌ 메시지 전송 실패:', error);
+      alert('메시지 전송에 실패했습니다: ' + error.message);
     }
   }
 
-  // 메시지 표시 - 수정된 부분
+  // 메시지 표시
   function displayMessage(chatData) {
     const chatMessages = document.getElementById('chatMessages');
 
@@ -744,21 +775,29 @@
     document.getElementById('chatMessages').innerHTML = '';
   }
 
-  // 채팅 이력 로드
+  // 채팅 이력 로드 - 디버깅 강화
   async function loadChatHistory(roomId) {
     try {
-      const response = await fetch(`/api/chats/${roomId}/${currentChatRoomType}/history`);
+      console.log('📋 채팅 이력 로드 시도:', roomId, currentChatRoomType);
+      const url = `/api/chats/${roomId}/${currentChatRoomType}/history`;
+      console.log('📋 요청 URL:', url);
+
+      const response = await fetch(url);
       const result = await response.json();
 
-      console.log('📋 채팅 이력:', result);
+      console.log('📋 채팅 이력 응답:', result);
 
       if (result.code === '0000' && result.data) {
-        result.data.forEach(message => {
+        console.log('📋 메시지 개수:', result.data.length);
+        result.data.forEach((message, index) => {
+          console.log(`📋 메시지 ${index + 1}:`, message);
           displayMessage(message);
         });
+      } else {
+        console.log('⚠️ 채팅 이력이 없거나 오류:', result);
       }
     } catch (error) {
-      console.error('채팅 이력 로드 실패:', error);
+      console.error('❌ 채팅 이력 로드 실패:', error);
     }
   }
 
