@@ -59,11 +59,13 @@ public class UserParticipantIntegrateTest {
         userRepository.save(leader);
 
         // 모임 생성
-        Group group = new Group();
-        group.setLeader(leader);
-        group.setMaxPeople(5);
-        group.setNowPeople(1);
-        group.setStatus(GroupStatus.RECRUITING);
+        Group group = Group.builder()
+            .leader(leader)
+            .maxPeople(5)
+            .nowPeople(1)
+            .status(GroupStatus.RECRUITING)
+        .build();
+
 
         // 참가자
         User member = new User();
