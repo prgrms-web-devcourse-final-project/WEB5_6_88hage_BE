@@ -4,12 +4,14 @@ import com.grepp.funfun.app.domain.report.vo.ReportType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class ReportRequest {
 
     @NotBlank(message = "신고 대상자 이메일은 필수입니다.")
