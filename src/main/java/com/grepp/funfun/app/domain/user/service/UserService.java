@@ -20,9 +20,7 @@ import com.grepp.funfun.app.domain.preference.repository.GroupPreferenceReposito
 import com.grepp.funfun.app.domain.report.entity.Report;
 import com.grepp.funfun.app.domain.report.repository.ReportRepository;
 import com.grepp.funfun.app.domain.social.entity.Follow;
-import com.grepp.funfun.app.domain.social.entity.Message;
 import com.grepp.funfun.app.domain.social.repository.FollowRepository;
-import com.grepp.funfun.app.domain.social.repository.MessageRepository;
 import com.grepp.funfun.app.domain.user.dto.UserDTO;
 import com.grepp.funfun.app.domain.user.dto.payload.UserInfoResponse;
 import com.grepp.funfun.app.domain.user.entity.User;
@@ -55,7 +53,6 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserInfoRepository userInfoRepository;
     private final FollowRepository followRepository;
-    private final MessageRepository messageRepository;
     private final ContactRepository contactRepository;
     private final ReportRepository reportRepository;
     private final GroupRepository groupRepository;
@@ -361,18 +358,6 @@ public class UserService {
         if (followeeFollow != null) {
             referencedWarning.setKey("user.follow.followee.referenced");
             referencedWarning.addParam(followeeFollow.getId());
-            return referencedWarning;
-        }
-        final Message senderMessage = messageRepository.findFirstBySender(user);
-        if (senderMessage != null) {
-            referencedWarning.setKey("user.message.sender.referenced");
-            referencedWarning.addParam(senderMessage.getId());
-            return referencedWarning;
-        }
-        final Message receiverMessage = messageRepository.findFirstByReceiver(user);
-        if (receiverMessage != null) {
-            referencedWarning.setKey("user.message.receiver.referenced");
-            referencedWarning.addParam(receiverMessage.getId());
             return referencedWarning;
         }
         final Contact userContact = contactRepository.findFirstByUser(user);
