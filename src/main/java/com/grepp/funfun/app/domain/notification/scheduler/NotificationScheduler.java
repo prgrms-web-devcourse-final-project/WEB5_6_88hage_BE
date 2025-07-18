@@ -3,8 +3,6 @@ package com.grepp.funfun.app.domain.notification.scheduler;
 import com.grepp.funfun.app.domain.calendar.entity.Calendar;
 import com.grepp.funfun.app.domain.calendar.repository.CalendarRepository;
 import com.grepp.funfun.app.domain.notification.dto.NotificationDTO;
-import com.grepp.funfun.app.domain.notification.entity.Notification;
-import com.grepp.funfun.app.domain.notification.repository.NotificationRepository;
 import com.grepp.funfun.app.domain.notification.service.NotificationService;
 import com.grepp.funfun.app.domain.notification.vo.NotificationType;
 import lombok.RequiredArgsConstructor;
