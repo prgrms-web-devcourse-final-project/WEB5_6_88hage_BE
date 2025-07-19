@@ -25,9 +25,7 @@ public class AdminContactAnswerService {
             throw new CommonException(ResponseCode.BAD_REQUEST, "이미 답변이 완료된 문의입니다.");
         }
 
-        contact.setAnswer(answer);
-        contact.setStatus(ContactStatus.COMPLETE);
-        contact.setAnsweredAt(LocalDateTime.now());
+        contact.registAnswer(answer);
     }
 
     @Transactional
