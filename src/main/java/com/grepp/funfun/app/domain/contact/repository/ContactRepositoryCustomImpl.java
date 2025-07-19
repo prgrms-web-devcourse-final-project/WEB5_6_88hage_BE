@@ -3,7 +3,6 @@ package com.grepp.funfun.app.domain.contact.repository;
 import com.grepp.funfun.app.domain.contact.dto.payload.ContactResponse;
 import com.grepp.funfun.app.domain.contact.entity.QContact;
 import com.grepp.funfun.app.domain.contact.vo.ContactStatus;
-import com.grepp.funfun.app.domain.user.entity.QUser;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
@@ -22,7 +21,6 @@ public class ContactRepositoryCustomImpl implements ContactRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
     private final QContact contact = QContact.contact;
-    private final QUser user = QUser.user;
 
     @Override
     public Page<ContactResponse> findAllByEmailAndStatus(String email, ContactStatus status, Pageable pageable) {
