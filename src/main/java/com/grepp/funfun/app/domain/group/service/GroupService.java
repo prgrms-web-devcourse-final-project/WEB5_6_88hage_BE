@@ -82,11 +82,12 @@ public class GroupService {
             return;
         }
         //중복 확인(키)
-        String key = "group:viewCount:" + groupId + ":user:" + userEmail;
+        String key = "group:" + groupId + ":user:" + userEmail;
 
         boolean isCounted = redisTemplate.hasKey(key);
         if (!isCounted) {
             // 조회수 증가(키)
+            // increment 를 통해 자동적으로 value +1 -> 값이 없으면 0으로 자동 설정
             redisTemplate.opsForValue().increment("group:" + groupId + ":viewCount");
 
             // 10분 유지
