@@ -14,12 +14,12 @@ public class ContentSyncScheduler {
 
     private final DataPipeline dataPipeline;
 
-    @Scheduled(cron = "0 0 0 * * *")
-    public void importContentFromOpenAPI() {
-        try {
-            dataPipeline.importFromOpenApi();
-        } catch (Exception e) {
-            log.error("콘텐츠 수집 중 오류 발생", e);
-        }
-    }
+//    @Scheduled(cron = "0 0 0 * * *")
+//    public void importContentFromOpenAPI() {
+//        try {
+//            dataPipeline.importFromOpenApi();
+//        } catch (Exception e) {
+//            log.error("콘텐츠 수집 중 오류 발생", e);
+//        }
+//    }
 }

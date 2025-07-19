@@ -13,7 +13,6 @@ public class KopisContentDataLoader {
 
     public List<ContentDTO> fetchContents() {
         // 외부 API 요청 및 JSON 파싱
-        // 예시: https://www.kopis.or.kr/openApi/restful/pblprfr?service=인증키
 
         // 응답 받아서 DTO 리스트로 매핑
         return List.of(); // TODO: 파싱 구현

@@ -4,9 +4,12 @@ import com.grepp.funfun.app.domain.content.dto.ContentDTO;
 import com.grepp.funfun.app.domain.content.dto.ContentImageDTO;
 import com.grepp.funfun.app.domain.content.dto.ContentUrlDTO;
 import com.grepp.funfun.app.domain.content.entity.Content;
+import com.grepp.funfun.app.domain.content.entity.ContentCategory;
 import com.grepp.funfun.app.domain.content.entity.ContentImage;
 import com.grepp.funfun.app.domain.content.entity.ContentUrl;
+import com.grepp.funfun.app.domain.content.repository.ContentCategoryRepository;
 import com.grepp.funfun.app.domain.content.repository.ContentRepository;
+import com.grepp.funfun.app.domain.content.vo.ContentClassification;
 import com.grepp.funfun.app.domain.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,6 +42,7 @@ public class DataPipeline {
 
     private final ContentRepository contentRepository;
     private final KakaoGeoService kakaoGeoService;
+    private final ContentCategoryRepository contentCategoryRepository;
     private final NotificationService notificationService;
 
     @Value("${kopis.api.key}")
@@ -108,7 +112,7 @@ public class DataPipeline {
             incrementApiCallCount();
 
             try {
-                Thread.sleep(100); // API 호출 간 간격
+                Thread.sleep(100);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 break;
@@ -129,21 +133,17 @@ public class DataPipeline {
         apiCallCount++;
     }
 
-
-    /**
-     * 개별 콘텐츠 처리
-     */
+    // 개별 컨텐츠 처리
     private boolean processContent(String contentId) {
         try {
-            // 이미 존재하는지 체크
-            if (contentRepository.existsByExternalId(contentId)) {
-                return false; // 중복 데이터
-            }
-
-            // 상세 정보 수집
             ContentDTO contentDTO = getDetailInfo(contentId);
             if (contentDTO == null) {
                 return false;
+            }
+
+            // 이미 존재하는지 체크
+            if (contentRepository.existsByContentTitle(contentDTO.getContentTitle())) {
+                return false; // 중복 데이터
             }
 
             // 엔티티 변환 및 저장
@@ -239,8 +239,13 @@ public class DataPipeline {
 
 
     private Content toEntity(ContentDTO dto) {
+        ContentClassification classification = ContentClassification.valueOf(dto.getCategory());
+
+        ContentCategory category = contentCategoryRepository
+                .findByCategory(classification)
+                .orElseThrow(() -> new IllegalArgumentException("해당 카테고리를 찾을 수 없습니다: " + dto.getCategory()));
+
         return Content.builder()
-                .externalId(dto.getExternalId())
                 .contentTitle(dto.getContentTitle())
                 .age(dto.getAge())
                 .startDate(dto.getStartDate())
@@ -254,6 +259,7 @@ public class DataPipeline {
                 .startTime(dto.getStartTime())
                 .poster(dto.getPoster())
                 .description(dto.getDescription())
+                .category(category)
                 .bookmarkCount(dto.getBookmarkCount() != null ? dto.getBookmarkCount() : 0)
                 .eventType(dto.getEventType())
                 .latitude(dto.getLatitude())
@@ -398,7 +404,7 @@ public class DataPipeline {
             return null;
         }
     }
-    
+
     // 목록 전용
     private List<ContentDTO> parseOpenApiResponse(String raw) {
         List<ContentDTO> result = new ArrayList<>();
@@ -475,12 +481,6 @@ public class DataPipeline {
                 return "MAGIC";
             case "뮤지컬":
                 return "MUSICAL";
-            case "관광지":
-                return "TOUR";
-            case "문화시설":
-                return "CULTURE";
-            case "레포츠":
-                return "SPORTS";
             default:
                 log.debug("매핑되지 않은 카테고리: {}", cleanCategory);
                 return cleanCategory.toUpperCase().replace(" ", "_");

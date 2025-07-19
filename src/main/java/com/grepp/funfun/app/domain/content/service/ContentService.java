@@ -3,20 +3,16 @@ package com.grepp.funfun.app.domain.content.service;
 import com.grepp.funfun.app.domain.content.dto.ContentUrlDTO;
 import com.grepp.funfun.app.domain.content.dto.ContentWithReasonDTO;
 import com.grepp.funfun.app.domain.content.dto.payload.ContentFilterRequest;
-import com.grepp.funfun.app.domain.calendar.entity.Calendar;
 import com.grepp.funfun.app.domain.calendar.repository.CalendarRepository;
 import com.grepp.funfun.app.domain.content.vo.ContentClassification;
 import com.grepp.funfun.app.domain.content.dto.ContentDTO;
 import com.grepp.funfun.app.domain.content.dto.ContentImageDTO;
 import com.grepp.funfun.app.domain.content.entity.Content;
-import com.grepp.funfun.app.domain.content.entity.ContentImage;
-import com.grepp.funfun.app.domain.content.repository.ContentCategoryRepository;
 import com.grepp.funfun.app.domain.content.repository.ContentRepository;
 import com.grepp.funfun.app.domain.user.dto.UserDTO;
 import com.grepp.funfun.app.domain.user.service.UserService;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
-import com.grepp.funfun.app.delete.util.ReferencedWarning;
 
 import java.util.Collections;
 import java.util.List;
@@ -51,21 +47,32 @@ public class ContentService {
     // 컨텐츠 필터링(컨텐츠 조회)
     @Transactional(readOnly = true)
     public Page<ContentDTO> findByFiltersWithSort(ContentFilterRequest request, Pageable pageable) {
-        Page<Content> contents;
-        if (request.isBookmarkSort()) {
-            log.info("sortBy: {}", request.getSortBy());
-            contents = findByFiltersOrderByBookmark(request, pageable);
-        } else if (request.isEndDateSort()) {
-            contents = findByFiltersOrderByEndDate(request, pageable);
-        } else {
-            contents = findByFiltersOrderByDistance(request, pageable);
-        }
+        try {
+            Page<Content> contents;
+            if (request.isBookmarkSort()) {
+                log.info("sortBy: {}", request.getSortBy());
+                contents = findByFiltersOrderByBookmark(request, pageable);
+            } else if (request.isEndDateSort()) {
+                contents = findByFiltersOrderByEndDate(request, pageable);
+            } else {
+                contents = findByFiltersOrderByDistance(request, pageable);
+            }
 
-        if (contents.isEmpty()) {
-            throw new CommonException(ResponseCode.NOT_FOUND);
-        }
+            if (contents.isEmpty()) {
+                log.warn("필터 결과 없음 - 요청 필터: {}", request);
+                throw new CommonException(ResponseCode.NOT_FOUND);
+            }
 
-        return contents.map(this::toDTO);
+            log.info("조회된 컨텐츠 수: {}", contents.getTotalElements());
+            return contents.map(this::toDTO);
+
+        } catch (CommonException e) {
+            log.error("NOT_FOUND 예외 발생 - 필터링 조건: {}, 메시지: {}", request, e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("알 수 없는 오류 발생 - 요청 필터: {}, 에러: {}", request, e.getMessage(), e);
+            throw new CommonException(ResponseCode.INTERNAL_SERVER_ERROR);
+        }
     }
 
     // 북마크순 정렬
@@ -241,40 +248,6 @@ public class ContentService {
                 .build();
     }
 
-    // view
-    @Transactional(readOnly = true)
-    public List<Content> findAll() {
-        return contentRepository.findAll(Sort.by(Sort.Direction.ASC, "endDate"));
-    }
-
-    @Transactional(readOnly = true)
-    public ContentDTO get(final Long id) {
-        Content content = contentRepository.findById(id)
-                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-
-        return mapToDTO(content, new ContentDTO());
-    }
-
-
-    @Transactional
-    public void delete(final Long id) {
-        contentRepository.deleteById(id);
-    }
-
-    @Transactional
-    public Long create(final ContentDTO contentDTO) {
-        final Content content = new Content();
-        mapToEntity(contentDTO, content);
-        return contentRepository.save(content).getId();
-    }
-    @Transactional
-    public void update(final Long id, final ContentDTO contentDTO) {
-        final Content content = contentRepository.findById(id)
-                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        mapToEntity(contentDTO, content);
-        contentRepository.save(content);
-    }
-
     @Transactional(readOnly = true)
     public List<ContentWithReasonDTO> findByIds(List<Long> recommendIds) {
         List<Content> contents = contentRepository.findContentsByIdsWithAllRelations(recommendIds);
@@ -307,7 +280,7 @@ public class ContentService {
                                                                    .imageUrl(img.getImageUrl())
                                                                    .build())
                                         .toList())
-                         .urls(content.getUrls().stream()            // 추가: URLs 매핑
+                         .urls(content.getUrls().stream()
                                       .map(url -> ContentUrlDTO.builder()
                                                                .id(url.getId())
                                                                .siteName(url.getSiteName())
@@ -316,80 +289,4 @@ public class ContentService {
                                       .toList())
                          .build();
     }
-
-
-    private ContentDTO mapToDTO(final Content content, final ContentDTO contentDTO) {
-        contentDTO.setId(content.getId());
-        contentDTO.setContentTitle(content.getContentTitle());
-        contentDTO.setAge(content.getAge());
-        contentDTO.setStartDate(content.getStartDate());
-        contentDTO.setEndDate(content.getEndDate());
-        contentDTO.setFee(content.getFee());
-        contentDTO.setAddress(content.getAddress());
-        contentDTO.setGuname(content.getGuname());
-        contentDTO.setRunTime(content.getRunTime());
-        contentDTO.setStartTime(content.getStartTime());
-        contentDTO.setPoster(content.getPoster());
-        contentDTO.setBookmarkCount(content.getBookmarkCount());
-        contentDTO.setCategory(content.getCategory() != null ? content.getCategory().getCategory().name() : null);
-
-        if (content.getImages() != null) {
-            List<ContentImageDTO> imageDTOs = content.getImages().stream()
-                    .map(img -> {
-                        ContentImageDTO dto = new ContentImageDTO();
-                        dto.setId(img.getId());
-                        dto.setImageUrl(img.getImageUrl());
-                        return dto;
-                    })
-                    .toList();
-            contentDTO.setImages(imageDTOs);
-        }
-
-        return contentDTO;
-    }
-
-    private Content mapToEntity(final ContentDTO contentDTO, final Content content) {
-        content.setContentTitle(contentDTO.getContentTitle());
-        content.setAge(contentDTO.getAge());
-        content.setStartDate(contentDTO.getStartDate());
-        content.setEndDate(contentDTO.getEndDate());
-        content.setFee(contentDTO.getFee());
-        content.setAddress(contentDTO.getAddress());
-        content.setGuname(contentDTO.getGuname());
-        content.setRunTime(contentDTO.getRunTime());
-        content.setStartTime(contentDTO.getStartTime());
-        content.setPoster(contentDTO.getPoster());
-        content.setBookmarkCount(contentDTO.getBookmarkCount() != null ? contentDTO.getBookmarkCount() : 0);
-        if (contentDTO.getCategory() != null) {
-            content.setCategory(null);
-        }
-        if (contentDTO.getImages() != null) {
-            List<ContentImage> imageEntities = contentDTO.getImages().stream()
-                    .map(imgDto -> {
-                        ContentImage img = new ContentImage();
-                        img.setImageUrl(imgDto.getImageUrl());
-                        img.setContent(content);
-                        return img;
-                    })
-                    .toList();
-            content.setImages(imageEntities);
-        }
-        return content;
-    }
-
-    public ReferencedWarning getReferencedWarning(final Long id) {
-        final ReferencedWarning referencedWarning = new ReferencedWarning();
-        final Content content = contentRepository.findById(id)
-                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        final Calendar contentCalendar = calendarRepository.findFirstByContent(content);
-        if (contentCalendar != null) {
-            referencedWarning.setKey("content.calendar.content.referenced");
-            referencedWarning.addParam(contentCalendar.getId());
-            return referencedWarning;
-        }
-        return null;
-    }
-
-
-
 }

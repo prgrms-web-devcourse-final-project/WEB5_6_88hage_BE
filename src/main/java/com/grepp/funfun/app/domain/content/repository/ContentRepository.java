@@ -13,9 +13,7 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface ContentRepository extends JpaRepository<Content, Long>, ContentRepositoryCustom {
 
-    Content findFirstByCategory(ContentCategory contentCategory);
-
-    boolean existsByExternalId(String externalId);
+    boolean existsByContentTitle(String contentTitle);
 
     @Query("SELECT c from Content c JOIN fetch c.category")
     List<Content> findAllWithCategory();
