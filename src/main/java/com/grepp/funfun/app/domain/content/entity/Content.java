@@ -40,6 +40,8 @@ public class Content extends BaseEntity {
     @Column(nullable = false)
     private Long id; // 컨텐츠 아이디
 
+    private String externalId;
+
     @Column(nullable = false)
     private String contentTitle; // 컨텐츠명
 
