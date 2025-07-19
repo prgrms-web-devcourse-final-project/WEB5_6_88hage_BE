@@ -60,10 +60,7 @@ public class AuthService {
         // 일시 정지된 사용자
         if (user.getStatus() == UserStatus.SUSPENDED) {
             if (user.getDueDate() != null && !user.getDueDate().isAfter(java.time.LocalDate.now())) {
-                user.setStatus(UserStatus.ACTIVE);
-                user.setDueDate(null);
-                user.setSuspendDuration(null);
-                user.setDueReason(null);
+                user.recoverFromSuspension();
                 userRepository.save(user);
             } else {
                 throw new CommonException(ResponseCode.USER_SUSPENDED, "정지 사유: " + user.getDueReason());
@@ -71,7 +68,7 @@ public class AuthService {
         }
 
         if(user.getStatus() == UserStatus.NONACTIVE) {
-            user.setStatus(UserStatus.ACTIVE);
+            user.statusActive();
         }
 
         // 비활성화한 사용자 (Soft Delete)

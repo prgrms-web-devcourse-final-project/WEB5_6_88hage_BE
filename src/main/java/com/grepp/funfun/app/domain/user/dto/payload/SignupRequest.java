@@ -1,9 +1,7 @@
 package com.grepp.funfun.app.domain.user.dto.payload;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.grepp.funfun.app.domain.auth.vo.Role;
 import com.grepp.funfun.app.domain.user.vo.Gender;
-import com.grepp.funfun.app.domain.user.entity.User;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -71,20 +69,4 @@ public class SignupRequest {
     @JsonProperty("isMarketingAgreed")
     private Boolean isMarketingAgreed;
 
-    public User toEntity() {
-        User user = new User();
-
-        user.setEmail(email);
-        user.setNickname(nickname);
-        user.setAddress(address);
-        user.setLatitude(latitude);
-        user.setLongitude(longitude);
-        user.setBirthDate(birthDate);
-        user.setGender(gender);
-        user.setIsMarketingAgreed(isMarketingAgreed);
-        user.setRole(Role.ROLE_USER);
-        user.setIsVerified(false);
-
-        return user;
-    }
 }
