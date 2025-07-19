@@ -16,8 +16,8 @@ public class ViewCountScheduler {
     private final RedisTemplate<String, String> redisTemplate;
     private final GroupRepository groupRepository;
 
-    // 1분
-    @Scheduled(fixedDelay = 60000)
+    // 3분
+    @Scheduled(fixedRate = 180000)
     public void viewCountToDatabase() {
         try {
             Set<String> keys = redisTemplate.keys("group:*:viewCount");
@@ -37,7 +37,7 @@ public class ViewCountScheduler {
                 }
             }
         } catch (Exception e) {
-            log.error("Failed to sync view count to database", e);
+            log.error("Failed view count to database", e);
         }
     }
 
