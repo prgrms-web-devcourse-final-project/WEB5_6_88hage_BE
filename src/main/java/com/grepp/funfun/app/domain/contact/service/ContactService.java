@@ -125,8 +125,7 @@ public class ContactService {
             default -> throw new CommonException(ResponseCode.BAD_REQUEST, "잘못된 상태값입니다.");
         };
 
-        Page<Contact> contacts = contactRepository.findAllByEmailAndStatus(email, contactStatus, pageable);
-        return contacts.map(ContactResponse::from);
+        return contactRepository.findAllByEmailAndStatus(email, contactStatus, pageable);
     }
 
 }

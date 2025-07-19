@@ -1,12 +1,13 @@
 package com.grepp.funfun.app.domain.contact.repository;
 
-import com.grepp.funfun.app.domain.contact.entity.Contact;
+import com.grepp.funfun.app.domain.contact.dto.payload.ContactResponse;
 import com.grepp.funfun.app.domain.contact.entity.QContact;
 import com.grepp.funfun.app.domain.contact.vo.ContactStatus;
 import com.grepp.funfun.app.domain.user.entity.QUser;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
@@ -24,7 +25,7 @@ public class ContactRepositoryCustomImpl implements ContactRepositoryCustom {
     private final QUser user = QUser.user;
 
     @Override
-    public Page<Contact> findAllByEmailAndStatus(String email, ContactStatus status, Pageable pageable) {
+    public Page<ContactResponse> findAllByEmailAndStatus(String email, ContactStatus status, Pageable pageable) {
         BooleanBuilder builder = new BooleanBuilder();
         // 활성화된 문의만 조회
         builder.and(contact.activated.isTrue());
@@ -36,9 +37,16 @@ public class ContactRepositoryCustomImpl implements ContactRepositoryCustom {
             builder.and(contact.status.eq(status));
         }
 
-        List<Contact> content = queryFactory
-            .selectFrom(contact)
-            .join(contact.user, user).fetchJoin()
+        List<ContactResponse> content = queryFactory
+            .select(Projections.constructor(
+                ContactResponse.class,
+                contact.id,
+                contact.category,
+                contact.status,
+                contact.title,
+                contact.createdAt
+            ))
+            .from(contact)
             .where(builder)
             .orderBy(getOrderSpecifiers(pageable.getSort()))
             .offset(pageable.getOffset())

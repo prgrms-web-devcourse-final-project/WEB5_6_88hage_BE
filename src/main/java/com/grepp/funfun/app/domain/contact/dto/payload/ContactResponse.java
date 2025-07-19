@@ -4,11 +4,13 @@ import com.grepp.funfun.app.domain.contact.entity.Contact;
 import com.grepp.funfun.app.domain.contact.vo.ContactCategory;
 import com.grepp.funfun.app.domain.contact.vo.ContactStatus;
 import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
 @Data
 @Builder
+@AllArgsConstructor
 public class ContactResponse {
     private Long id;
     private ContactCategory category;
