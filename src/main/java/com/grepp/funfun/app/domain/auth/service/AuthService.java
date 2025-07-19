@@ -13,6 +13,7 @@ import com.grepp.funfun.app.infra.auth.jwt.JwtTokenProvider;
 import com.grepp.funfun.app.infra.auth.jwt.dto.AccessTokenDto;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@Transactional(readOnly = true)
 public class AuthService {
 
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
@@ -35,6 +35,7 @@ public class AuthService {
     private final UserBlackListRepository userBlackListRepository;
     private final UserRepository userRepository;
 
+    @Transactional
     public TokenDto login(LoginRequest loginRequest) {
         UsernamePasswordAuthenticationToken authenticationToken =
             new UsernamePasswordAuthenticationToken(loginRequest.getEmail(),
@@ -59,9 +60,8 @@ public class AuthService {
 
         // 일시 정지된 사용자
         if (user.getStatus() == UserStatus.SUSPENDED) {
-            if (user.getDueDate() != null && !user.getDueDate().isAfter(java.time.LocalDate.now())) {
+            if (user.getDueDate() != null && !user.getDueDate().isAfter(LocalDate.now())) {
                 user.recoverFromSuspension();
-                userRepository.save(user);
             } else {
                 throw new CommonException(ResponseCode.USER_SUSPENDED, "정지 사유: " + user.getDueReason());
             }
