@@ -10,9 +10,11 @@ import jakarta.validation.constraints.Pattern;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 public class SignupRequest {
 
     @Email(message = "올바른 이메일 형식이 아닙니다.")
