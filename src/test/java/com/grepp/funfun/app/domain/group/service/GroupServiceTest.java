@@ -65,8 +65,9 @@ public class GroupServiceTest {
         // Given: 테스트에 필요한 상황이나 데이터 준비
         String leaderEmail = "test@example.com";
 
-        User mockUser = new User();
-            mockUser.setEmail(leaderEmail);
+        User mockUser = User.builder()
+            .email(leaderEmail)
+            .build();
 
         GroupRequest requestDto = new GroupRequest();
         requestDto.setTitle("개발 스터디");
@@ -109,12 +110,14 @@ public class GroupServiceTest {
         String fakeLeaderEmail = "fake@aaa.aaa";
 
         // 진짜 리더 유저 세팅
-        User realLeader = new User();
-        realLeader.setEmail(leaderEmail);
+        User realLeader = User.builder()
+            .email(leaderEmail)
+            .build();
 
         // 가짜 리더 유저 세팅
-        User fakeLeader = new User();
-        fakeLeader.setEmail(fakeLeaderEmail);
+        User fakeLeader = User.builder()
+            .email(fakeLeaderEmail)
+            .build();
 
         Group group = new Group();
         group.setId(1L);
@@ -124,6 +127,7 @@ public class GroupServiceTest {
         updateDto.setTitle("~~~~~할 사람");
 
         // WHEN & THEN
+        when(userRepository.findByEmail(fakeLeaderEmail)).thenReturn(fakeLeader);
         when(groupRepository.findById(1L)).thenReturn(Optional.of(group));
 
         CommonException exception = assertThrows(CommonException.class, () -> {
@@ -139,9 +143,10 @@ public class GroupServiceTest {
         //GIVEN
         String leaderEmail = "test@example.com";
 
-        User mockUser = new User();
-        mockUser.setEmail(leaderEmail);
-        mockUser.setStatus(UserStatus.ACTIVE);
+        User mockUser = User.builder()
+            .email(leaderEmail)
+            .status(UserStatus.ACTIVE)
+            .build();
 
         Group mockGroup = new Group();
         mockGroup.setId(1L);
@@ -156,6 +161,7 @@ public class GroupServiceTest {
         mockGroup.setParticipants(List.of(participant));
 
         //WHEN
+        when(userRepository.findByEmail(leaderEmail)).thenReturn(mockUser);
         when(groupRepository.findById(1L)).thenReturn(Optional.of(mockGroup));
 
         groupService.delete(1L, leaderEmail);

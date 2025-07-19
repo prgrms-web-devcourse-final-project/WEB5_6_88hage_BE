@@ -46,11 +46,13 @@ public class ParticipantServiceTest {
         String pendingEmail = "testPending@aaa.aaa";
 
         // 로그인
-        User mockLeader = new User();
-        mockLeader.setEmail(leaderEmail);
+        User mockLeader = User.builder()
+            .email(leaderEmail)
+            .build();
 
-        User mockPending = new User();
-        mockPending.setEmail(pendingEmail);
+        User mockPending = User.builder()
+            .email(pendingEmail)
+            .build();
 
         Group mockGroup = new Group();
         mockGroup.setLeader(mockLeader);

@@ -119,6 +119,9 @@ public class Content extends BaseEntity {
     }
 
     public void decreaseBookmark() {
+        if (this.bookmarkCount == null) {
+            this.bookmarkCount = 0;
+        }
         if (this.bookmarkCount > 0) {
             this.bookmarkCount--;
         }

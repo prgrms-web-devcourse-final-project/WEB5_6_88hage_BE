@@ -16,14 +16,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 
 @Entity
 @Getter
-@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -48,9 +46,16 @@ public class Report extends BaseEntity {
     @JoinColumn(name = "reported_user_id", nullable = false)
     private User reportedUser;
 
+    @Builder.Default
     private boolean resolved = false;
 
     private String adminComment;
 
     private LocalDateTime resolvedAt;
+
+    public void resolve(String adminComment) {
+        this.adminComment = adminComment;
+        this.resolved = true;
+        this.resolvedAt = LocalDateTime.now();
+    }
 }

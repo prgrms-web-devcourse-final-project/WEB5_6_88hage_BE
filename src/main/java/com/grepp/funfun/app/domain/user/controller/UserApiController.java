@@ -127,10 +127,9 @@ public class UserApiController {
         return ResponseEntity.ok(ApiResponse.success(email));
     }
 
-    @PostMapping("/send/code")
+    @PostMapping("/send/code/{email}")
     @Operation(summary = "인증 코드 메일 발송", description = "인증 코드 메일을 발송합니다.<br>쿨타임은 3분이며, 인증 코드는 5분간 유효합니다.<br>인증 키는 10분간 유효합니다.")
-    public ResponseEntity<ApiResponse<String>> sendCode(Authentication authentication) {
-        String email = authentication.getName();
+    public ResponseEntity<ApiResponse<String>> sendCode(String email) {
         userService.sendCode(email);
         return ResponseEntity.ok(ApiResponse.success("인증 메일을 발송했습니다."));
     }
