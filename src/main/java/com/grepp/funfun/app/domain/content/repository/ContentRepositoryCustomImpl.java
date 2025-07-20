@@ -69,7 +69,8 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
                 .and(keywordEq(keyword));
 
         if (!includeExpired) {
-            where.and(content.endDate.goe(LocalDate.now()));
+//            where.and(content.endDate.goe(LocalDate.now()));
+            where.and(content.endDate.isNull().or(content.endDate.goe(LocalDate.now())));
         }
 
         OrderSpecifier<?> orderSpecifier = null;
@@ -116,6 +117,11 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
         for (int i = 0; i < Math.min(5, results.size()); i++) {
             Content c = results.get(i);
             log.info("{}번째 - ID: {}, bookmarkCount: {}", i+1, c.getId(), c.getBookmarkCount());
+
+            log.warn("카테고리 null? category={}, categoryEnum={}",
+                    c.getCategory(),
+                    c.getCategory() != null ? c.getCategory().getCategory() : null
+            );
         }
 
         return new PageImpl<>(results, pageable, total);
@@ -133,37 +139,31 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
             boolean includeExpired,
             Pageable pageable) {
 
-        // 거리 계산(사용자의 위치 기준)
         NumberExpression<Double> distance = createDistanceExpression(userLat, userLng);
+
+        BooleanBuilder where = new BooleanBuilder()
+                .and(categoryEq(categoryParam))
+                .and(gunameEq(guname))
+                .and(startDateGoe(startDate))
+                .and(endDateLoe(endDate))
+                .and(keywordEq(keyword))
+                .and(content.latitude.isNotNull())
+                .and(content.longitude.isNotNull());
+
+        if (!includeExpired) {
+            where.and(content.endDate.isNull().or(content.endDate.goe(LocalDate.now())));
+        }
 
         long total = queryFactory
                 .selectFrom(content)
                 .join(content.category, category)
-                .where(
-                        categoryEq(categoryParam),
-                        gunameEq(guname),
-                        startDateGoe(startDate),
-                        endDateLoe(endDate),
-                        keywordEq(keyword),
-                        content.latitude.isNotNull(),
-                        content.longitude.isNotNull(),
-                        includeExpired ? null : content.endDate.goe(LocalDate.now())
-                )
+                .where(where)
                 .fetchCount();
 
         List<Content> results = queryFactory
                 .selectFrom(content)
                 .join(content.category, category)
-                .where(
-                        categoryEq(categoryParam),
-                        gunameEq(guname),
-                        startDateGoe(startDate),
-                        endDateLoe(endDate),
-                        keywordEq(keyword),
-                        content.latitude.isNotNull(),
-                        content.longitude.isNotNull(),
-                        includeExpired ? null : content.endDate.goe(LocalDate.now())
-                )
+                .where(where)
                 .orderBy(distance.asc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())

@@ -20,6 +20,8 @@ public class ContentDTO {
 
     private Long id;
 
+    private String externalId;
+
     private String contentTitle;
 
     private String age;
