@@ -10,7 +10,6 @@ import com.grepp.funfun.app.domain.content.entity.ContentUrl;
 import com.grepp.funfun.app.domain.content.repository.ContentCategoryRepository;
 import com.grepp.funfun.app.domain.content.repository.ContentRepository;
 import com.grepp.funfun.app.domain.content.vo.ContentClassification;
-import com.grepp.funfun.app.domain.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +42,6 @@ public class DataPipeline {
     private final ContentRepository contentRepository;
     private final KakaoGeoService kakaoGeoService;
     private final ContentCategoryRepository contentCategoryRepository;
-    private final NotificationService notificationService;
 
     @Value("${kopis.api.key}")
     private String kopisApiKey;
@@ -239,7 +237,23 @@ public class DataPipeline {
 
 
     private Content toEntity(ContentDTO dto) {
-        ContentClassification classification = ContentClassification.valueOf(dto.getCategory());
+        if (dto == null) {
+            log.warn("ContentDTO가 null입니다.");
+            return null;
+        }
+
+        if (dto.getCategory() == null || dto.getCategory().trim().isEmpty()) {
+            log.warn("카테고리가 없습니다: {}", dto.getContentTitle());
+            return null;
+        }
+
+        ContentClassification classification;
+        try {
+            classification = ContentClassification.valueOf(dto.getCategory());
+        } catch (IllegalArgumentException e) {
+            log.warn("잘못된 카테고리(enum 변환 실패): {} - 제목: {}", dto.getCategory(), dto.getContentTitle());
+            return null;
+        }
 
         ContentCategory category = contentCategoryRepository
                 .findByCategory(classification)
@@ -264,6 +278,8 @@ public class DataPipeline {
                 .eventType(dto.getEventType())
                 .latitude(dto.getLatitude())
                 .longitude(dto.getLongitude())
+                .images(new ArrayList<>())
+                .urls(new ArrayList<>())
                 .build();
     }
 
@@ -271,8 +287,7 @@ public class DataPipeline {
     private List<String> parseIdList(String xmlContent) {
         List<String> ids = new ArrayList<>();
         try {
-            DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-            Document document = builder.parse(new InputSource(new StringReader(xmlContent)));
+            Document document = parseXml(xmlContent);
 
             NodeList items = document.getElementsByTagName("db");
             for (int i = 0; i < items.getLength(); i++) {
@@ -296,40 +311,39 @@ public class DataPipeline {
         return null;
     }
 
-
-    private List<ContentDTO> fetchAndParse() {
-        List<ContentDTO> result = new ArrayList<>();
-
-        for (int page = 1; page <= 10; page++) {
-            String url = "http://www.kopis.or.kr/openApi/restful/pblprfr?serviceKey=" + kopisApiKey + "&page=" + page;
-
-            try {
-                RestTemplate restTemplate = new RestTemplate();
-                ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-                String body = response.getBody();
-
-                List<ContentDTO> parsed = parseOpenApiResponse(body);
-                result.addAll(parsed);
-
-            } catch (Exception e) {
-                log.warn("페이지 {} 수집 실패", page, e);
-            }
-
-            try {
-                Thread.sleep(300);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break;
-            }
-        }
-
-        return result;
-    }
+//    // 각 목록들들 파싱하여 contentDTO 리스트 만드는 로직
+//    private List<ContentDTO> fetchAndParse() {
+//        List<ContentDTO> result = new ArrayList<>();
+//
+//        for (int page = 1; page <= 10; page++) {
+//            String url = "http://www.kopis.or.kr/openApi/restful/pblprfr?serviceKey=" + kopisApiKey + "&page=" + page;
+//
+//            try {
+//                RestTemplate restTemplate = new RestTemplate();
+//                ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+//                String body = response.getBody();
+//
+//                List<ContentDTO> parsed = parseOpenApiResponse(body);
+//                result.addAll(parsed);
+//
+//            } catch (Exception e) {
+//                log.warn("페이지 {} 수집 실패", page, e);
+//            }
+//
+//            try {
+//                Thread.sleep(300);
+//            } catch (InterruptedException e) {
+//                Thread.currentThread().interrupt();
+//                break;
+//            }
+//        }
+//
+//        return result;
+//    }
 
     private ContentDTO parseDetailResponse(String xmlContent) {
         try {
-            DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-            Document document = builder.parse(new InputSource(new StringReader(xmlContent)));
+            Document document = parseXml(xmlContent);
 
             Element item = (Element) document.getElementsByTagName("db").item(0);
             if (item == null) return null;
@@ -391,6 +405,7 @@ public class DataPipeline {
                     .startTime(startTimes)
                     .poster(poster)
                     .category(mapCategoryToEnglish(genrenm))
+                    .description(null)
                     .eventType(null)
                     .bookmarkCount(0)
                     .latitude(null)
@@ -405,51 +420,51 @@ public class DataPipeline {
         }
     }
 
-    // 목록 전용
-    private List<ContentDTO> parseOpenApiResponse(String raw) {
-        List<ContentDTO> result = new ArrayList<>();
-
-        try {
-            DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-            Document document = builder.parse(new InputSource(new StringReader(raw)));
-
-            NodeList items = document.getElementsByTagName("db");
-            for (int i = 0; i < items.getLength(); i++) {
-                Element item = (Element) items.item(i);
-
-                String mt20id = getTextContent(item, "mt20id");
-                String prfnm = getTextContent(item, "prfnm");
-                String prfpdfrom = getTextContent(item, "prfpdfrom");
-                String prfpdto = getTextContent(item, "prfpdto");
-                String fcltynm = getTextContent(item, "fcltynm");
-                String poster = getTextContent(item, "poster");
-                String area = getTextContent(item, "area");
-                String genrenm = getTextContent(item, "genrenm");
-
-                ContentDTO dto = ContentDTO.builder()
-                        .externalId(mt20id)
-                        .contentTitle(prfnm)
-                        .startDate(parseDate(prfpdfrom))
-                        .endDate(parseDate(prfpdto))
-                        .address(fcltynm)
-                        .poster(poster)
-                        .area(area)
-                        .category(mapCategoryToEnglish(genrenm))
-                        .eventType(null)
-                        .bookmarkCount(0)
-                        .images(new ArrayList<>())
-                        .urls(new ArrayList<>())
-                        .build();
-
-                result.add(dto);
-            }
-
-        } catch (Exception e) {
-            log.warn("OpenAPI XML 파싱 실패: {}", e.getMessage());
-        }
-
-        return result;
-    }
+//    // 목록 전용
+//    private List<ContentDTO> parseOpenApiResponse(String raw) {
+//        List<ContentDTO> result = new ArrayList<>();
+//
+//        try {
+//            DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+//            Document document = builder.parse(new InputSource(new StringReader(raw)));
+//
+//            NodeList items = document.getElementsByTagName("db");
+//            for (int i = 0; i < items.getLength(); i++) {
+//                Element item = (Element) items.item(i);
+//
+//                String mt20id = getTextContent(item, "mt20id");
+//                String prfnm = getTextContent(item, "prfnm");
+//                String prfpdfrom = getTextContent(item, "prfpdfrom");
+//                String prfpdto = getTextContent(item, "prfpdto");
+//                String fcltynm = getTextContent(item, "fcltynm");
+//                String poster = getTextContent(item, "poster");
+//                String area = getTextContent(item, "area");
+//                String genrenm = getTextContent(item, "genrenm");
+//
+//                ContentDTO dto = ContentDTO.builder()
+//                        .externalId(mt20id)
+//                        .contentTitle(prfnm)
+//                        .startDate(parseDate(prfpdfrom))
+//                        .endDate(parseDate(prfpdto))
+//                        .address(fcltynm)
+//                        .poster(poster)
+//                        .area(area)
+//                        .category(mapCategoryToEnglish(genrenm))
+//                        .eventType(null)
+//                        .bookmarkCount(0)
+//                        .images(new ArrayList<>())
+//                        .urls(new ArrayList<>())
+//                        .build();
+//
+//                result.add(dto);
+//            }
+//
+//        } catch (Exception e) {
+//            log.warn("OpenAPI XML 파싱 실패: {}", e.getMessage());
+//        }
+//
+//        return result;
+//    }
 
     // 카테고리를 영어로 변환
     private String mapCategoryToEnglish(String category) {
@@ -533,6 +548,13 @@ public class DataPipeline {
             log.warn("날짜 파싱 실패: {}", dateStr);
             return null;
         }
+    }
+
+    private Document parseXml(String xmlContent) throws Exception {
+        DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+        InputSource is = new InputSource(new StringReader(xmlContent));
+        is.setEncoding("UTF-8");
+        return builder.parse(is);
     }
 
 }
