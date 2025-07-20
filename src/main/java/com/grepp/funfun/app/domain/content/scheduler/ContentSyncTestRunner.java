@@ -6,9 +6,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-@Component
+//@Component
 @RequiredArgsConstructor
 @Slf4j
+// 앱 실행 시 자동 실행
 public class ContentSyncTestRunner implements CommandLineRunner {
 
     private final DataPipeline dataPipeline;

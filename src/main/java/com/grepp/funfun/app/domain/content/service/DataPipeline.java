@@ -53,9 +53,7 @@ public class DataPipeline {
     private String kopisApiKey;
 
     private static final Map<String, String> KOPIS_URLS = Map.of(
-            "performance", "http://www.kopis.or.kr/openApi/restful/pblprfr",
-            "festival", "http://www.kopis.or.kr/openApi/restful/prffest",
-            "writer", "http://www.kopis.or.kr/openApi/restful/prfper"
+            "performance", "http://www.kopis.or.kr/openApi/restful/pblprfr"
     );
 
     private static final String DETAIL_URL = "http://www.kopis.or.kr/openApi/restful/pblprfr";
@@ -65,42 +63,40 @@ public class DataPipeline {
 
         log.info("API로 컨텐츠 수집 시작");
         try {
-            // 동적 날짜 계산 (현재 ~ 6개월 후)
             String startDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             String endDate = LocalDate.now().plusMonths(6).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-            List<String> dataTypes = Arrays.asList("performance", "festival", "writer");
+            List<String> dataTypes = List.of("performance");
             int totalSaved = 0;
 
             for (String dataType : dataTypes) {
-                int savedCount = collectDataType(dataType, startDate, endDate); // 저장된 컨텐츠 수
+                int savedCount = collectDataType(dataType, startDate, endDate);
                 totalSaved += savedCount;
 
-                // API 제한 확인
-                if (getCurrentApiCallCount() >= MAX_API_CALLS) { // 현재 요청 수 >= 최대 요청 수
+                if (getCurrentApiCallCount() >= MAX_API_CALLS) {
                     log.warn("API 호출 제한 도달. 수집 중단");
                     break;
                 }
             }
 
-            // 좌표 및 자치구 정보 자동 업데이트
             kakaoGeoService.updateAllContentCoordinates();
 
             log.info("자동화 수집 완료: 총 {}개 저장", totalSaved);
 
         } catch (Exception e) {
             log.error("자동화 수집 중 오류 발생", e);
-            // 관리자한테 알림 발송 해도 좋을 것 같음
         }
     }
 
     private int collectDataType(String dataType, String startDate, String endDate) {
         int savedCount = 0;
 
-        // 1. ID 목록 수집
         List<String> contentIds = getIdList(dataType, startDate, endDate);
 
-        // 2. 각 ID에 대해 상세 조회 및 저장 시도
+        // 테스트 50개만
+//        int limit = Math.min(50, contentIds.size());
+//        List<String> limitedIds = contentIds.subList(0, limit);
+
         for (String contentId : contentIds) {
             if (getCurrentApiCallCount() >= MAX_API_CALLS) {
                 log.warn("API 호출 제한 도달. 수집 중단");
@@ -112,7 +108,6 @@ public class DataPipeline {
                 savedCount++;
             }
 
-            // 호출 수 카운트 증가
             incrementApiCallCount();
 
             try {
@@ -137,7 +132,6 @@ public class DataPipeline {
         apiCallCount++;
     }
 
-    // 개별 컨텐츠 처리
     private boolean processContent(String contentId) {
         try {
             ContentDTO contentDTO = getDetailInfo(contentId);
@@ -146,13 +140,11 @@ public class DataPipeline {
                 return false;
             }
 
-            // 이미 존재하는지 체크
             if (contentRepository.existsByContentTitle(contentDTO.getContentTitle())) {
                 log.debug("중복 데이터: {}", contentDTO.getContentTitle());
-                return false; // 중복 데이터
+                return false;
             }
 
-            // 엔티티 변환 및 저장
             Content content = toEntity(contentDTO);
             if (content == null) {
                 log.debug("Content 변환 실패: {}", contentId);
@@ -172,7 +164,6 @@ public class DataPipeline {
     }
 
     private void addImagesAndUrls(Content content, ContentDTO contentDTO) {
-        // 이미지 추가
         if (contentDTO.getImages() != null) {
             for (ContentImageDTO imageDTO : contentDTO.getImages()) {
                 ContentImage image = ContentImage.builder()
@@ -183,7 +174,6 @@ public class DataPipeline {
             }
         }
 
-        // URL 추가
         if (contentDTO.getUrls() != null) {
             for (ContentUrlDTO urlDTO : contentDTO.getUrls()) {
                 ContentUrl url = ContentUrl.builder()
@@ -196,7 +186,6 @@ public class DataPipeline {
         }
     }
 
-    //목록에서 ID 수집
     private List<String> getIdList(String dataType, String startDate, String endDate) {
         List<String> allIds = new ArrayList<>();
         String baseUrl = KOPIS_URLS.get(dataType);
@@ -211,7 +200,6 @@ public class DataPipeline {
 
                 RestTemplate restTemplate = createRestTemplate();
 
-                // 헤더에 인코딩 명시
                 HttpHeaders headers = new HttpHeaders();
                 headers.set("Accept", "application/xml; charset=UTF-8");
                 HttpEntity<?> entity = new HttpEntity<>(headers);
@@ -219,7 +207,6 @@ public class DataPipeline {
                 ResponseEntity<String> response = restTemplate.exchange(
                         url, HttpMethod.GET, entity, String.class);
 
-                // 외부 api 응답에서 body 부분만 추출하여 id만 뽑아내서 pageIds 에 저장
                 List<String> pageIds = parseIdList(response.getBody());
                 if (pageIds.isEmpty()) {
                     break;
@@ -239,14 +226,12 @@ public class DataPipeline {
         return allIds;
     }
 
-    // 상세 정보
     private ContentDTO getDetailInfo(String contentId) {
         try {
             String url = String.format("%s/%s?service=%s", DETAIL_URL, contentId, kopisApiKey);
 
             RestTemplate restTemplate = createRestTemplate();
 
-            // 헤더에 인코딩 명시
             HttpHeaders headers = new HttpHeaders();
             headers.set("Accept", "application/xml; charset=UTF-8");
             HttpEntity<?> entity = new HttpEntity<>(headers);
@@ -320,7 +305,6 @@ public class DataPipeline {
                 .build();
     }
 
-    // Id만 꺼내옴
     private List<String> parseIdList(String xmlContent) {
         List<String> ids = new ArrayList<>();
         try {
@@ -368,7 +352,6 @@ public class DataPipeline {
             String pcseguidance = getTextContent(item, "pcseguidance");
             String dtguidance = getTextContent(item, "dtguidance");
 
-            // 시간 정보 파싱
             String[] timeInfo = parseTimeGuidance(dtguidance);
             String timeOriginal = timeInfo[0];
             String startTimes = timeInfo[1];
@@ -382,7 +365,6 @@ public class DataPipeline {
                 }
             }
 
-            // 사이트 링크 추출 (relates > relate)
             List<ContentUrlDTO> urls = new ArrayList<>();
             NodeList relateNodes = item.getElementsByTagName("relate");
             for (int i = 0; i < relateNodes.getLength(); i++) {
@@ -439,7 +421,6 @@ public class DataPipeline {
             Map.entry("뮤지컬", "MUSICAL")
     );
 
-    // 카테고리를 영어로 변환
     private String mapCategoryToEnglish(String category) {
         if (category == null || category.trim().isEmpty()) {
             return null;

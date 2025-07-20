@@ -14,7 +14,7 @@ public class ContentSyncScheduler {
 
     private final DataPipeline dataPipeline;
 
-//    @Scheduled(cron = "0 0 0 * * *")
+    @Scheduled(cron = "0 0 0 * * *")
     public void importContentFromOpenAPI() {
         try {
             dataPipeline.importFromOpenApi();
