@@ -70,10 +70,7 @@ public class AdminUserService {
         // duedate 가 오늘 or 이후인 경우에 정지 해제
         for(User user : suspendedUsers) {
             if(user.getDueDate() != null && !user.getDueDate().isAfter(today)) {
-                user.setStatus(UserStatus.ACTIVE);
-                user.setDueDate(null);
-                user.setSuspendDuration(null);
-                user.setDueReason(null);
+                user.recoverFromSuspension();
                 updatedCount++;
             }
         }
@@ -95,10 +92,7 @@ public class AdminUserService {
         if ((user.getStatus() == UserStatus.SUSPENDED &&
                 user.getDueDate() != null &&
                 !user.getDueDate().isAfter(LocalDate.now()))|| (UserStatus.NONACTIVE.equals(user.getStatus()))) {
-            user.setStatus(UserStatus.ACTIVE);
-            user.setDueDate(null);
-            user.setSuspendDuration(null);
-            user.setDueReason(null);
+            user.recoverFromSuspension();
             userRepository.save(user);
         }
 
@@ -115,9 +109,8 @@ public class AdminUserService {
             newNickname = String.valueOf((int)(Math.random() * 90000000) + 10000000);
         } while (userRepository.existsByNickname(newNickname));
 
-        user.setNickname(newNickname);
-
-        user.setStatus(UserStatus.NONACTIVE);
+        user.changeNickname(newNickname);
+        user.statusNonActive();
 
         userRepository.save(user);
 

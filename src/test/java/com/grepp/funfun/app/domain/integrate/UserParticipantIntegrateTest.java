@@ -48,13 +48,14 @@ public class UserParticipantIntegrateTest {
         String rawPassword = "123qwe!@#";
 
         // 리더
-        User leader = new User();
-        leader.setEmail("leader@aaa.aaa");
-        leader.setPassword(passwordEncoder.encode(rawPassword));
-        leader.setNickname("leader");
-        leader.setRole(Role.ROLE_USER);
-        leader.setIsVerified(true);
-        leader.setStatus(UserStatus.ACTIVE);
+        User leader = User.builder()
+            .email("leader-test@aaa.aaa")
+            .password(passwordEncoder.encode(rawPassword))
+            .nickname("leader-test")
+            .role(Role.ROLE_USER)
+            .isVerified(true)
+            .status(UserStatus.ACTIVE)
+            .build();
 
         userRepository.save(leader);
 
@@ -68,13 +69,14 @@ public class UserParticipantIntegrateTest {
 
 
         // 참가자
-        User member = new User();
-        member.setEmail("member@aaa.aaa");
-        member.setPassword(passwordEncoder.encode(rawPassword));
-        member.setNickname("member");
-        member.setRole(Role.ROLE_USER);
-        member.setIsVerified(true);
-        member.setStatus(UserStatus.ACTIVE);
+        User member = User.builder()
+            .email("member-test@aaa.aaa")
+            .password(passwordEncoder.encode(rawPassword))
+            .nickname("member-test")
+            .role(Role.ROLE_USER)
+            .isVerified(true)
+            .status(UserStatus.ACTIVE)
+            .build();
 
         userRepository.save(member);
         groupRepository.save(group);
@@ -94,15 +96,15 @@ public class UserParticipantIntegrateTest {
 
         assertThat(participantService.getPendingParticipants(group.getId()))
             .extracting("userEmail")
-            .contains("member@aaa.aaa");
+            .contains("member-test@aaa.aaa");
 
-        List<String> memberPending = List.of("member@aaa.aaa");
+        List<String> memberPending = List.of("member-test@aaa.aaa");
 
         participantService.approveParticipant(group.getId(), memberPending, leader.getEmail());
 
         assertThat(participantService.getApproveParticipants(group.getId()))
             .extracting("userEmail")
-            .contains("member@aaa.aaa");
+            .contains("member-test@aaa.aaa");
 
         // 리더/멤버 2명인지 확인
         assertThat(group.getNowPeople()).isEqualTo(2);

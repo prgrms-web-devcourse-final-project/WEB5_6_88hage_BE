@@ -101,9 +101,7 @@ public class AdminReportService {
                 );
             }
 
-            report.setResolved(true);
-            report.setAdminComment(request.getAdminComment());
-            report.setResolvedAt(LocalDateTime.now());
+            report.resolve(request.getAdminComment());
             return;
         }
 
@@ -118,8 +116,6 @@ public class AdminReportService {
             throw new CommonException(ResponseCode.BAD_REQUEST, "이미 처리 완료된 신고입니다.");
         }
 
-        contact.setAnswer(request.getAdminComment());
-        contact.setStatus(ContactStatus.COMPLETE);
-        contact.setAnsweredAt(LocalDateTime.now());
+        contact.registAnswer(request.getAdminComment());
     }
 }

@@ -7,7 +7,6 @@ import com.grepp.funfun.app.domain.preference.repository.ContentPreferenceReposi
 import com.grepp.funfun.app.domain.preference.repository.GroupPreferenceRepository;
 import com.grepp.funfun.app.domain.user.entity.User;
 import com.grepp.funfun.app.domain.user.entity.UserInfo;
-import com.grepp.funfun.app.domain.user.repository.UserInfoRepository;
 import com.grepp.funfun.app.domain.user.repository.UserRepository;
 import com.grepp.funfun.app.infra.auth.jwt.TokenCookieFactory;
 import com.grepp.funfun.app.infra.auth.oauth2.user.CustomOAuth2User;
@@ -30,7 +29,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     private final AuthService authService;
     private final UserRepository userRepository;
-    private final UserInfoRepository userInfoRepository;
     private final ContentPreferenceRepository contentPreferenceRepository;
     private final GroupPreferenceRepository groupPreferenceRepository;
     private final PasswordEncoder passwordEncoder;
@@ -51,16 +49,15 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         boolean isExistingUser = userRepository.existsByEmail(email);
 
         if (!isExistingUser) {
-            User newUser = new User();
-            newUser.setEmail(email);
-            newUser.setPassword(passwordEncoder.encode(oAuth2User.getProviderId()));
-            newUser.setRole(Role.ROLE_GUEST);
-            newUser.setIsVerified(true);
-            UserInfo userInfo = new UserInfo();
-            userInfo.setEmail(email);
-            userInfoRepository.save(userInfo);
-            newUser.setInfo(userInfo);
-
+            User newUser = User.builder()
+                .email(email)
+                .password(passwordEncoder.encode(oAuth2User.getProviderId()))
+                .role(Role.ROLE_GUEST)
+                .isVerified(true)
+                .info(UserInfo.builder()
+                    .email(email)
+                    .build())
+                .build();
             userRepository.save(newUser);
             log.info("OAuth2 사용자 기본 정보 저장: {}", email);
 

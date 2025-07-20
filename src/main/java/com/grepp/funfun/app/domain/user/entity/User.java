@@ -3,11 +3,13 @@ package com.grepp.funfun.app.domain.user.entity;
 import com.grepp.funfun.app.domain.auth.vo.Role;
 import com.grepp.funfun.app.domain.preference.entity.ContentPreference;
 import com.grepp.funfun.app.domain.preference.entity.GroupPreference;
+import com.grepp.funfun.app.domain.user.dto.UserDTO;
 import com.grepp.funfun.app.domain.user.dto.payload.OAuth2SignupRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.UserInfoRequest;
 import com.grepp.funfun.app.domain.user.vo.Gender;
 import com.grepp.funfun.app.domain.user.vo.UserStatus;
 import com.grepp.funfun.app.infra.entity.BaseEntity;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -25,12 +27,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 
 @Entity
 @Getter
-@Setter
 @Table(name = "\"user\"")
 @Builder
 @NoArgsConstructor
@@ -59,6 +59,7 @@ public class User extends BaseEntity {
     private Role role;
 
     @Enumerated(EnumType.STRING)
+    @Builder.Default
     private UserStatus status = UserStatus.ACTIVE;
 
     private LocalDate dueDate;
@@ -71,7 +72,7 @@ public class User extends BaseEntity {
 
     private Boolean isMarketingAgreed;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "info_id", unique = true)
     private UserInfo info;
 
@@ -98,6 +99,48 @@ public class User extends BaseEntity {
         this.isMarketingAgreed = request.getIsMarketingAgreed();
         // OAuth2 사용자가 추가 정보 기입 완료하면 ROLE_USER 로 전환
         this.role = Role.ROLE_USER;
+    }
+
+    public void verifyEmail() {
+        this.isVerified = true;
+    }
+
+    public void changePassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
+
+    public void changeNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public void recoverFromSuspension() {
+        this.status = UserStatus.ACTIVE;
+        this.dueDate = null;
+        this.suspendDuration = null;
+        this.dueReason = null;
+    }
+
+    public void statusActive() {
+        this.status = UserStatus.ACTIVE;
+    }
+
+    public void statusNonActive() {
+        this.status = UserStatus.NONACTIVE;
+    }
+
+    public void updateFromDTO(UserDTO dto, UserInfo info) {
+        this.password = dto.getPassword();
+        this.nickname = dto.getNickname();
+        this.gender = dto.getGender();
+        this.address = dto.getAddress();
+        this.role = dto.getRole();
+        this.status = dto.getStatus();
+        this.dueDate = dto.getDueDate();
+        this.suspendDuration = dto.getSuspendDuration();
+        this.dueReason = dto.getDueReason();
+        this.isVerified = dto.getIsVerified();
+        this.isMarketingAgreed = dto.getIsMarketingAgreed();
+        this.info = info;
     }
 
     public boolean isAdmin() {
