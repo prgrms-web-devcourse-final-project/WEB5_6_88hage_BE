@@ -13,5 +13,5 @@ public interface GroupRepository extends JpaRepository<Group, Long>, GroupReposi
 
     long countByLeaderEmailAndStatus(String email, GroupStatus groupStatus);
 
-    List<Group> findByLeaderEmail(String email);
+    List<Group> findByLeaderEmailAndActivatedTrue(String email);
 }
