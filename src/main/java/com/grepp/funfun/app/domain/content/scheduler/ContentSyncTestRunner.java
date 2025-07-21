@@ -3,24 +3,25 @@ package com.grepp.funfun.app.domain.content.scheduler;
 import com.grepp.funfun.app.domain.content.service.DataPipeline;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-@Component
+//@Component
 @RequiredArgsConstructor
 @Slf4j
-// 스케줄링만 담당
-public class ContentSyncScheduler {
+// 앱 실행 시 자동 실행
+public class ContentSyncTestRunner implements CommandLineRunner {
 
     private final DataPipeline dataPipeline;
 
-    @Scheduled(cron = "0 0 0 * * *")
-    public void importContentFromOpenAPI() {
+    @Override
+    public void run(String... args) {
+        log.info("[콘텐츠 수집 CommandLineRunner 테스트 시작]");
         try {
             dataPipeline.importFromOpenApi();
         } catch (Exception e) {
-            log.error("콘텐츠 수집 중 오류 발생", e);
+            log.error("[CommandLineRunner 수집 오류]", e);
         }
-        log.info("[콘텐츠 수집 스케줄러 종료]");
+        log.info("[콘텐츠 수집 CommandLineRunner 테스트 종료]");
     }
 }

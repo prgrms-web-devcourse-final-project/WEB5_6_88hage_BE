@@ -1,11 +1,9 @@
 package com.grepp.funfun.app.domain.content.repository;
 
-import com.grepp.funfun.app.domain.content.entity.QContentImage;
-import com.grepp.funfun.app.domain.content.entity.QContentUrl;
-import com.grepp.funfun.app.domain.content.vo.ContentClassification;
 import com.grepp.funfun.app.domain.content.entity.Content;
 import com.grepp.funfun.app.domain.content.entity.QContent;
 import com.grepp.funfun.app.domain.content.entity.QContentCategory;
+import com.grepp.funfun.app.domain.content.vo.ContentClassification;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -23,7 +21,6 @@ import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
