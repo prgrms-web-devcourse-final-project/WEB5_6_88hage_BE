@@ -21,8 +21,7 @@ public class AdminReportApiController {
     @GetMapping
     @Operation(summary = "관리자 신고 목록 조회", description = "status param으로 전체 / 처리완료 / 미처리 필터 가능 (all, resolved, unresolved)")
     public ResponseEntity<ApiResponse<List<AdminReportViewDTO>>> getAllReports(
-            @RequestParam(defaultValue = "all") String status
-    ) {
+            @RequestParam(defaultValue = "all") String status) {
         List<AdminReportViewDTO> reports = adminReportService.getAllReports(status);
         return ResponseEntity.ok(ApiResponse.success(reports));
     }

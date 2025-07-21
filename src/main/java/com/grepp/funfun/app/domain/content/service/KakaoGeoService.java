@@ -46,7 +46,6 @@ public class KakaoGeoService {
 
             String originalPlaceName = content.getAddress();
             String cleanedPlaceName = preprocessAddress(originalPlaceName);
-
             String area = content.getArea() != null ? content.getArea() : "서울특별시";
             String searchAddress = (cleanedPlaceName.contains(area)) ? cleanedPlaceName : area + " " + cleanedPlaceName;
 
@@ -54,11 +53,11 @@ public class KakaoGeoService {
             Optional<double[]> coordinatesOpt = getCoordinatesFromKeywordSearch(searchAddress);
             if (coordinatesOpt.isEmpty()) {
                 log.warn("위경도 검색 실패: {} → {}", content.getId(), searchAddress);
+                contentRepository.delete(content);
                 continue;
             }
             double[] coordinates = coordinatesOpt.get();
 
-            // 위경도 저장
             if (content.getLatitude() == null || content.getLongitude() == null) {
                 content.setLatitude(coordinates[0]);
                 content.setLongitude(coordinates[1]);
@@ -66,23 +65,30 @@ public class KakaoGeoService {
 
             // 위경도로 주소 가져오기 (역지오코딩)
             Optional<String> addressOpt = getAddressFromCoordinates(coordinates[0], coordinates[1]);
-            if (addressOpt.isPresent()) {
-                String fullAddress = addressOpt.get();
-
-                // 구 이름 추출
-                if (content.getGuname() == null) {
-                    String guname = extractGunameFromAddress(fullAddress);
-                    if (guname != null) {
-                        content.setGuname(guname);
-                    }
-                }
-
-                // 최종 주소 설정
-                String finalAddress = fullAddress + " " + cleanedPlaceName;
-                content.setAddress(finalAddress.trim());
-            } else {
-                log.warn("역지오코딩 실패: {} → lat: {}, lng: {}", content.getId(), coordinates[0], coordinates[1]);
+            if (addressOpt.isEmpty()) {
+                contentRepository.delete(content);
+                continue;
             }
+            String fullAddress = addressOpt.get();
+
+            // 🔹 주소 시/도 불일치 시 삭제
+            if (area != null && !fullAddress.startsWith(area)) {
+                log.warn("시/도 불일치: area={}, fullAddress={} → 삭제: {}", area, fullAddress, content.getId());
+                contentRepository.delete(content);
+                continue;
+            }
+
+            // 구 이름 추출
+            if (content.getGuname() == null) {
+                String guname = extractGunameFromAddress(fullAddress);
+                if (guname != null) {
+                    content.setGuname(guname);
+                }
+            }
+
+            // 최종 주소 저장
+            String finalAddress = fullAddress + " " + cleanedPlaceName;
+            content.setAddress(finalAddress.trim());
 
             contentRepository.saveAndFlush(content);
             log.info("저장 완료: {} → {}", content.getId(), content.getAddress());
@@ -131,8 +137,6 @@ public class KakaoGeoService {
     // 키워드 검색으로 바로 위경도 가져오기
     public Optional<double[]> getCoordinatesFromKeywordSearch(String keyword) {
         try {
-            log.info("사용 중인 Kakao API Key: {}", kakaoApiKey);
-
             log.info("원본 키워드: '{}'", keyword);
             String[] searchVariants = optimizeKeywordForSearch(keyword);
             log.info("검색 시도할 키워드들: {}", java.util.Arrays.toString(searchVariants));
@@ -141,7 +145,7 @@ public class KakaoGeoService {
                 if (searchKeyword.trim().isEmpty()) continue;
 
                 // 길이 체크를 위한 임시 인코딩
-                String encodedForLengthCheck  = URLEncoder.encode(searchKeyword, StandardCharsets.UTF_8);
+                String encodedForLengthCheck = URLEncoder.encode(searchKeyword, StandardCharsets.UTF_8);
                 if (encodedForLengthCheck.length() > 90) {
                     log.info("키워드가 길어서 스킵: {} (인코딩 길이: {}자)", searchKeyword, encodedForLengthCheck.length());
                     continue;
@@ -219,9 +223,6 @@ public class KakaoGeoService {
 
     private Optional<double[]> performKeywordSearchForCoordinates(String originalKeyword) {
         try {
-//            String encodedKeyword = URLEncoder.encode(originalKeyword, StandardCharsets.UTF_8);
-//            String url = "https://dapi.kakao.com/v2/local/search/keyword.json?query=" + encodedKeyword;
-
             // 자동 인코딩 수행
             URI uri = UriComponentsBuilder
                     .fromHttpUrl("https://dapi.kakao.com/v2/local/search/keyword.json")

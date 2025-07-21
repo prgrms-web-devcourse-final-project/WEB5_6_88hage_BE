@@ -1,28 +1,14 @@
 package com.grepp.funfun.app.domain.user.service;
 
-import com.grepp.funfun.app.domain.user.dto.payload.OAuth2SignupRequest;
-import com.grepp.funfun.app.domain.user.dto.payload.UserInfoRequest;
-import com.grepp.funfun.app.domain.user.dto.payload.SignupRequest;
-import com.grepp.funfun.app.domain.auth.service.AuthService;
 import com.grepp.funfun.app.domain.auth.dto.TokenDto;
+import com.grepp.funfun.app.domain.auth.service.AuthService;
 import com.grepp.funfun.app.domain.auth.token.RefreshTokenService;
-import com.grepp.funfun.app.domain.contact.entity.Contact;
-import com.grepp.funfun.app.domain.contact.repository.ContactRepository;
-import com.grepp.funfun.app.domain.group.entity.Group;
-import com.grepp.funfun.app.domain.group.repository.GroupRepository;
-import com.grepp.funfun.app.domain.participant.entity.Participant;
-import com.grepp.funfun.app.domain.participant.repository.ParticipantRepository;
-import com.grepp.funfun.app.domain.preference.entity.ContentPreference;
-import com.grepp.funfun.app.domain.preference.entity.GroupPreference;
-import com.grepp.funfun.app.domain.preference.repository.ContentPreferenceRepository;
-import com.grepp.funfun.app.domain.preference.repository.GroupPreferenceRepository;
-import com.grepp.funfun.app.domain.report.entity.Report;
-import com.grepp.funfun.app.domain.report.repository.ReportRepository;
-import com.grepp.funfun.app.domain.social.entity.Follow;
-import com.grepp.funfun.app.domain.social.entity.Message;
-import com.grepp.funfun.app.domain.social.repository.FollowRepository;
-import com.grepp.funfun.app.domain.social.repository.MessageRepository;
+import com.grepp.funfun.app.domain.auth.vo.Role;
 import com.grepp.funfun.app.domain.user.dto.UserDTO;
+import com.grepp.funfun.app.domain.user.dto.payload.CoordinateResponse;
+import com.grepp.funfun.app.domain.user.dto.payload.OAuth2SignupRequest;
+import com.grepp.funfun.app.domain.user.dto.payload.SignupRequest;
+import com.grepp.funfun.app.domain.user.dto.payload.UserInfoRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.UserInfoResponse;
 import com.grepp.funfun.app.domain.user.entity.User;
 import com.grepp.funfun.app.domain.user.entity.UserInfo;
@@ -32,7 +18,6 @@ import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.mail.MailTemplate;
 import com.grepp.funfun.app.infra.mail.SmtpDto;
 import com.grepp.funfun.app.infra.response.ResponseCode;
-import com.grepp.funfun.app.delete.util.ReferencedWarning;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.Period;
@@ -55,14 +40,6 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserInfoRepository userInfoRepository;
-    private final FollowRepository followRepository;
-    private final MessageRepository messageRepository;
-    private final ContactRepository contactRepository;
-    private final ReportRepository reportRepository;
-    private final GroupRepository groupRepository;
-    private final ParticipantRepository participantRepository;
-    private final GroupPreferenceRepository groupPreferenceRepository;
-    private final ContentPreferenceRepository contentPreferenceRepository;
     private final PasswordEncoder passwordEncoder;
     private final MailTemplate mailTemplate;
     private final RedisTemplate<String, Object> redisTemplate;
@@ -104,16 +81,23 @@ public class UserService {
             throw new CommonException(ResponseCode.USER_NICKNAME_DUPLICATE);
         }
 
-        User user = request.toEntity();
-
-        // 비밀번호 암호화
-        String encodedPassword = passwordEncoder.encode(request.getPassword());
-        user.setPassword(encodedPassword);
-
-        UserInfo userInfo = new UserInfo();
-        userInfo.setEmail(request.getEmail());
-        userInfoRepository.save(userInfo);
-        user.setInfo(userInfo);
+        User user = User.builder()
+            .email(request.getEmail())
+            .nickname(request.getNickname())
+            .address(request.getAddress())
+            .latitude(request.getLatitude())
+            .longitude(request.getLongitude())
+            .birthDate(request.getBirthDate())
+            .gender(request.getGender())
+            .isMarketingAgreed(request.getIsMarketingAgreed())
+            .role(Role.ROLE_USER)
+            .isVerified(false)
+            // 비밀번호 암호화
+            .password(passwordEncoder.encode(request.getPassword()))
+            .info(UserInfo.builder()
+                .email(request.getEmail())
+                .build())
+            .build();
 
         String email = userRepository.save(user).getEmail();
 
@@ -143,11 +127,16 @@ public class UserService {
         String key = "signup:" + code;
         redisTemplate.opsForValue().set(key, user.getEmail(), Duration.ofMinutes(5));
 
-        SmtpDto smtpDto = new SmtpDto();
-        smtpDto.setTo(user.getEmail());
-        smtpDto.setTemplatePath("mail/signup-verification");
-        smtpDto.setSubject("회원가입을 환영합니다!");
-        smtpDto.setProperties(Map.of("domain", domain, "code", code, "nickname", user.getNickname()));
+        SmtpDto smtpDto = SmtpDto.builder()
+            .to(user.getEmail())
+            .templatePath("mail/signup-verification")
+            .subject("회원가입을 환영합니다!")
+            .properties(Map.of(
+                "domain", domain,
+                "code", code,
+                "nickname", user.getNickname()
+            ))
+            .build();
 
         mailTemplate.send(smtpDto);
     }
@@ -162,7 +151,7 @@ public class UserService {
         }
 
         User user = userRepository.findById(email).orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        user.setIsVerified(true);
+        user.verifyEmail();
         userRepository.save(user);
         redisTemplate.delete(key);
 
@@ -180,11 +169,12 @@ public class UserService {
         String code = String.format("%06d", new Random().nextInt(999_999));
         redisTemplate.opsForValue().set("auth-code:" + email, code, Duration.ofMinutes(5));
 
-        SmtpDto smtpDto = new SmtpDto();
-        smtpDto.setTo(user.getEmail());
-        smtpDto.setTemplatePath("mail/code-verification");
-        smtpDto.setSubject("FunFun 인증 코드");
-        smtpDto.setProperties(Map.of("code", code));
+        SmtpDto smtpDto = SmtpDto.builder()
+            .to(user.getEmail())
+            .templatePath("mail/code-verification")
+            .subject("FunFun 인증 코드")
+            .properties(Map.of("code", code))
+            .build();
 
         mailTemplate.send(smtpDto);
     }
@@ -228,7 +218,7 @@ public class UserService {
 
         // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(password);
-        user.setPassword(encodedPassword);
+        user.changePassword(encodedPassword);
         userRepository.save(user);
 
         // 레디스 인증 키 삭제
@@ -266,8 +256,7 @@ public class UserService {
         if (userRepository.existsByNickname(nickname)) {
             throw new CommonException(ResponseCode.USER_NICKNAME_DUPLICATE);
         }
-
-        user.setNickname(nickname);
+        user.changeNickname(nickname);
         userRepository.save(user);
 
         return authService.reissueAccessToken(nickname, user.getRole().name());
@@ -287,6 +276,15 @@ public class UserService {
         userRepository.save(user);
 
         refreshTokenService.deleteByAccessTokenId(accessTokenId);
+    }
+
+    public CoordinateResponse getCoordinate(String email) {
+        User user = userRepository.findById(email).orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+        return CoordinateResponse.builder()
+            .email(email)
+            .latitude(user.getLatitude())
+            .longitude(user.getLongitude())
+            .build();
     }
 
     public void update(final String email, final UserDTO userDTO) {
@@ -321,96 +319,11 @@ public class UserService {
     }
 
     private User mapToEntity(final UserDTO userDTO, final User user) {
-        user.setPassword(userDTO.getPassword());
-        user.setNickname(userDTO.getNickname());
-        user.setGender(userDTO.getGender());
-        user.setAddress(userDTO.getAddress());
-        user.setRole(userDTO.getRole());
-        user.setStatus(userDTO.getStatus());
-        user.setDueDate(userDTO.getDueDate());
-        user.setSuspendDuration(userDTO.getSuspendDuration());
-        user.setDueReason(userDTO.getDueReason());
-        user.setIsVerified(userDTO.getIsVerified());
-        user.setIsMarketingAgreed(userDTO.getIsMarketingAgreed());
         final UserInfo info =
             userDTO.getInfo() == null ? null : userInfoRepository.findById(userDTO.getInfo())
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        user.setInfo(info);
+        user.updateFromDTO(userDTO, info);
         return user;
-    }
-
-    public ReferencedWarning getReferencedWarning(final String email) {
-        final ReferencedWarning referencedWarning = new ReferencedWarning();
-        final User user = userRepository.findById(email)
-            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        final Follow followerFollow = followRepository.findFirstByFollower(user);
-        if (followerFollow != null) {
-            referencedWarning.setKey("user.follow.follower.referenced");
-            referencedWarning.addParam(followerFollow.getId());
-            return referencedWarning;
-        }
-        final Follow followeeFollow = followRepository.findFirstByFollowee(user);
-        if (followeeFollow != null) {
-            referencedWarning.setKey("user.follow.followee.referenced");
-            referencedWarning.addParam(followeeFollow.getId());
-            return referencedWarning;
-        }
-        final Message senderMessage = messageRepository.findFirstBySender(user);
-        if (senderMessage != null) {
-            referencedWarning.setKey("user.message.sender.referenced");
-            referencedWarning.addParam(senderMessage.getId());
-            return referencedWarning;
-        }
-        final Message receiverMessage = messageRepository.findFirstByReceiver(user);
-        if (receiverMessage != null) {
-            referencedWarning.setKey("user.message.receiver.referenced");
-            referencedWarning.addParam(receiverMessage.getId());
-            return referencedWarning;
-        }
-        final Contact userContact = contactRepository.findFirstByUser(user);
-        if (userContact != null) {
-            referencedWarning.setKey("user.contact.user.referenced");
-            referencedWarning.addParam(userContact.getId());
-            return referencedWarning;
-        }
-        final Report reportingUserReport = reportRepository.findFirstByReportingUser(user);
-        if (reportingUserReport != null) {
-            referencedWarning.setKey("user.report.reportingUser.referenced");
-            referencedWarning.addParam(reportingUserReport.getId());
-            return referencedWarning;
-        }
-        final Report reportedUserReport = reportRepository.findFirstByReportedUser(user);
-        if (reportedUserReport != null) {
-            referencedWarning.setKey("user.report.reportedUser.referenced");
-            referencedWarning.addParam(reportedUserReport.getId());
-            return referencedWarning;
-        }
-        final Group leaderGroup = groupRepository.findFirstByLeader(user);
-        if (leaderGroup != null) {
-            referencedWarning.setKey("user.group.leader.referenced");
-            referencedWarning.addParam(leaderGroup.getId());
-            return referencedWarning;
-        }
-        final Participant userParticipant = participantRepository.findFirstByUser(user);
-        if (userParticipant != null) {
-            referencedWarning.setKey("user.participant.user.referenced");
-            referencedWarning.addParam(userParticipant.getId());
-            return referencedWarning;
-        }
-        final GroupPreference userGroupPreference = groupPreferenceRepository.findFirstByUser(user);
-        if (userGroupPreference != null) {
-            referencedWarning.setKey("user.groupPreference.user.referenced");
-            referencedWarning.addParam(userGroupPreference.getId());
-            return referencedWarning;
-        }
-        final ContentPreference userContentPreference = contentPreferenceRepository.findFirstByUser(
-            user);
-        if (userContentPreference != null) {
-            referencedWarning.setKey("user.contentPreference.user.referenced");
-            referencedWarning.addParam(userContentPreference.getId());
-            return referencedWarning;
-        }
-        return null;
     }
 
     // 유저 닉네임으로 찾기

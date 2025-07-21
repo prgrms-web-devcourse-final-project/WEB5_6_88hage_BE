@@ -88,8 +88,6 @@ public class GroupApiController {
             아무것도 넣지 않고, 검색하면 거리순
             """
     )
-    //todo: 페이지 네이션 필요
-    // 통합 모임 조회 - 검색/필터링/정렬(최신순,조회순,거리순) -> default 거리순
     public ResponseEntity<ApiResponse<Page<GroupListResponse>>> searchGroups(
         @RequestParam(required = false) String category,
         @RequestParam(required = false) String keyword,

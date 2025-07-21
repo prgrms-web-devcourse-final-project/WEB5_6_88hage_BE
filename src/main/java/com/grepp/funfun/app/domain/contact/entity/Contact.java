@@ -22,12 +22,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 
 @Entity
 @Getter
-@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -59,4 +57,15 @@ public class Contact extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    public void updateForUser(String title, String content, ContactCategory category) {
+        this.title = title;
+        this.content = content;
+        this.category = category;
+    }
+
+    public void registAnswer(String answer) {
+        this.answer = answer;
+        this.status = ContactStatus.COMPLETE;
+        this.answeredAt = LocalDateTime.now();
+    }
 }

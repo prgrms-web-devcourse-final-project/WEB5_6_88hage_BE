@@ -2,70 +2,149 @@ package com.grepp.funfun.app.domain.notification.service;
 
 import com.grepp.funfun.app.domain.notification.dto.NotificationDTO;
 import com.grepp.funfun.app.domain.notification.entity.Notification;
+import com.grepp.funfun.app.domain.notification.mapper.NotificationDTOMapper;
 import com.grepp.funfun.app.domain.notification.repository.NotificationRepository;
+import com.grepp.funfun.app.domain.notification.sse.EmitterRepository;
+import com.grepp.funfun.app.domain.notification.vo.NotificationType;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.time.LocalDateTime;
+import java.io.IOException;
+import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
+    private final EmitterRepository emitterRepository;
+    private final NotificationDTOMapper notificationDTOMapper;
 
-    public NotificationService(final NotificationRepository notificationRepository) {
-        this.notificationRepository = notificationRepository;
-    }
-
+    // 모든 알림 조회
     public List<NotificationDTO> findAll() {
-        final List<Notification> notifications = notificationRepository.findAll(Sort.by("id"));
-        return notifications.stream()
-                .map(notification -> mapToDTO(notification, new NotificationDTO()))
+        return notificationRepository.findAll(Sort.by(Sort.Direction.DESC, "id")).stream()
+                .map(notificationDTOMapper::toDTO)
                 .toList();
     }
 
-    public NotificationDTO get(final Long id) {
-        return notificationRepository.findById(id)
-                .map(notification -> mapToDTO(notification, new NotificationDTO()))
+    // 최근 10건 알림 조회
+    public List<NotificationDTO> findRecentByEmail(String email) {
+        return notificationRepository.findTop10ByEmailOrderByIdDesc(email).stream()
+                .map(notificationDTOMapper::toDTO)
+                .toList();
+    }
+
+    // 이메일 기준 알림 조회
+    public List<NotificationDTO> findByEmail(String email) {
+        return notificationRepository.findAllByEmailOrderByIdDesc(email).stream()
+                .map(notificationDTOMapper::toDTO)
+                .toList();
+    }
+
+    // 이메일 기준 안읽은 알림 조회
+    public List<NotificationDTO> findUnreadByEmail(String email) {
+        return notificationRepository.findAllByEmailAndIsReadFalseOrderByIdDesc(email)
+                .stream().map(notificationDTOMapper::toDTO).toList();
+    }
+
+    // 알림 생성
+    public Long create(final NotificationDTO dto) {
+        Notification notification = notificationDTOMapper.toEntity(dto);
+
+        Notification saved = notificationRepository.save(notification);
+        notifyViaSse(saved);
+        return saved.getId();
+    }
+
+    // 알림 수정
+    public void update(final Long id, final NotificationDTO dto) {
+        Notification notification = notificationRepository.findById(id)
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+
+        Notification updated = Notification.builder()
+                .id(notification.getId())
+                .email(dto.getEmail() != null ? dto.getEmail() : notification.getEmail())
+                .message(dto.getMessage() != null ? dto.getMessage() : notification.getMessage())
+                .link(dto.getLink() != null ? dto.getLink() : notification.getLink())
+                .isRead(dto.getIsRead() != null ? dto.getIsRead() : notification.getIsRead())
+                .type(dto.getType() != null ? parseType(dto.getType()) : notification.getType())
+                .scheduledAt(dto.getScheduledAt() != null ? dto.getScheduledAt() : notification.getScheduledAt())
+                .sentAt(dto.getSentAt() != null ? dto.getSentAt() : notification.getSentAt())
+                .build();
+
+        notificationRepository.save(updated);
     }
 
-    public Long create(final NotificationDTO notificationDTO) {
-        final Notification notification = new Notification();
-        mapToEntity(notificationDTO, notification);
-        return notificationRepository.save(notification).getId();
-    }
-
-    public void update(final Long id, final NotificationDTO notificationDTO) {
-        final Notification notification = notificationRepository.findById(id)
-                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        mapToEntity(notificationDTO, notification);
-        notificationRepository.save(notification);
-    }
-
+    // 알림 삭제
     public void delete(final Long id) {
         notificationRepository.deleteById(id);
     }
 
-    private NotificationDTO mapToDTO(final Notification notification,
-            final NotificationDTO notificationDTO) {
-        notificationDTO.setId(notification.getId());
-        notificationDTO.setEmail(notification.getEmail());
-        notificationDTO.setMessage(notification.getMessage());
-        notificationDTO.setLink(notification.getLink());
-        notificationDTO.setIsRead(notification.getIsRead());
-        return notificationDTO;
+    // 알림 전체 삭제
+    public void deleteAllByEmail(String email) {
+        notificationRepository.deleteByEmail(email);
     }
 
-    private Notification mapToEntity(final NotificationDTO notificationDTO,
-            final Notification notification) {
-        notification.setEmail(notificationDTO.getEmail());
-        notification.setMessage(notificationDTO.getMessage());
-        notification.setLink(notificationDTO.getLink());
-        notification.setIsRead(notificationDTO.getIsRead());
-        return notification;
+    // 알림 선택적 삭제
+    public void deleteSelected(List<Long> ids) {
+        notificationRepository.deleteAllById(ids);
+    }
+
+    // String → Enum 변환 with null-safe
+    private NotificationType parseType(String type) {
+        if (type == null) return NotificationType.NOTICE;
+        try {
+            return NotificationType.valueOf(type.toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new CommonException(ResponseCode.BAD_REQUEST, "유효하지 않은 알림 유형입니다: " + type);
+        }
+    }
+
+    // 안읽은 알림 개수 조회
+    public int countUnread(String email) {
+        return notificationRepository.countByEmailAndIsReadFalse(email);
+    }
+
+    // 알림 단건 읽음 처리
+    public void markAsRead(Long id) {
+        Notification notification = notificationRepository.findById(id)
+                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+
+        if (!Boolean.TRUE.equals(notification.getIsRead())) {
+            notification.markAsRead();
+            notificationRepository.save(notification);
+        }
+    }
+
+    // 전체 읽음 처리
+    public void markAllAsRead(String email) {
+        List<Notification> unreadList = notificationRepository.findAllByEmailAndIsReadFalseOrderByIdDesc(email);
+        for (Notification notification : unreadList) {
+            notification.markAsRead();
+        }
+        notificationRepository.saveAll(unreadList);
+    }
+
+    public void notifyViaSse(Notification notification) {
+        SseEmitter emitter = emitterRepository.get(notification.getEmail());
+        if (emitter != null) {
+            try {
+                emitter.send(SseEmitter.event()
+                        .name("notification")
+                        .data(notificationDTOMapper.toDTO(notification)));
+            } catch (IOException e) {
+                emitterRepository.delete(notification.getEmail());
+            }
+        }
+    }
+
+    public boolean existsScheduleNotification(String email, LocalDateTime start, LocalDateTime end) {
+        return notificationRepository.existsByEmailAndTypeAndScheduledAtBetween(email, NotificationType.SCHEDULE, start, end);
     }
 
 }

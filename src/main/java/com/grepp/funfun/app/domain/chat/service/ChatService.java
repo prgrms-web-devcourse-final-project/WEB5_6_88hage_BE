@@ -1,9 +1,7 @@
 package com.grepp.funfun.app.domain.chat.service;
 
 import com.grepp.funfun.app.domain.chat.dto.payload.ChatResponse;
-import com.grepp.funfun.app.domain.chat.dto.ChatDTO;
 import com.grepp.funfun.app.domain.chat.entity.Chat;
-import com.grepp.funfun.app.domain.chat.entity.GroupChatRoom;
 import com.grepp.funfun.app.domain.chat.repository.ChatRepository;
 import com.grepp.funfun.app.domain.chat.repository.GroupChatRoomRepository;
 import com.grepp.funfun.app.domain.chat.repository.PersonalChatRoomRepository;
@@ -11,10 +9,10 @@ import com.grepp.funfun.app.domain.chat.vo.ChatRoomType;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,6 +55,14 @@ public class ChatService {
             .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public Optional<ChatResponse> getLastChatHistory(Long roomId, ChatRoomType roomType) {
+        // todo : 나중에 지울 코드
+        log.debug("Getting chat history for roomId: {}", roomId);
+        return chatRepository.findTop1ByRoomIdAndRoomTypeOrderByCreatedAtDesc(roomId, roomType)
+            .map(ChatResponse::new);
+    }
+
     private void validateChatRoom(Long roomId, ChatRoomType roomType) {
         switch (roomType) {
             case GROUP_CHAT:
@@ -65,7 +71,7 @@ public class ChatService {
                 break;
             case PERSONAL_CHAT:
                 personalChatRoomRepository.findById(roomId)
-                    .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND,"그룹 채팅방을 찾을 수 없습니다. roomId: " + roomId));
+                    .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND,"개인 채팅방을 찾을 수 없습니다. roomId: " + roomId));
                 break;
             default:
                 throw new CommonException(ResponseCode.NOT_FOUND,"알 수 없는 채팅방 타입입니다: " + roomType);

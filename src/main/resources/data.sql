@@ -1504,11 +1504,6 @@ VALUES (1, '네이버N예약', 'https://booking.naver.com/booking/12/bizes/60762
        (207, NULL, 'www.sdyouth.net'),
        (208, NULL, NULL);
 
--- UPDATE content
--- SET latitude = ROUND((RANDOM() * (37.58 - 37.50) + 37.50)::numeric, 7),
---     longitude = ROUND((RANDOM() * (127.10 - 126.89) + 126.89)::numeric, 7)
--- WHERE latitude IS NULL OR longitude IS NULL;
-
 
 -- UserInfo 테이블 데이터 삽입
 INSERT INTO user_info (email, image_url, introduction, activated, created_at, modified_at)
@@ -2101,3 +2096,16 @@ VALUES
     ( 'https://example.com/image8.png', 8),
     ( 'https://example.com/image9.png', 9),
     ( 'https://example.com/image10.png', 10);
+
+INSERT INTO group_chat_room (group_id, status, name, created_at, modified_at)
+VALUES
+    (1, 'GROUP_CHAT', '1번 그룹 채팅방', NOW(), NOW()),
+    (2, 'GROUP_CHAT', '2번 그룹 채팅방', NOW(), NOW()),
+    (3, 'GROUP_CHAT', '3번 그룹 채팅방', NOW(), NOW()),
+    (4, 'GROUP_CHAT', '4번 그룹 채팅방', NOW(), NOW()),
+    (5, 'GROUP_CHAT', '5번 그룹 채팅방', NOW(), NOW()),
+    (6, 'GROUP_CHAT', '6번 그룹 채팅방', NOW(), NOW()),
+    (7, 'GROUP_CHAT', '7번 그룹 채팅방', NOW(), NOW()),
+    (8, 'GROUP_CHAT', '8번 그룹 채팅방', NOW(), NOW()),
+    (9, 'GROUP_CHAT', '9번 그룹 채팅방', NOW(), NOW()),
+    (10, 'GROUP_CHAT', '10번 그룹 채팅방', NOW(), NOW());

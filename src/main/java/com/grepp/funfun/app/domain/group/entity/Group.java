@@ -7,7 +7,6 @@ import com.grepp.funfun.app.domain.participant.entity.Participant;
 import com.grepp.funfun.app.domain.user.entity.User;
 import com.grepp.funfun.app.infra.entity.BaseEntity;
 import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -97,6 +96,18 @@ public class Group extends BaseEntity {
     public void changeStatusAndActivated(GroupStatus status) {
         this.unActivated();
         this.status = status;
+    }
+
+    public void minusGroupCount(){
+        this.nowPeople--;
+    }
+
+    public void changeStatus(GroupStatus status) {
+        this.status = status;
+    }
+
+    public void approveCount(Integer count){
+        this.nowPeople += count;
     }
 
     @Override

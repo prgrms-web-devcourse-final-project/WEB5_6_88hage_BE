@@ -1,28 +1,20 @@
 package com.grepp.funfun.app.domain.chat.service;
 
-import com.grepp.funfun.app.domain.chat.dto.ChatRoomDTO;
 import com.grepp.funfun.app.domain.chat.dto.payload.PersonalChatRoomResponse;
-import com.grepp.funfun.app.domain.chat.entity.Chat;
-import com.grepp.funfun.app.domain.chat.entity.GroupChatRoom;
 import com.grepp.funfun.app.domain.chat.entity.PersonalChatRoom;
-import com.grepp.funfun.app.domain.chat.repository.ChatRepository;
-import com.grepp.funfun.app.domain.chat.repository.GroupChatRoomRepository;
 import com.grepp.funfun.app.domain.chat.repository.PersonalChatRoomRepository;
 import com.grepp.funfun.app.domain.chat.vo.ChatRoomType;
-import com.grepp.funfun.app.domain.group.entity.Group;
-import com.grepp.funfun.app.domain.group.repository.GroupRepository;
+import com.grepp.funfun.app.domain.social.repository.FollowRepository;
 import com.grepp.funfun.app.domain.user.entity.User;
 import com.grepp.funfun.app.domain.user.repository.UserRepository;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
-import com.grepp.funfun.app.delete.util.ReferencedWarning;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,12 +25,16 @@ public class ChatRoomService {
 
     private final PersonalChatRoomRepository personalChatRoomRepository;
     private final UserRepository userRepository;
+    private final FollowRepository followRepository;
 
     // 개인 채팅방 생성
     @Transactional
     public void createPersonalChatRoom(String currentUserEmail, String targetUserEmail) {
 
-        //todo : 팔로워 팔로잉 관계가 맞는지 확인하기 -> 근데 굳이 해야할까? 애초에 팔로워 팔로잉 관계가 아니면 이 메서드가 호출될 수가없음
+        boolean exists = followRepository.existsByFollowerEmailAndFolloweeEmail(currentUserEmail, targetUserEmail);
+        if (!exists) {
+            throw new CommonException(ResponseCode.BAD_REQUEST, "팔로우 관계가 아닙니다.");
+        }
 
         String[] emails = {currentUserEmail, targetUserEmail};
         Arrays.sort(emails);
@@ -93,4 +89,6 @@ public class ChatRoomService {
             })
             .collect(Collectors.toList());
     }
+
+    //todo : 개인 채팅방 나가기가 있어야하나
 }

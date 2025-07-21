@@ -2,6 +2,7 @@ package com.grepp.funfun.app.domain.user.controller;
 
 import com.grepp.funfun.app.domain.auth.dto.payload.TokenResponse;
 import com.grepp.funfun.app.domain.user.dto.payload.ChangePasswordRequest;
+import com.grepp.funfun.app.domain.user.dto.payload.CoordinateResponse;
 import com.grepp.funfun.app.domain.user.dto.payload.NicknameRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.OAuth2SignupRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.UserInfoRequest;
@@ -126,29 +127,25 @@ public class UserApiController {
         return ResponseEntity.ok(ApiResponse.success(email));
     }
 
-    @PostMapping("/send/code")
+    @PostMapping("/send/code/{email}")
     @Operation(summary = "인증 코드 메일 발송", description = "인증 코드 메일을 발송합니다.<br>쿨타임은 3분이며, 인증 코드는 5분간 유효합니다.<br>인증 키는 10분간 유효합니다.")
-    public ResponseEntity<ApiResponse<String>> sendCode(Authentication authentication) {
-        String email = authentication.getName();
+    public ResponseEntity<ApiResponse<String>> sendCode(@PathVariable String email) {
         userService.sendCode(email);
         return ResponseEntity.ok(ApiResponse.success("인증 메일을 발송했습니다."));
     }
 
-    @PostMapping("/verify/code")
+    @PostMapping("/verify/code/{email}")
     @Operation(summary = "인증 코드 검증", description = "올바른 인증 코드인지 검증합니다.")
-    public ResponseEntity<ApiResponse<String>> verifyCode(@RequestBody @Valid VerifyCodeRequest request, Authentication authentication) {
-        String email = authentication.getName();
+    public ResponseEntity<ApiResponse<String>> verifyCode(@RequestBody @Valid VerifyCodeRequest request, @PathVariable String email) {
         userService.verifyCode(email, request.getCode());
-        return ResponseEntity.ok(ApiResponse.success("인증이 완료되었습니다."));
+        return ResponseEntity.ok(ApiResponse.success(email));
     }
 
-    @PatchMapping("/change/password")
-    @Operation(summary = "비밀번호 변경", description = "인증 코드로 인증된 사용자에 한해서 비밀번호 변경을 진행합니다.")
+    @PatchMapping("/change/password/{email}")
+    @Operation(summary = "비밀번호 찾기/변경", description = "인증 코드로 인증된 사용자에 한해서 비밀번호 찾기/변경을 진행합니다.")
     public ResponseEntity<ApiResponse<String>> changePassword(@RequestBody @Valid
-        ChangePasswordRequest request, Authentication authentication) {
-        String email = authentication.getName();
+        ChangePasswordRequest request, @PathVariable String email) {
         userService.changePassword(email, request.getPassword());
-
         return ResponseEntity.ok(ApiResponse.success("비밀번호 변경이 완료되었습니다."));
     }
 
@@ -172,5 +169,12 @@ public class UserApiController {
     public ResponseEntity<ApiResponse<String>> verifyNickname(@RequestBody @Valid NicknameRequest request) {
         userService.verifyNickname(request.getNickname());
         return ResponseEntity.ok(ApiResponse.success("사용 가능한 닉네임입니다."));
+    }
+
+    @GetMapping("/coordinate")
+    @Operation(summary = "좌표 조회", description = "위도, 경도 값을 조회합니다.")
+    public ResponseEntity<ApiResponse<CoordinateResponse>> getCoordinate(Authentication authentication){
+        String email = authentication.getName();
+        return ResponseEntity.ok(ApiResponse.success(userService.getCoordinate(email)));
     }
 }
