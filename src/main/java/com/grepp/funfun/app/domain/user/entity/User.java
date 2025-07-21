@@ -113,11 +113,11 @@ public class User extends BaseEntity {
             .map(preference -> preference.getCategory().getKoreanName())
             .collect(Collectors.joining(", "));
 
-        return "나는" + preferences + "활동을 선호해.";
+        return "나는 " + preferences + "활동을 선호해.";
     }
 
     public String getContentPreferencesToString(){
-        if(groupPreferences == null){
+        if(contentPreferences == null){
             return "나는 특별한 취향이 없습니다";
         }
 
@@ -125,6 +125,6 @@ public class User extends BaseEntity {
                                              .map(preference -> preference.getCategory().getKoreanName())
                                              .collect(Collectors.joining(", "));
 
-        return "나는" + preferences + "활동을 선호해.";
+        return "나는 " + preferences + "활동을 선호해.";
     }
 }
