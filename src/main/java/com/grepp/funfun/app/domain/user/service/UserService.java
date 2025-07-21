@@ -34,6 +34,8 @@ import com.grepp.funfun.app.infra.mail.SmtpDto;
 import com.grepp.funfun.app.infra.response.ResponseCode;
 import com.grepp.funfun.app.delete.util.ReferencedWarning;
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -428,5 +430,28 @@ public class UserService {
             User user = userRepository.findByEmailWithGroupPreferences(email).orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
             return user.getGroupPreferencesToString();
         }
+    }
+
+    public String getUserAgePromptByEmail(String email) {
+
+        User user = userRepository.findByEmail(email);
+        String birthDateStr = user.getBirthDate();
+
+        // 문자열에서 년, 월, 일 추출
+        int year = Integer.parseInt(birthDateStr.substring(0, 4));
+        int month = Integer.parseInt(birthDateStr.substring(4, 6));
+        int day = Integer.parseInt(birthDateStr.substring(6, 8));
+
+        // LocalDate로 변환
+        LocalDate birthDate = LocalDate.of(year, month, day);
+
+        // 현재 날짜
+        LocalDate today = LocalDate.now();
+
+        // 만나이 계산 (Period 사용)
+        Period period = Period.between(birthDate, today);
+        int age = period.getYears();
+
+        return "나는 만" + age + "세야. ";
     }
 }
