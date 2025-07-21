@@ -2096,3 +2096,16 @@ VALUES
     ( 'https://example.com/image8.png', 8),
     ( 'https://example.com/image9.png', 9),
     ( 'https://example.com/image10.png', 10);
+
+INSERT INTO group_chat_room (group_id, status, name, created_at, modified_at)
+VALUES
+    (1, 'GROUP_CHAT', '1번 그룹 채팅방', NOW(), NOW()),
+    (2, 'GROUP_CHAT', '2번 그룹 채팅방', NOW(), NOW()),
+    (3, 'GROUP_CHAT', '3번 그룹 채팅방', NOW(), NOW()),
+    (4, 'GROUP_CHAT', '4번 그룹 채팅방', NOW(), NOW()),
+    (5, 'GROUP_CHAT', '5번 그룹 채팅방', NOW(), NOW()),
+    (6, 'GROUP_CHAT', '6번 그룹 채팅방', NOW(), NOW()),
+    (7, 'GROUP_CHAT', '7번 그룹 채팅방', NOW(), NOW()),
+    (8, 'GROUP_CHAT', '8번 그룹 채팅방', NOW(), NOW()),
+    (9, 'GROUP_CHAT', '9번 그룹 채팅방', NOW(), NOW()),
+    (10, 'GROUP_CHAT', '10번 그룹 채팅방', NOW(), NOW());
