@@ -11,31 +11,40 @@ import org.springframework.stereotype.Component;
 @Component
 public class AiRequestQueue {
 
-    private final BlockingQueue<AiRequestTask> requestQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<AiRequestTask<?>> requestQueue = new LinkedBlockingQueue<>();
 
-    public void addRequest(AiRequestTask task) {
+    public <T> void addRequest(AiRequestTask<T> task) {
         requestQueue.offer(task);
     }
 
     @Scheduled(fixedDelay = 2000) // 30RPM => 2초 간격으로 1개 처리
     public void processQueue() {
-        AiRequestTask task = requestQueue.poll();
+        AiRequestTask<?> task = requestQueue.poll();
         if (task != null) {
             try {
-                String result = task.getCallable().call();
-                task.getFuture().complete(result);
+                Object result = task.getCallable().call();
+                completeTask(task, result);
             } catch (Exception e) {
                 task.getFuture().completeExceptionally(e);
             }
         }
     }
 
-    @Getter
-    public static class AiRequestTask {
-        private final Callable<String> callable;
-        private final CompletableFuture<String> future;
+    @SuppressWarnings("unckecked")
+    private <T> void completeTask(AiRequestTask<T> task, Object result) {
+        try{
+            task.getFuture().complete((T) result);
+        } catch (ClassCastException e) {
+            task.getFuture().completeExceptionally(e);
+        }
+    }
 
-        public AiRequestTask(Callable<String> callable, CompletableFuture<String> future) {
+    @Getter
+    public static class AiRequestTask<T> {
+        private final Callable<T> callable;
+        private final CompletableFuture<T> future;
+
+        public AiRequestTask(Callable<T> callable, CompletableFuture<T> future) {
             this.callable = callable;
             this.future = future;
         }
