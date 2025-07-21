@@ -11,7 +11,6 @@ public class PersonalChatRoomResponse {
     private ChatRoomType status;
     private String currentUserEmail;
     private String currentUserNickname;
-    private Boolean currentUserDeleted;
     private String targetUserEmail;
     private String targetUserNickname;
     private Boolean targetUserDeleted;
@@ -19,12 +18,11 @@ public class PersonalChatRoomResponse {
     @Builder
     public PersonalChatRoomResponse(Long roomId, ChatRoomType status,
         String currentUserEmail,String currentUserNickname,String targetUserEmail, String targetUserNickname,
-        Boolean targetUserDeleted,Boolean currentUserDeleted) {
+        Boolean targetUserDeleted) {
         this.roomId = roomId;
         this.status = status;
         this.currentUserEmail = currentUserEmail;
         this.currentUserNickname = currentUserNickname;
-        this.currentUserDeleted = currentUserDeleted;
         this.targetUserEmail = targetUserEmail;
         this.targetUserNickname = targetUserNickname;
         this.targetUserDeleted = targetUserDeleted;

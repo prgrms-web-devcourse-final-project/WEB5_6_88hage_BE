@@ -9,7 +9,6 @@ import com.grepp.funfun.app.infra.response.ApiResponse;
 import com.grepp.funfun.app.infra.response.ResponseCode;
 import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -56,8 +55,8 @@ public class ChatRoomApiController {
         return ResponseEntity.ok(ApiResponse.success(chatRooms));
     }
 
-    @PostMapping("/{roomId}/delete")
-    @Operation(summary = "1:1 대화방 나가기", description = "1:1 대화방을 나갑니다.")
+    @PostMapping("/{roomId}/leave")
+    @Operation(summary = "개인 채팅방 나가기", description = "개인 채팅방을 나갑니다.")
     public ResponseEntity<ApiResponse<String>> getLastHistory(
         @PathVariable Long roomId,
         Authentication authentication) {

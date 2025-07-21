@@ -87,20 +87,11 @@ public class ChatRoomService {
         log.info("개인 채팅방 목록 조회 for user: {}", userEmail);
 
         List<PersonalChatRoom> chatRooms = personalChatRoomRepository
-            .findByUserAEmailOrUserBEmail(userEmail, userEmail);
+            .findActiveRoomByUserEmail(userEmail);
 
         User currentuser = userRepository.findByEmail(userEmail);
 
         return chatRooms.stream()
-            .filter(room -> {
-                if (room.getUserAEmail().equals(userEmail)) {
-                    return Boolean.FALSE.equals(room.getUserADeleted());
-                } else if (room.getUserBEmail().equals(userEmail)) {
-                    return Boolean.FALSE.equals(room.getUserBDeleted());
-                } else {
-                    return false;
-                }
-            })
             .map(room -> {
                 // 상대방 이메일 결정
                 String targetUserEmail = room.getUserAEmail().equals(userEmail)
@@ -114,9 +105,6 @@ public class ChatRoomService {
                     .status(room.getStatus())
                     .currentUserEmail(currentuser.getEmail())
                     .currentUserNickname(currentuser.getNickname())
-                    .currentUserDeleted(room.getUserAEmail().equals(userEmail)
-                        ? room.getUserADeleted()
-                        : room.getUserBDeleted())
                     .targetUserEmail(targetUserEmail)
                     .targetUserNickname(targetUser.getNickname())
                     .targetUserDeleted(room.getUserAEmail().equals(userEmail)
