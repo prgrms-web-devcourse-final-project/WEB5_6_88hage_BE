@@ -93,21 +93,34 @@ public class Content extends BaseEntity {
 
     @Override
     public String toString() {
+
+        if(description != null) {
+            return "Content{" +
+                "id=" + id +
+                ", 이벤트 타입은 '" + eventType.name() + '\'' +
+                "이고 행사 제목은 '" + contentTitle + '\'' +
+                "이고 나이제한은 '" + age + '\'' +
+                "이고 행사 시작날짜는 " + startDate +
+                "이고 행사 종료 일자는 " + endDate +
+                "이야 행사는 '" + area + guname + '\'' +
+                "에서 진행하고 시간은 '" + time + '\'' +
+                "에 진행하며 소요시간은 '" + runTime + '\'' +
+                "이고 정확한 시작시간은 '" + startTime + '\'' +
+                "이고 세부 내용은'" + description + '\'' +
+                "이고 카테고리는 " + category.getCategory().getKoreanName() +
+                '}';
+        }
         return "Content{" +
             "id=" + id +
             ", 이벤트 타입은 '" + eventType.name() + '\'' +
             "이고 행사 제목은 '" + contentTitle + '\'' +
             "이고 나이제한은 '" + age + '\'' +
-            "이고 요금은 '" + fee + '\'' +
             "이고 행사 시작날짜는 " + startDate +
             "이고 행사 종료 일자는 " + endDate +
-            "이며 행사 장소의 위도값은 " + latitude +
-            "이고 경도값은 " + longitude +
             "이야 행사는 '" + guname + '\'' +
             "에서 진행하고 시간은 '" + time + '\'' +
             "에 진행하며 소요시간은 '" + runTime + '\'' +
             "이고 정확한 시작시간은 '" + startTime + '\'' +
-            "이고 세부 내용은'" + description + '\'' +
             "이고 카테고리는 " + category.getCategory().getKoreanName() +
             '}';
     }
