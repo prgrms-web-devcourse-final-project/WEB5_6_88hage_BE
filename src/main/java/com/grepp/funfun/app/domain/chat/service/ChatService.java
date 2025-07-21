@@ -9,6 +9,7 @@ import com.grepp.funfun.app.domain.chat.vo.ChatRoomType;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,6 +53,14 @@ public class ChatService {
         return chatList.stream()
             .map(ChatResponse::new)
             .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<ChatResponse> getLastChatHistory(Long roomId, ChatRoomType roomType) {
+        // todo : 나중에 지울 코드
+        log.debug("Getting chat history for roomId: {}", roomId);
+        return chatRepository.findTop1ByRoomIdAndRoomTypeOrderByCreatedAtDesc(roomId, roomType)
+            .map(ChatResponse::new);
     }
 
     private void validateChatRoom(Long roomId, ChatRoomType roomType) {
