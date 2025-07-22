@@ -1,6 +1,7 @@
 package com.grepp.funfun.app.domain.group.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.grepp.funfun.app.domain.group.dto.payload.GroupRequest;
 import com.grepp.funfun.app.domain.group.vo.GroupClassification;
 import com.grepp.funfun.app.domain.group.vo.GroupStatus;
 import com.grepp.funfun.app.domain.participant.entity.Participant;
@@ -122,5 +123,23 @@ public class Group extends BaseEntity {
             "이며 모임은 " + during +
             "분동안 활동을 진행하고 category는 " + category.getKoreanName() + "입니다." +
             '}';
+    }
+
+    // 수정용 메서드
+    public void applyUpdateFrom(GroupRequest request, String newImageUrl) {
+        this.title = request.getTitle();
+        this.explain = request.getExplain();
+        this.simpleExplain = request.getSimpleExplain();
+        this.placeName = request.getPlaceName();
+        this.groupDate = request.getGroupDate();
+        this.address = request.getAddress();
+        this.category = request.getCategory();
+        this.maxPeople = request.getMaxPeople();
+        this.latitude = request.getLatitude();
+        this.longitude = request.getLongitude();
+        this.during = request.getDuring();
+        if (newImageUrl != null) {
+            this.imageUrl = newImageUrl;
+        }
     }
 }

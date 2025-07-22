@@ -121,7 +121,7 @@ public class GroupService {
     // 내가 리더인 모임 조회
     @Transactional(readOnly = true)
     public List<GroupResponse> findMyLeaderGroups(String userEmail) {
-        return groupRepository.findByLeaderEmail(userEmail).stream()
+        return groupRepository.findByLeaderEmailAndActivatedTrue(userEmail).stream()
             .map(this::convertToGroupResponse)
             .collect(Collectors.toList());
     }
@@ -179,15 +179,18 @@ public class GroupService {
         // 이미지 변경
         String newImageUrl = null;
         if (updateRequest.getImage() != null && !updateRequest.getImage().isEmpty()) {
+
+            if (group.getImageUrl() != null) {
+                s3FileService.delete(group.getImageUrl());
+            }
             newImageUrl = s3FileService.upload(updateRequest.getImage(), "groups");
         }
 
         // 모임 변경 사항 저장
-        Group updatedGroup = updateRequest.mapToUpdate(group, newImageUrl);
-        Group savedGroup = groupRepository.save(updatedGroup);
+        group.applyUpdateFrom(updateRequest, newImageUrl);
 
         // 해시태그 설정
-        updateHashtags(savedGroup, updateRequest.getHashTags());
+        updateHashtags(group, updateRequest.getHashTags());
     }
 
     // 모임 삭제
