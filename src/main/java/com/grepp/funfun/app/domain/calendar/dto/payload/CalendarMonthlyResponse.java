@@ -13,4 +13,5 @@ public class CalendarMonthlyResponse {
     private Long activityId;
     private String title;
     private LocalDateTime selectedDate;
+    private String address;
 }

@@ -57,13 +57,37 @@ public class ChatRoomService {
         personalChatRoomRepository.save(personalChatRoom);
     }
 
+    // 채팅방 삭제
+    @Transactional
+    public void deletePersonalChatRoom(String currentUserEmail, String targetUserEmail) {
+        String[] emails = {currentUserEmail, targetUserEmail};
+        Arrays.sort(emails);
+
+        Optional<PersonalChatRoom> existingRoom = personalChatRoomRepository
+            .findByUserAEmailAndUserBEmail(emails[0], emails[1]);
+
+        if (existingRoom.isEmpty()) {
+            throw new CommonException(ResponseCode.BAD_REQUEST, "존재하지 않는 채팅방입니다");
+        }
+
+        PersonalChatRoom changeRoom = existingRoom.get();
+
+        if (currentUserEmail.equals(changeRoom.getUserAEmail())) {
+            changeRoom.changeDeleted(currentUserEmail);
+        } else if (currentUserEmail.equals(changeRoom.getUserBEmail())) {
+            changeRoom.changeDeleted(currentUserEmail);
+        } else {
+            throw new IllegalStateException("현재 사용자가 채팅방에 속해있지 않습니다.");
+        }
+    }
+
     // 개인 채팅방 조회
     @Transactional(readOnly = true)
     public List<PersonalChatRoomResponse> getMyPersonalChatRooms(String userEmail) {
         log.info("개인 채팅방 목록 조회 for user: {}", userEmail);
 
         List<PersonalChatRoom> chatRooms = personalChatRoomRepository
-            .findByUserAEmailOrUserBEmail(userEmail, userEmail);
+            .findActiveRoomByUserEmail(userEmail);
 
         User currentuser = userRepository.findByEmail(userEmail);
 
@@ -74,21 +98,21 @@ public class ChatRoomService {
                     ? room.getUserBEmail()
                     : room.getUserAEmail();
 
-                // 상대방 조회
                 User targetUser = userRepository.findByEmail(targetUserEmail);
 
                 return PersonalChatRoomResponse.builder()
                     .roomId(room.getId())
-                    .roomName(room.getName())
                     .status(room.getStatus())
                     .currentUserEmail(currentuser.getEmail())
                     .currentUserNickname(currentuser.getNickname())
                     .targetUserEmail(targetUserEmail)
                     .targetUserNickname(targetUser.getNickname())
+                    .targetUserDeleted(room.getUserAEmail().equals(userEmail)
+                        ? room.getUserBDeleted()
+                        : room.getUserADeleted())
                     .build();
             })
             .collect(Collectors.toList());
     }
 
-    //todo : 개인 채팅방 나가기가 있어야하나
 }

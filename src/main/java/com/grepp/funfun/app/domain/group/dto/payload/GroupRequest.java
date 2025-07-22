@@ -86,28 +86,5 @@ public class GroupRequest {
             .during(this.during)
             .build();
     }
-
-    // 수정용 메서드
-    public Group mapToUpdate(Group existingGroup, String newImageUrl) {
-        return Group.builder()
-            .id(existingGroup.getId())
-            .leader(existingGroup.getLeader())
-            .title(this.title)
-            .explain(this.explain)
-            .simpleExplain(this.simpleExplain)
-            .placeName(this.placeName)
-            .groupDate(this.groupDate)
-            .address(this.address)
-            .category(this.category)
-            .maxPeople(this.maxPeople)
-            .latitude(this.latitude)
-            .longitude(this.longitude)
-            .during(this.during)
-            .imageUrl(newImageUrl != null ? newImageUrl : existingGroup.getImageUrl())
-            .viewCount(existingGroup.getViewCount())
-            .nowPeople(existingGroup.getNowPeople())
-            .status(existingGroup.getStatus())
-            .build();
-    }
 }
 
