@@ -40,7 +40,7 @@ public interface GroupAiService {
           ]
         }
         
-        - 최대 12개의 event를 추천해줘.
+        - 최대 8개의 event를 추천해줘.
         - JSON 구조가 깨지지 않도록 주의해.
         - JSON은 반드시 완전히 닫힌 구조여야 해.
         - 배열과 객체는 반드시 `]`, `}`로 닫아야 합니다.
