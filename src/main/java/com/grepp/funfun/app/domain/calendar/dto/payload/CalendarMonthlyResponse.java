@@ -3,10 +3,12 @@ package com.grepp.funfun.app.domain.calendar.dto.payload;
 import com.grepp.funfun.app.domain.calendar.vo.ActivityType;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
 @AllArgsConstructor
+@Builder
 public class CalendarMonthlyResponse {
     private Long calendarId;
     private ActivityType type;
