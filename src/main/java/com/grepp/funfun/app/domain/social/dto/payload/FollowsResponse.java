@@ -8,7 +8,8 @@ import lombok.Data;
 @AllArgsConstructor
 @Builder
 public class FollowsResponse {
-    String email;
-    String nickname;
-    String imageUrl;
+    private String email;
+    private String nickname;
+    private String imageUrl;
+    private boolean isMutual;
 }
