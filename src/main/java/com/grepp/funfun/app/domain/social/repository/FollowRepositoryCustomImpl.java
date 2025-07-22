@@ -7,6 +7,7 @@ import com.grepp.funfun.app.domain.user.entity.QUserInfo;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
@@ -21,17 +22,27 @@ public class FollowRepositoryCustomImpl implements FollowRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
     private final QFollow follow = QFollow.follow;
+    private final QFollow followSub = new QFollow("followSub");
     private final QUser user = QUser.user;
     private final QUserInfo userInfo = QUserInfo.userInfo;
 
     @Override
-    public Page<FollowsResponse> findFollowersByFolloweeEmail(String followeeEmail, Pageable pageable) {
+    public Page<FollowsResponse> findFollowersByFolloweeEmail(String followeeEmail,
+        Pageable pageable) {
         List<FollowsResponse> content = queryFactory
             .select(Projections.constructor(
                 FollowsResponse.class,
                 user.email,
                 user.nickname,
-                userInfo.imageUrl
+                userInfo.imageUrl,
+                JPAExpressions
+                    .selectOne()
+                    .from(followSub)
+                    .where(
+                        followSub.follower.email.eq(followeeEmail)
+                            .and(followSub.followee.email.eq(user.email))
+                    )
+                    .exists()
             ))
             .from(follow)
             .join(follow.follower, user)
@@ -51,13 +62,22 @@ public class FollowRepositoryCustomImpl implements FollowRepositoryCustom {
     }
 
     @Override
-    public Page<FollowsResponse> findFollowingsByFollowerEmail(String followerEmail, Pageable pageable) {
+    public Page<FollowsResponse> findFollowingsByFollowerEmail(String followerEmail,
+        Pageable pageable) {
         List<FollowsResponse> content = queryFactory
             .select(Projections.constructor(
                 FollowsResponse.class,
                 user.email,
                 user.nickname,
-                userInfo.imageUrl
+                userInfo.imageUrl,
+                JPAExpressions
+                    .selectOne()
+                    .from(followSub)
+                    .where(
+                        followSub.follower.email.eq(user.email)
+                            .and(followSub.followee.email.eq(followerEmail))
+                    )
+                    .exists()
             ))
             .from(follow)
             .join(follow.followee, user)
