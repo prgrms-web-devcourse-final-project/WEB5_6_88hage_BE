@@ -1520,7 +1520,7 @@ VALUES
     ('t10@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/c47297e9-fa17-4d7e-985e-26956b45fede.jpg', '임소라입니다. 잘 부탁드립니다.', true, NOW(), NOW());
 
 -- User 테이블 데이터 삽입
-INSERT INTO "user" (email, password, nickname, birth_date, gender, address, latitude, longitude,
+INSERT INTO user (email, password, nickname, birth_date, gender, address, latitude, longitude,
                     role, status, due_date, suspend_duration, due_reason, is_verified,
                     is_marketing_agreed, info_id, activated, created_at, modified_at)
 VALUES
