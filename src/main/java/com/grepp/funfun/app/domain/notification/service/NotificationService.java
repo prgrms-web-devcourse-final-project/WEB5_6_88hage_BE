@@ -25,7 +25,7 @@ public class NotificationService {
     private final EmitterRepository emitterRepository;
     private final NotificationDTOMapper notificationDTOMapper;
 
-    // 모든 알림 조회
+    // 모든 알림 조회 - 어떤 사용자임과 관계없이
     public List<NotificationDTO> findAll() {
         return notificationRepository.findAll(Sort.by(Sort.Direction.DESC, "id")).stream()
                 .map(notificationDTOMapper::toDTO)
@@ -52,6 +52,24 @@ public class NotificationService {
                 .stream().map(notificationDTOMapper::toDTO).toList();
     }
 
+    public List<NotificationDTO> findReadByEmail(String email) {
+        return notificationRepository.findAllByEmailAndIsReadTrueOrderByIdDesc(email)
+                .stream().map(notificationDTOMapper::toDTO).toList();
+    }
+
+    // 체크박스 선택적 읽음 처리
+    public void markSelectedAsRead(List<Long> ids) {
+        List<Notification> selected = notificationRepository.findAllById(ids);
+
+        for (Notification notification : selected) {
+            if (!Boolean.TRUE.equals(notification.getIsRead())) {
+                notification.markAsRead();
+            }
+        }
+
+        notificationRepository.saveAll(selected);
+    }
+
     // 알림 생성
     public Long create(final NotificationDTO dto) {
         Notification notification = notificationDTOMapper.toEntity(dto);
@@ -75,24 +93,10 @@ public class NotificationService {
                 .type(dto.getType() != null ? parseType(dto.getType()) : notification.getType())
                 .scheduledAt(dto.getScheduledAt() != null ? dto.getScheduledAt() : notification.getScheduledAt())
                 .sentAt(dto.getSentAt() != null ? dto.getSentAt() : notification.getSentAt())
+                .calendarId(dto.getCalendarId() != null ? dto.getCalendarId() : notification.getCalendarId())
                 .build();
 
         notificationRepository.save(updated);
-    }
-
-    // 알림 삭제
-    public void delete(final Long id) {
-        notificationRepository.deleteById(id);
-    }
-
-    // 알림 전체 삭제
-    public void deleteAllByEmail(String email) {
-        notificationRepository.deleteByEmail(email);
-    }
-
-    // 알림 선택적 삭제
-    public void deleteSelected(List<Long> ids) {
-        notificationRepository.deleteAllById(ids);
     }
 
     // String → Enum 변환 with null-safe
@@ -144,7 +148,17 @@ public class NotificationService {
     }
 
     public boolean existsScheduleNotification(String email, LocalDateTime start, LocalDateTime end) {
-        return notificationRepository.existsByEmailAndTypeAndScheduledAtBetween(email, NotificationType.SCHEDULE, start, end);
+        return notificationRepository.existsByEmailAndTypeAndScheduledAtBetween(
+                email, NotificationType.SCHEDULE, start, end);
     }
 
+    // calendarId 기반 중복 알림 확인
+    public boolean existsScheduleNotification(Long calendarId) {
+        return notificationRepository.existsByCalendarId(calendarId);
+    }
+
+    // 일정 삭제 시 알림 함께 삭제
+    public void deleteByCalendarId(Long calendarId) {
+        notificationRepository.deleteByCalendarId(calendarId);
+    }
 }

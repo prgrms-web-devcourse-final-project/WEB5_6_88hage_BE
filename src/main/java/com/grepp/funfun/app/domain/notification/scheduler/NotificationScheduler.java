@@ -32,7 +32,7 @@ public class NotificationScheduler {
 
         for (Calendar calendar : schedules) {
 
-            if (notificationService.existsScheduleNotification(calendar.getEmail(), start, end)) {
+            if (notificationService.existsScheduleNotification(calendar.getId())) {
                 continue;
             }
 
@@ -47,6 +47,7 @@ public class NotificationScheduler {
                     .type(NotificationType.SCHEDULE.name())
                     .scheduledAt(LocalDateTime.now())
                     .sentAt(LocalDateTime.now())
+                    .calendarId(calendar.getId())
                     .build();
 
             notificationService.create(dto);
