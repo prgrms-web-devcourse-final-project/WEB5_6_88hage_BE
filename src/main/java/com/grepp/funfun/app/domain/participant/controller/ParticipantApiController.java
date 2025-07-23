@@ -2,7 +2,6 @@ package com.grepp.funfun.app.domain.participant.controller;
 
 import com.grepp.funfun.app.domain.participant.dto.payload.GroupCompletedStatsResponse;
 import com.grepp.funfun.app.domain.participant.dto.payload.ParticipantResponse;
-import com.grepp.funfun.app.domain.participant.dto.ParticipantDTO;
 import com.grepp.funfun.app.domain.participant.service.ParticipantService;
 import com.grepp.funfun.app.infra.response.ApiResponse;
 import com.grepp.funfun.app.infra.response.ResponseCode;
@@ -31,7 +30,7 @@ public class ParticipantApiController {
 
     // PENDING MEMBER 사용자 데려오기
     @GetMapping("/{groupId}/pending")
-    @Operation(summary = "모임 신청 사용자 조회", description = "특정 GROUP 의 TRUE/PENDING 상태의 사용자 조회")
+    @Operation(summary = "모임 신청 사용자 조회(for 승인/거절)", description = "특정 GROUP 의 TRUE/PENDING 상태의 사용자 조회")
     public ResponseEntity<ApiResponse<List<ParticipantResponse>>> pendingParticipant(
         @PathVariable Long groupId) {
         List<ParticipantResponse> participants = participantService.getPendingParticipants(groupId);
@@ -40,7 +39,7 @@ public class ParticipantApiController {
 
     // APPROVE MEMBER 사용자 데려오기[강제퇴장을 위한]
     @GetMapping("/{groupId}/approve")
-    @Operation(summary = "모임 승인 사용자 조회", description = "특정 GROUP 의 TRUE/APPROVE 상태의 사용자 조회")
+    @Operation(summary = "모임 승인 사용자 조회(for 강제퇴장)", description = "특정 GROUP 의 TRUE/APPROVE 상태의 사용자 조회")
     public ResponseEntity<ApiResponse<List<ParticipantResponse>>> approveParticipant(
         @PathVariable Long groupId) {
         List<ParticipantResponse> participants = participantService.getApproveParticipants(groupId);
@@ -50,7 +49,7 @@ public class ParticipantApiController {
 
     // 참여 신청
     @PostMapping("/{groupId}/apply")
-    @Operation(summary = "모임 신청", description = "그룹 ID 와 사용자 Email 을 통해 모임 신청.")
+    @Operation(summary = "모임 참여 신청", description = "그룹 ID 와 사용자 Email 을 통해 모임 참여 신청.")
     public ResponseEntity<ApiResponse<String>> applyGroup(
         @PathVariable Long groupId,
         Authentication authentication) {
