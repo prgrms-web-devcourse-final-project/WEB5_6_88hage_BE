@@ -53,9 +53,7 @@ public class DataPipeline {
     private String kopisApiKey;
 
     private static final Map<String, String> KOPIS_URLS = Map.of(
-            "performance", "http://www.kopis.or.kr/openApi/restful/pblprfr",
-            "festival", "http://www.kopis.or.kr/openApi/restful/prffest",
-            "writer", "http://www.kopis.or.kr/openApi/restful/prfper"
+            "performance", "http://www.kopis.or.kr/openApi/restful/pblprfr"
     );
 
     private static final String DETAIL_URL = "http://www.kopis.or.kr/openApi/restful/pblprfr";
@@ -68,7 +66,7 @@ public class DataPipeline {
             String startDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             String endDate = LocalDate.now().plusMonths(6).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-            List<String> dataTypes = List.of("performance", "festival", "writer");
+            List<String> dataTypes = List.of("performance");
             int totalSaved = 0;
 
             for (String dataType : dataTypes) {
@@ -142,9 +140,14 @@ public class DataPipeline {
                 return false;
             }
 
-            if (contentRepository.existsByContentTitle(contentDTO.getContentTitle())) {
-                log.debug("중복 데이터: {}", contentDTO.getContentTitle());
-                return false;
+            Content existingContent = contentRepository.findByExternalId(contentDTO.getExternalId()).orElse(null);
+
+            if (existingContent != null) {
+                // 업데이트: bookmarkCount 유지하고 나머지만 갱신
+                updateContent(existingContent, contentDTO);
+                contentRepository.save(existingContent);
+                log.debug("기존 콘텐츠 업데이트 완료: {}", existingContent.getContentTitle());
+                return true;
             }
 
             Content content = toEntity(contentDTO);
@@ -164,6 +167,25 @@ public class DataPipeline {
             return false;
         }
     }
+
+    private void updateContent(Content content, ContentDTO dto) {
+        content.setContentTitle(dto.getContentTitle());
+        content.setAge(dto.getAge());
+        content.setStartDate(dto.getStartDate());
+        content.setEndDate(dto.getEndDate());
+        content.setFee(dto.getFee());
+        content.setArea(dto.getArea());
+        content.setTime(dto.getTime());
+        content.setRunTime(dto.getRunTime());
+        content.setStartTime(dto.getStartTime());
+        content.setPoster(dto.getPoster());
+
+        // 기존 이미지 및 URL은 삭제하고 새로 추가
+        content.getImages().clear();
+        content.getUrls().clear();
+        addImagesAndUrls(content, dto);
+    }
+
 
     private void addImagesAndUrls(Content content, ContentDTO contentDTO) {
         if (contentDTO.getImages() != null) {
