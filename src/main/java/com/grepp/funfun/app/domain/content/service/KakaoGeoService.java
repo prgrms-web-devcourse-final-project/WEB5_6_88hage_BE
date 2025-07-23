@@ -101,6 +101,35 @@ public class KakaoGeoService {
         }
     }
 
+    @Transactional
+    public void updateContentCoordinates(List<Content> contents) {
+        for (Content content : contents) {
+            String address = content.getAddress();
+            String area = content.getArea() != null ? content.getArea() : "서울특별시";
+            String cleanedPlaceName = preprocessAddress(address);
+            String searchAddress = (cleanedPlaceName.contains(area)) ? cleanedPlaceName : area + " " + cleanedPlaceName;
+
+            Optional<double[]> coordinatesOpt = getCoordinatesFromKeywordSearch(searchAddress);
+            if (coordinatesOpt.isEmpty()) {
+                log.warn("개별 위경도 검색 실패: {}", searchAddress);
+                continue;
+            }
+
+            double[] coordinates = coordinatesOpt.get();
+            content.setLatitude(coordinates[0]);
+            content.setLongitude(coordinates[1]);
+
+            Optional<String> addressOpt = getAddressFromCoordinates(coordinates[0], coordinates[1]);
+            addressOpt.ifPresent(full -> {
+                content.setAddress(full + " " + cleanedPlaceName);
+                String guname = extractGunameFromAddress(full);
+                if (guname != null) content.setGuname(guname);
+            });
+
+            contentRepository.save(content);
+        }
+    }
+
     private boolean isTargetCategory(ContentCategory category) {
         if (category == null || category.getCategory() == null) return false;
 
