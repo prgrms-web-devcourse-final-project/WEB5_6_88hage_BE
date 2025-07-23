@@ -53,7 +53,9 @@ public class DataPipeline {
     private String kopisApiKey;
 
     private static final Map<String, String> KOPIS_URLS = Map.of(
-            "performance", "http://www.kopis.or.kr/openApi/restful/pblprfr"
+            "performance", "http://www.kopis.or.kr/openApi/restful/pblprfr",
+            "festival", "http://www.kopis.or.kr/openApi/restful/prffest",
+            "writer", "http://www.kopis.or.kr/openApi/restful/prfper"
     );
 
     private static final String DETAIL_URL = "http://www.kopis.or.kr/openApi/restful/pblprfr";
@@ -66,7 +68,7 @@ public class DataPipeline {
             String startDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             String endDate = LocalDate.now().plusMonths(6).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-            List<String> dataTypes = List.of("performance");
+            List<String> dataTypes = List.of("performance", "festival", "writer");
             int totalSaved = 0;
 
             for (String dataType : dataTypes) {
@@ -282,6 +284,7 @@ public class DataPipeline {
                 .orElseThrow(() -> new IllegalArgumentException("해당 카테고리를 찾을 수 없습니다: " + dto.getCategory()));
 
         return Content.builder()
+                .externalId(dto.getExternalId())
                 .contentTitle(dto.getContentTitle())
                 .age(dto.getAge())
                 .startDate(dto.getStartDate())
