@@ -26,8 +26,10 @@ public enum ResponseCode {
     OAUTH2_AUTHENTICATION_FAILED("4026", HttpStatus.UNAUTHORIZED, "OAuth2 로그인에 실패했습니다."),
     EXPIRED_AUTH_CODE_VERIFY("4027", HttpStatus.BAD_REQUEST, "인증 코드 검증한 유효 기간(10분)이 지나거나 인증 코드 검증을 하지 않았습니다."),
     INTERNAL_SERVER_ERROR("5000", HttpStatus.INTERNAL_SERVER_ERROR, "서버에러 입니다."),
+    INVALID_API_RESPONSE("5002", HttpStatus.BAD_GATEWAY, "AI 응답 파싱 문제로 요청을 처리할 수 없습니다."),
+    API_UNAVAILABLE("5003", HttpStatus.SERVICE_UNAVAILABLE, "AI 서버가 과부하 상태입니다. 잠시 후 다시 시도해 주세요."),
     SECURITY_INCIDENT("6000", HttpStatus.OK, "비정상적인 로그인 시도가 감지되었습니다.");
-    
+
     private final String code;
     private final HttpStatus status;
     private final String message;

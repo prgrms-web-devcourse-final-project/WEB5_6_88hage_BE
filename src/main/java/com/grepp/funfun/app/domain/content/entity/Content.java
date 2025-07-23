@@ -38,18 +38,18 @@ public class Content extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
-    private Long id; // 컨텐츠 아이디
+    private Long id;
 
     @Column(nullable = false)
-    private String contentTitle; // 컨텐츠명
+    private String contentTitle;
 
-    private String age; // 나이
+    private String age;
 
-    private String fee; // 이용 금액
+    private String fee;
 
-    private LocalDate startDate; // 시작일
+    private LocalDate startDate;
 
-    private LocalDate endDate; // 종료일
+    private LocalDate endDate;
 
     private String address;
 
@@ -59,22 +59,22 @@ public class Content extends BaseEntity {
 
     private String area;
 
-    private String guname; // 자치구
+    private String guname;
 
     private String time;
 
-    private String runTime; // 공연 런타임
+    private String runTime;
 
-    private String startTime; // 시작 시간
+    private String startTime;
 
     private String poster;
 
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @BatchSize(size = 10) // BatchSize 설정
+    @BatchSize(size = 10)
     @OneToMany(mappedBy = "content", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ContentUrl> urls = new ArrayList<>();  // 사이트 링크
+    private List<ContentUrl> urls = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -82,7 +82,7 @@ public class Content extends BaseEntity {
 
     @BatchSize(size = 10)
     @OneToMany(mappedBy = "content", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ContentImage> images = new ArrayList<>(); // 이미지 설명
+    private List<ContentImage> images = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
@@ -93,21 +93,34 @@ public class Content extends BaseEntity {
 
     @Override
     public String toString() {
+
+        if(description != null) {
+            return "Content{" +
+                "id=" + id +
+                ", 이벤트 타입은 '" + eventType.name() + '\'' +
+                "이고 행사 제목은 '" + contentTitle + '\'' +
+                "이고 나이제한은 '" + age + '\'' +
+                "이고 행사 시작날짜는 " + startDate +
+                "이고 행사 종료 일자는 " + endDate +
+                "이야 행사는 '" + area + guname + '\'' +
+                "에서 진행하고 시간은 '" + time + '\'' +
+                "에 진행하며 소요시간은 '" + runTime + '\'' +
+                "이고 정확한 시작시간은 '" + startTime + '\'' +
+                "이고 세부 내용은'" + description + '\'' +
+                "이고 카테고리는 " + category.getCategory().getKoreanName() +
+                '}';
+        }
         return "Content{" +
             "id=" + id +
             ", 이벤트 타입은 '" + eventType.name() + '\'' +
             "이고 행사 제목은 '" + contentTitle + '\'' +
             "이고 나이제한은 '" + age + '\'' +
-            "이고 요금은 '" + fee + '\'' +
             "이고 행사 시작날짜는 " + startDate +
             "이고 행사 종료 일자는 " + endDate +
-            "이며 행사 장소의 위도값은 " + latitude +
-            "이고 경도값은 " + longitude +
             "이야 행사는 '" + guname + '\'' +
             "에서 진행하고 시간은 '" + time + '\'' +
             "에 진행하며 소요시간은 '" + runTime + '\'' +
             "이고 정확한 시작시간은 '" + startTime + '\'' +
-            "이고 세부 내용은'" + description + '\'' +
             "이고 카테고리는 " + category.getCategory().getKoreanName() +
             '}';
     }
@@ -119,6 +132,9 @@ public class Content extends BaseEntity {
     }
 
     public void decreaseBookmark() {
+        if (this.bookmarkCount == null) {
+            this.bookmarkCount = 0;
+        }
         if (this.bookmarkCount > 0) {
             this.bookmarkCount--;
         }

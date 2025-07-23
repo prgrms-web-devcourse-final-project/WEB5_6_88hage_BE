@@ -52,7 +52,7 @@ class PreferenceServiceTest {
     }
 
     @Test
-    void create_정상() {
+    void create_OK() {
         // given
         PreferenceRequest preferenceRequest = PreferenceRequest.builder()
             .contentPreferences(Set.of(ContentClassification.DANCE, ContentClassification.CLASSIC))
@@ -69,7 +69,7 @@ class PreferenceServiceTest {
     }
 
     @Test
-    void create_재등록_예외() {
+    void create_ALREADY_EX() {
         // given
         PreferenceRequest preferenceRequest = PreferenceRequest.builder()
             .contentPreferences(Set.of(ContentClassification.DANCE, ContentClassification.CLASSIC))
@@ -88,7 +88,7 @@ class PreferenceServiceTest {
     }
 
     @Test
-    void update_정상() {
+    void update_OK() {
         // given
         PreferenceRequest preferenceRequest = PreferenceRequest.builder()
             .contentPreferences(Set.of(ContentClassification.DANCE, ContentClassification.CLASSIC))
@@ -108,7 +108,7 @@ class PreferenceServiceTest {
     }
 
     @Test
-    void get_정상() {
+    void get_OK() {
         // given
         List<ContentPreference> contentPreferences = List.of(
             ContentPreference.builder()

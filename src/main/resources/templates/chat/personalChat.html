@@ -514,7 +514,7 @@
     console.log('🟡 개인 채팅 목록 로드 시작');
 
     try {
-      const response = await fetch('/api/chatRooms/rooms/my');
+      const response = await fetch('/api/chatRooms/my');
       const result = await response.json();
 
       console.log('📋 API 응답:', result);

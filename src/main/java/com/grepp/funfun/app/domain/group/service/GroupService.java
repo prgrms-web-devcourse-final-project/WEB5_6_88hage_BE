@@ -1,23 +1,15 @@
 package com.grepp.funfun.app.domain.group.service;
 
 import com.grepp.funfun.app.delete.util.ReferencedWarning;
-import com.grepp.funfun.app.domain.chat.entity.GroupChatRoom;
-import com.grepp.funfun.app.domain.chat.vo.ChatRoomType;
-import com.grepp.funfun.app.domain.content.entity.Content;
-import com.grepp.funfun.app.domain.group.dto.GroupHashtagDTO;
-import com.grepp.funfun.app.domain.group.dto.GroupParticipantDTO;
-import com.grepp.funfun.app.domain.group.dto.GroupWithReasonDTO;
-import com.grepp.funfun.app.domain.group.dto.payload.GroupMyResponse;
-import com.grepp.funfun.app.domain.group.dto.payload.GroupRequest;
-import com.grepp.funfun.app.domain.group.dto.payload.GroupResponse;
-import com.grepp.funfun.app.domain.bookmark.entity.GroupBookmark;
-import com.grepp.funfun.app.domain.bookmark.repository.GroupBookmarkRepository;
 import com.grepp.funfun.app.domain.calendar.entity.Calendar;
 import com.grepp.funfun.app.domain.calendar.repository.CalendarRepository;
 import com.grepp.funfun.app.domain.calendar.service.CalendarService;
 import com.grepp.funfun.app.domain.chat.entity.GroupChatRoom;
 import com.grepp.funfun.app.domain.chat.repository.GroupChatRoomRepository;
 import com.grepp.funfun.app.domain.chat.vo.ChatRoomType;
+import com.grepp.funfun.app.domain.group.dto.GroupHashtagDTO;
+import com.grepp.funfun.app.domain.group.dto.GroupParticipantDTO;
+import com.grepp.funfun.app.domain.group.dto.GroupWithReasonDTO;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupListResponse;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupMyResponse;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupRequest;
@@ -38,17 +30,16 @@ import com.grepp.funfun.app.domain.user.vo.UserStatus;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 
 @Service
@@ -58,7 +49,6 @@ public class GroupService {
 
     private final GroupRepository groupRepository;
     private final UserRepository userRepository;
-    private final GroupBookmarkRepository groupBookmarkRepository;
     private final ParticipantRepository participantRepository;
     private final GroupChatRoomRepository groupChatRoomRepository;
     private final CalendarRepository calendarRepository;
@@ -92,11 +82,12 @@ public class GroupService {
             return;
         }
         //중복 확인(키)
-        String key = "group:viewCount:" + groupId + ":user:" + userEmail;
+        String key = "group:" + groupId + ":user:" + userEmail;
 
         boolean isCounted = redisTemplate.hasKey(key);
         if (!isCounted) {
             // 조회수 증가(키)
+            // increment 를 통해 자동적으로 value +1 -> 값이 없으면 0으로 자동 설정
             redisTemplate.opsForValue().increment("group:" + groupId + ":viewCount");
 
             // 10분 유지
@@ -130,7 +121,7 @@ public class GroupService {
     // 내가 리더인 모임 조회
     @Transactional(readOnly = true)
     public List<GroupResponse> findMyLeaderGroups(String userEmail) {
-        return groupRepository.findByLeaderEmail(userEmail).stream()
+        return groupRepository.findByLeaderEmailAndActivatedTrue(userEmail).stream()
             .map(this::convertToGroupResponse)
             .collect(Collectors.toList());
     }
@@ -148,16 +139,13 @@ public class GroupService {
 
         Group savedGroup = groupRepository.save(request.mapToCreate(leader, imageUrl));
 
-        // todo 해시태그 (set 수정 필요)
         if (request.getHashTags() != null && !request.getHashTags().isEmpty()) {
             List<GroupHashtag> hashTags = request.getHashTags().stream()
-                .map(tagName -> {
-                    GroupHashtag hashTag = new GroupHashtag();
-                    hashTag.setTag(tagName);
-                    hashTag.setGroup(savedGroup);
-                    return hashTag;
-                })
-                .collect(Collectors.toList());
+                .map(tagName -> GroupHashtag.builder()
+                    .tag(tagName)
+                    .group(savedGroup)
+                    .build())
+                .toList();
 
             groupHashtagRepository.saveAll(hashTags);
         }
@@ -191,15 +179,18 @@ public class GroupService {
         // 이미지 변경
         String newImageUrl = null;
         if (updateRequest.getImage() != null && !updateRequest.getImage().isEmpty()) {
+
+            if (group.getImageUrl() != null) {
+                s3FileService.delete(group.getImageUrl());
+            }
             newImageUrl = s3FileService.upload(updateRequest.getImage(), "groups");
         }
 
         // 모임 변경 사항 저장
-        Group updatedGroup = updateRequest.mapToUpdate(group, newImageUrl);
-        Group savedGroup = groupRepository.save(updatedGroup);
+        group.applyUpdateFrom(updateRequest, newImageUrl);
 
         // 해시태그 설정
-        updateHashtags(savedGroup, updateRequest.getHashTags());
+        updateHashtags(group, updateRequest.getHashTags());
     }
 
     // 모임 삭제
@@ -242,7 +233,7 @@ public class GroupService {
         Group group = validateGroupWithLeader(groupId,leaderEmail);
 
         if (!Arrays.asList(GroupStatus.FULL, GroupStatus.RECRUITING).contains(group.getStatus())) {
-            throw new IllegalStateException("완료할 수 없는 모임 상태입니다.");
+            throw new CommonException(ResponseCode.BAD_REQUEST,"완료할 수 없는 모임 상태입니다.");
         }
 
         group.changeStatusAndActivated(GroupStatus.COMPLETED);
@@ -270,51 +261,36 @@ public class GroupService {
     // 그룹 존재 확인
     private Group validateGroup(Long groupId) {
         return groupRepository.findById(groupId)
-            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND, "모임을 찾을 수 없습니다."));
     }
 
     // 사용자 검증
     private User validateUser(String userEmail) {
         User user = userRepository.findByEmail(userEmail);
         if (user == null) {
-            throw new CommonException(ResponseCode.NOT_FOUND);
+            throw new CommonException(ResponseCode.NOT_FOUND, "사용자를 찾을 수 없습니다.");
         }
 
         if (user.getStatus() == UserStatus.SUSPENDED || user.getStatus() == UserStatus.BANNED) {
-            throw new CommonException(ResponseCode.UNAUTHORIZED);
+            throw new CommonException(ResponseCode.UNAUTHORIZED, "정지된 사용자 입니다.");
         }
         return user;
     }
 
     private GroupMyResponse convertToGroupMyResponse(Group group, String userEmail) {
+        User currentUser = userRepository.findByEmail(userEmail);
+
         // 내 참가자 정보 찾기
-        Participant myParticipant = group.getParticipants().stream()
-            .filter(p -> p.getUser().getEmail().equals(userEmail))
-            .findFirst()
-            .orElse(null);
-
-        ParticipantStatus myStatus = myParticipant != null ? myParticipant.getStatus() : null;
-        String userNickname = myParticipant != null ? myParticipant.getUser().getNickname() : null;
-
-        // 참여자 이메일들 추출
-        List<String> participantEmails = group.getParticipants().stream()
-            .map(p -> p.getUser().getEmail())
-            .collect(Collectors.toList());
-
-        // 참여자 닉네임들 추출
-        List<String> participantNicknames = group.getParticipants().stream()
-            .map(p -> p.getUser().getNickname())
-            .collect(Collectors.toList());
-
         return GroupMyResponse.builder()
             .groupId(group.getId())
             .groupTitle(group.getTitle())
+            .groupImageUrl(group.getImageUrl())
             .userEmail(userEmail)
-            .userNickname(userNickname)
-            .status(myStatus)
+            .userImageUrl(currentUser.getInfo().getImageUrl())
+            .userNickname(currentUser.getNickname())
+            .participantCount(group.getNowPeople())
+            .status(ParticipantStatus.APPROVED)
             .type(ChatRoomType.GROUP_CHAT)
-            .participantEmails(participantEmails)
-            .participantNicknames(participantNicknames)
             .build();
     }
 
@@ -342,7 +318,7 @@ public class GroupService {
             .title(group.getTitle())
             .explain(group.getExplain())
             .simpleExplain(group.getSimpleExplain())
-//todo            .imageUrl(group.getImageUrl()) CORS 에러 수정 필요
+            .imageUrl(group.getImageUrl())
             .placeName(group.getPlaceName())
             .address(group.getAddress())
             .groupDate(group.getGroupDate())
@@ -368,12 +344,6 @@ public class GroupService {
         final ReferencedWarning referencedWarning = new ReferencedWarning();
         final Group group = groupRepository.findById(id)
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        final GroupBookmark groupGroupBookmark = groupBookmarkRepository.findFirstByGroup(group);
-        if (groupGroupBookmark != null) {
-            referencedWarning.setKey("group.groupBookmark.group.referenced");
-            referencedWarning.addParam(groupGroupBookmark.getId());
-            return referencedWarning;
-        }
         final Participant groupParticipant = participantRepository.findFirstByGroup(group);
         if (groupParticipant != null) {
             referencedWarning.setKey("group.participant.group.referenced");

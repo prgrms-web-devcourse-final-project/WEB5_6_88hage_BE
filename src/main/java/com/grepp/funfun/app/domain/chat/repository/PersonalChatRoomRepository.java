@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface PersonalChatRoomRepository extends JpaRepository<PersonalChatRoom, Long> {
+public interface PersonalChatRoomRepository extends JpaRepository<PersonalChatRoom, Long> , PersonalChatRoomRepositoryCustom{
     // 내가 참여한 모든 개인 채팅방 조회 (OR 조건)
     List<PersonalChatRoom> findByUserAEmailOrUserBEmail(String userAEmail, String userBEmail);
 

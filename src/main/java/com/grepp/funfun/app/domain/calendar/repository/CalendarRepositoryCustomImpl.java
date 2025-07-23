@@ -40,7 +40,8 @@ public class CalendarRepositoryCustomImpl implements CalendarRepositoryCustom{
                 calendar.type,
                 content.id,
                 content.contentTitle,
-                calendar.selectedDate
+                calendar.selectedDate,
+                content.address
             ))
             .from(calendar)
             .join(calendar.content, content)
@@ -60,7 +61,8 @@ public class CalendarRepositoryCustomImpl implements CalendarRepositoryCustom{
                 calendar.type,
                 group.id,
                 group.title,
-                group.groupDate
+                group.groupDate,
+                group.address
             ))
             .from(calendar)
             .join(calendar.group, group)

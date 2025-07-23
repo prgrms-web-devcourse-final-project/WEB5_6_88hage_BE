@@ -64,4 +64,20 @@ public class S3FileService {
     private String getExtension(String filename) {
         return filename.substring(filename.lastIndexOf("."));
     }
+
+    public void delete(String imageUrl) {
+        if (imageUrl == null || imageUrl.isBlank()) return;
+
+        if (!imageUrl.startsWith(s3BaseUrl)) {
+            throw new CommonException(ResponseCode.BAD_REQUEST, "S3 URL 형식이 아닙니다.");
+        }
+
+        String objectKey = imageUrl.replace(s3BaseUrl, "");
+
+        try {
+            s3Template.deleteObject(bucketName, objectKey);
+        } catch (Exception e) {
+            throw new CommonException(ResponseCode.INTERNAL_SERVER_ERROR, "S3 이미지 삭제 실패");
+        }
+    }
 }

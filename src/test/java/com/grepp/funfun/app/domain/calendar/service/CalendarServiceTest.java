@@ -44,17 +44,15 @@ class CalendarServiceTest {
 
     private String email;
     private Long calendarId;
-    private Calendar calendar;
 
     @BeforeEach
     void setUp() {
         email = "user@example.com";
         calendarId = 1L;
-        calendar = new Calendar();
     }
 
     @Test
-    void addContentCalendar_정상() {
+    void addContentCalendar_OK() {
         // given
         Long contentId = 1L;
         LocalDateTime selectedDate = LocalDateTime.of(2025, 7, 8, 10, 0);
@@ -72,7 +70,7 @@ class CalendarServiceTest {
     }
 
     @Test
-    void addContentCalendar_NOT_FOUND_예외() {
+    void addContentCalendar_NOT_FOUND_EX() {
         // given
         Long contentId = 1L;
         LocalDateTime selectedDate = LocalDateTime.of(2025, 7, 8, 10, 0);
@@ -86,9 +84,12 @@ class CalendarServiceTest {
     }
 
     @Test
-    void deleteContentCalendar_정상() {
+    void deleteContentCalendar_OK() {
         // given
-        calendar.setType(ActivityType.CONTENT);
+        Calendar calendar = Calendar.builder()
+            .id(calendarId)
+            .type(ActivityType.CONTENT)
+            .build();
 
         // when
         when(calendarRepository.findByIdAndEmail(calendarId, email)).thenReturn(Optional.of(calendar));
@@ -99,10 +100,13 @@ class CalendarServiceTest {
     }
 
     @Test
-    void deleteContentCalendar_모임타입_예외() {
+    void deleteContentCalendar_GROUP_TYPE_EX() {
         // given
         // GROUP 일 때
-        calendar.setType(ActivityType.GROUP);
+        Calendar calendar = Calendar.builder()
+            .id(calendarId)
+            .type(ActivityType.GROUP)
+            .build();
 
         // when, then
         when(calendarRepository.findByIdAndEmail(calendarId, email)).thenReturn(Optional.of(calendar));
@@ -110,9 +114,8 @@ class CalendarServiceTest {
     }
 
     @Test
-    void deleteContentCalendar_NOT_FOUND_예외() {
+    void deleteContentCalendar_NOT_FOUND_EX() {
         // given
-        calendar.setType(ActivityType.CONTENT);
 
         // when, then
         when(calendarRepository.findByIdAndEmail(calendarId, email)).thenReturn(Optional.empty());
@@ -120,10 +123,13 @@ class CalendarServiceTest {
     }
 
     @Test
-    void updateContentCalendar_정상() {
+    void updateContentCalendar_OK() {
         // given
         LocalDateTime newDate = LocalDateTime.of(2025, 7, 8, 12, 0);
-        calendar.setType(ActivityType.CONTENT);
+        Calendar calendar = Calendar.builder()
+            .id(calendarId)
+            .type(ActivityType.CONTENT)
+            .build();
 
         // when
         when(calendarRepository.findByIdAndEmail(calendarId, email)).thenReturn(Optional.of(calendar));
@@ -134,11 +140,14 @@ class CalendarServiceTest {
     }
 
     @Test
-    void updateContentCalendar_모임타입_예외() {
+    void updateContentCalendar_GROUP_TYPE_EX() {
         // given
         LocalDateTime newDate = LocalDateTime.of(2025, 7, 8, 12, 0);
         // GROUP 일 때
-        calendar.setType(ActivityType.GROUP);
+        Calendar calendar = Calendar.builder()
+            .id(calendarId)
+            .type(ActivityType.GROUP)
+            .build();
 
         // when, then
         when(calendarRepository.findByIdAndEmail(calendarId, email)).thenReturn(Optional.of(calendar));
@@ -146,10 +155,9 @@ class CalendarServiceTest {
     }
 
     @Test
-    void updateContentCalendar_NOT_FOUND_예외() {
+    void updateContentCalendar_NOT_FOUND_EX() {
         // given
         LocalDateTime newDate = LocalDateTime.of(2025, 7, 8, 12, 0);
-        calendar.setType(ActivityType.CONTENT);
 
         // when, then
         when(calendarRepository.findByIdAndEmail(calendarId, email)).thenReturn(Optional.empty());
@@ -157,7 +165,7 @@ class CalendarServiceTest {
     }
 
     @Test
-    void addGroupCalendar_정상() {
+    void addGroupCalendar_OK() {
         // given
         Group group = new Group();
 
@@ -169,7 +177,7 @@ class CalendarServiceTest {
     }
 
     @Test
-    void deleteGroupCalendar_정상() {
+    void deleteGroupCalendar_OK() {
         // given
         Long groupId = 1L;
 
@@ -181,7 +189,7 @@ class CalendarServiceTest {
     }
 
     @Test
-    void deleteGroupCalendarForUser_정상() {
+    void deleteGroupCalendarForUser_OK() {
         // given
         Long groupId = 1L;
 
@@ -193,15 +201,29 @@ class CalendarServiceTest {
     }
 
     @Test
-    void getMonthly_정상() {
+    void getMonthly_OK() {
         // given
         YearMonth month = YearMonth.of(2025, 7);
 
         LocalDateTime start = month.atDay(1).atStartOfDay();
         LocalDateTime end = month.atEndOfMonth().atTime(LocalTime.MAX);
 
-        CalendarMonthlyResponse content1 = new CalendarMonthlyResponse(1L, ActivityType.CONTENT,1L, "축제", LocalDateTime.of(2025, 7, 5, 10, 0));
-        CalendarMonthlyResponse group1 = new CalendarMonthlyResponse(2L, ActivityType.GROUP, 1L, "모임", LocalDateTime.of(2025, 7, 12, 15, 0));
+        CalendarMonthlyResponse content1 = CalendarMonthlyResponse.builder()
+            .calendarId(1L)
+            .type(ActivityType.CONTENT)
+            .activityId(1L)
+            .title("축제")
+            .selectedDate(LocalDateTime.of(2025, 7, 5, 10, 0))
+            .address("주소1")
+            .build();
+        CalendarMonthlyResponse group1 = CalendarMonthlyResponse.builder()
+            .calendarId(2L)
+            .type(ActivityType.GROUP)
+            .activityId(1L)
+            .title("모임")
+            .selectedDate(LocalDateTime.of(2025, 7, 12, 15, 0))
+            .address("주소2")
+            .build();
 
         // when
         when(calendarRepository.findMonthlyContentCalendars(email, start, end))
@@ -217,7 +239,7 @@ class CalendarServiceTest {
     }
 
     @Test
-    void getDaily_정상() {
+    void getDaily_OK() {
         // given
         LocalDate date = LocalDate.of(2025, 7, 8);
         LocalDateTime date1 = date.atTime(10, 0);
@@ -243,7 +265,7 @@ class CalendarServiceTest {
     }
 
     @Test
-    void getDailyForContent_정상() {
+    void getDailyForContent_OK() {
         // given
         LocalDate localDate = LocalDate.of(2025, 7, 8);
         LocalDateTime localDateTime = localDate.atTime(9, 0);

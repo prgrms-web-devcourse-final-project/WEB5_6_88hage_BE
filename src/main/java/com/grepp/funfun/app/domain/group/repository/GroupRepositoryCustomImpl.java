@@ -2,8 +2,8 @@ package com.grepp.funfun.app.domain.group.repository;
 
 import static com.grepp.funfun.app.domain.group.entity.QGroupHashtag.groupHashtag;
 import static com.grepp.funfun.app.domain.participant.entity.QParticipant.participant;
-import static com.grepp.funfun.app.domain.user.entity.QUser.user;
 
+import com.grepp.funfun.app.domain.chat.entity.QGroupChatRoom;
 import com.grepp.funfun.app.domain.group.entity.Group;
 import com.grepp.funfun.app.domain.group.entity.QGroup;
 import com.grepp.funfun.app.domain.group.entity.QGroupHashtag;
@@ -34,6 +34,7 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
     private final QGroup group = QGroup.group;
     private final QUser user = QUser.user;
     private final QUser leader = new QUser("leader");
+    private final QGroupChatRoom groupChatRoom = QGroupChatRoom.groupChatRoom;
     
     QGroupHashtag hashtag = QGroupHashtag.groupHashtag;
 
@@ -56,33 +57,18 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
     @Override
     public List<Group> findMyGroups(String userEmail) {
         // 내가 참여중인 그룹 ID
-        List<Long> myGroupIds = queryFactory
-            .select(participant.group.id)
-            .from(participant)
+        return queryFactory
+            .selectFrom(group)
+            .join(groupChatRoom).on(groupChatRoom.groupId.eq(group.id)).fetchJoin()
+            .join(group.participants, participant)
             .join(participant.user, user)
             .where(
                 user.email.eq(userEmail)
                     .and(participant.status.eq(ParticipantStatus.APPROVED))
-                    .and(user.activated.eq(true))
-            )
-            .distinct()
-            .fetch();
-
-        // 해당 그룹들의 모든 참가자들 가져오기
-        return queryFactory
-            .selectFrom(group)
-            .join(group.participants, participant).fetchJoin()
-            .join(participant.user, user).fetchJoin()
-            .where(
-                group.id.in(myGroupIds)
                     .and(group.activated.eq(true))
-                    .and(participant.status.eq(ParticipantStatus.APPROVED))
-                    .and(user.activated.eq(true))
             )
-            .distinct()
             .fetch();
     }
-
 
     // 모임 상세 조회
     @Override
@@ -97,9 +83,60 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
                 )
                 .fetchOne()
         );
-
     }
 
+    // 키워드 조회(for 가독성)
+    private BooleanExpression keywordFilter(String keyword) {
+        if (keyword == null || keyword.isBlank()) return null;
+
+        return group.title.containsIgnoreCase(keyword)
+            .or(group.simpleExplain.containsIgnoreCase(keyword))
+            .or(JPAExpressions.selectOne()
+                .from(groupHashtag)
+                .where(groupHashtag.group.eq(group)
+                    .and(groupHashtag.tag.containsIgnoreCase(keyword)))
+                .exists());
+    }
+
+    // 거리순 조회(for 가독성)
+    private JPAQuery<Group> distanceSort(JPAQuery<Group> query, String userEmail) {
+        if (userEmail == null) return null;
+
+        User currentUser = queryFactory
+            .selectFrom(user)
+            .where(user.email.eq(userEmail))
+            .fetchOne();
+
+        if (currentUser == null || currentUser.getLatitude() == null || currentUser.getLongitude() == null) {
+            return null;
+        }
+
+        NumberExpression<Double> distance = Expressions.numberTemplate(Double.class,
+            "6371 * acos(" +
+                "LEAST(1.0, GREATEST(-1.0, " +
+                "cos(radians({0})) * cos(radians({1})) * " +
+                "cos(radians({2}) - radians({3})) + " +
+                "sin(radians({0})) * sin(radians({1})))))",
+            currentUser.getLatitude(), group.latitude,
+            currentUser.getLongitude(), group.longitude);
+
+        return query
+            .where(group.latitude.isNotNull(), group.longitude.isNotNull())
+            .orderBy(distance.asc());
+    }
+
+    private JPAQuery<Group> applySort(JPAQuery<Group> query, String sortBy, String userEmail) {
+        return switch (sortBy != null ? sortBy : "distance") {
+            case "recent" -> query.orderBy(group.createdAt.desc());
+            case "viewCount" -> query.orderBy(group.viewCount.desc());
+            default -> {
+                JPAQuery<Group> distanceQuery = distanceSort(query, userEmail);
+                yield (distanceQuery != null) ? distanceQuery : query.orderBy(group.createdAt.desc());
+            }
+        };
+    }
+
+    // 모임 조회(거리순,최신순,키워드,조회순)
     @Override
     public Page<Group> findGroups(
         String category,
@@ -108,64 +145,19 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
         String userEmail,
         Pageable pageable
     ) {
-        // 키워드 조건 구성
-        BooleanExpression keywordCondition = null;
-        if (keyword != null) {
-            keywordCondition = group.title.containsIgnoreCase(keyword)
-                .or(group.simpleExplain.containsIgnoreCase(keyword))
-                .or(JPAExpressions.selectOne()
-                    .from(groupHashtag)
-                    .where(groupHashtag.group.eq(group)
-                        .and(groupHashtag.tag.containsIgnoreCase(keyword)))
-                    .exists());
-        }
+        BooleanExpression keywordCondition = keywordFilter(keyword);
+        BooleanExpression categoryCondition = (category != null)
+            ? group.category.eq(GroupClassification.valueOf(category))
+            : null;
 
         JPAQuery<Group> baseQuery = queryFactory
             .selectFrom(group)
-            .where(
-                group.activated.eq(true),
-                category != null ? group.category.eq(GroupClassification.valueOf(category)) : null,
-                keywordCondition
-            );
-
-        String sort = (sortBy != null) ? sortBy : "distance";
+            .where(group.activated.eq(true), categoryCondition, keywordCondition);
 
         // 정렬 적용
-        JPAQuery<Group> orderedQuery = switch (sort) {
-            case "recent" -> baseQuery.orderBy(group.createdAt.desc());
-            case "viewCount" -> baseQuery.orderBy(group.viewCount.desc());
-            default -> {
-                if (userEmail != null) {
-                    User currentUser = queryFactory
-                        .selectFrom(user)
-                        .where(user.email.eq(userEmail))
-                        .fetchOne();
+        JPAQuery<Group> orderedQuery = applySort(baseQuery, sortBy, userEmail);
 
-                    if (currentUser != null &&
-                        currentUser.getLatitude() != null &&
-                        currentUser.getLongitude() != null) {
-
-                        NumberExpression<Double> distance = Expressions.numberTemplate(Double.class,
-                            "6371 * acos(" +
-                                "LEAST(1.0, GREATEST(-1.0, " +
-                                "cos(radians({0})) * cos(radians({1})) * " +
-                                "cos(radians({2}) - radians({3})) + " +
-                                "sin(radians({0})) * sin(radians({1}))" +
-                                "))" +
-                                ")",
-                            currentUser.getLatitude(), group.latitude,
-                            currentUser.getLongitude(), group.longitude);
-
-                        yield baseQuery
-                            .where(group.latitude.isNotNull(), group.longitude.isNotNull())
-                            .orderBy(distance.asc());
-                    }
-                }
-                yield baseQuery.orderBy(group.createdAt.desc());
-            }
-        };
-
-        // 페이징된 컨텐츠 조회
+        // 페이징 처리
         List<Group> content = orderedQuery
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())
@@ -175,11 +167,7 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
         JPAQuery<Long> countQuery = queryFactory
             .select(group.count())
             .from(group)
-            .where(
-                group.activated.eq(true),
-                category != null ? group.category.eq(GroupClassification.valueOf(category)) : null,
-                keywordCondition
-            );
+            .where(group.activated.eq(true), categoryCondition, keywordCondition);
 
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
     }

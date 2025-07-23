@@ -17,8 +17,7 @@ public class ContentUrl {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String siteName; // ex) 인터파크
-
+    private String siteName;
     private String url;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -1,8 +1,8 @@
 package com.grepp.funfun.app.domain.group.dto.payload;
 
+import com.grepp.funfun.app.domain.group.entity.Group;
 import com.grepp.funfun.app.domain.group.vo.GroupClassification;
 import com.grepp.funfun.app.domain.group.vo.GroupStatus;
-import com.grepp.funfun.app.domain.group.entity.Group;
 import com.grepp.funfun.app.domain.user.entity.User;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -28,6 +28,7 @@ public class GroupRequest {
     private String explain;
 
     @NotBlank(message="모임 한 줄 소개는 필수로 입력해야 합니다.")
+//    @Size(max=100, message="모임 한 줄 소개는 100자 이하로 입력해야 합니다.")
     private String simpleExplain;
 
     //모임 장소
@@ -83,29 +84,6 @@ public class GroupRequest {
             .latitude(this.latitude)
             .longitude(this.longitude)
             .during(this.during)
-            .build();
-    }
-
-    // 수정용 메서드
-    public Group mapToUpdate(Group existingGroup, String newImageUrl) {
-        return Group.builder()
-            .id(existingGroup.getId())
-            .leader(existingGroup.getLeader())
-            .title(this.title)
-            .explain(this.explain)
-            .simpleExplain(this.simpleExplain)
-            .placeName(this.placeName)
-            .groupDate(this.groupDate)
-            .address(this.address)
-            .category(this.category)
-            .maxPeople(this.maxPeople)
-            .latitude(this.latitude)
-            .longitude(this.longitude)
-            .during(this.during)
-            .imageUrl(newImageUrl != null ? newImageUrl : existingGroup.getImageUrl())
-            .viewCount(existingGroup.getViewCount())
-            .nowPeople(existingGroup.getNowPeople())
-            .status(existingGroup.getStatus())
             .build();
     }
 }

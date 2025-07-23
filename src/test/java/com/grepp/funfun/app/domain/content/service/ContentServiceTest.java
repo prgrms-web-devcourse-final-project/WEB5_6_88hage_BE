@@ -8,6 +8,7 @@ import com.grepp.funfun.app.domain.content.repository.ContentRepository;
 import com.grepp.funfun.app.domain.content.vo.ContentClassification;
 import com.grepp.funfun.app.domain.user.dto.UserDTO;
 import com.grepp.funfun.app.domain.user.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
+@Slf4j
 class ContentServiceTest {
 
     @InjectMocks
@@ -92,13 +94,12 @@ class ContentServiceTest {
         assertThat(result.getContent()).isNotEmpty();
         assertThat(result.getTotalElements()).isEqualTo(3);
 
-        System.out.println("========== 전체 조회 (기본 정렬: 가까운순) ===========");
-        System.out.println("총 개수: " + result.getTotalElements());
-        System.out.println("정렬 방식: distance (기본값)");
+        log.info("========== 전체 조회 (기본 정렬: 가까운순) ===========");
+        log.info("총 개수: {}", result.getTotalElements());
+        log.info("정렬 방식: distance (기본값)");
 
         result.getContent().forEach(content ->
-                System.out.println(content.getId() + " - " + content.getContentTitle() +
-                        " (북마크: " + content.getBookmarkCount() + ")")
+                log.info("{} - {} (북마크: {})", content.getId(), content.getContentTitle(), content.getBookmarkCount())
         );
 
         verify(contentRepository).findFilteredContentsByDistance(
@@ -126,16 +127,17 @@ class ContentServiceTest {
 
         assertThat(result).isNotNull();
 
-        System.out.println("============= 무용 카테고리 필터링 ============");
+        log.info("============= 무용 카테고리 필터링 ============");
         if (!result.getContent().isEmpty()) {
             result.getContent().forEach(content ->
-                    System.out.println(content.getContentTitle() + " - 카테고리: " + content.getCategory())
+                    log.info("{} - 카테고리: {}", content.getContentTitle(), content.getCategory())
             );
+
             result.getContent().forEach(content ->
                     assertThat(content.getCategory()).isEqualTo("DANCE")
             );
         } else {
-            System.out.println("무용 카테고리 컨텐츠가 없습니다.");
+            log.info("무용 카테고리 컨텐츠가 없습니다.");
         }
     }
 
@@ -163,12 +165,12 @@ class ContentServiceTest {
                     "강남구".equals(content.getGuname())
             );
 
-            System.out.println("======= 강남구 지역 필터링 =======");
+            log.info("======= 강남구 지역 필터링 =======");
             result.getContent().forEach(content ->
-                    System.out.println(content.getContentTitle() + " - 지역: " + content.getGuname())
+                    log.info("{} - 지역: {}", content.getContentTitle(), content.getGuname())
             );
         } else {
-            System.out.println("강남구 컨텐츠가 없습니다.");
+            log.info("강남구 컨텐츠가 없습니다.");
         }
     }
 
@@ -190,16 +192,16 @@ class ContentServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getContent()).isNotEmpty();
 
-        System.out.println("========== 가까운순 정렬 (사용자 위치 기준) ==========");
-        System.out.println("기준 위치: 강남역 (37.4981, 127.0276)");
-        System.out.println("총 개수: " + result.getTotalElements());
+        log.info("========== 가까운순 정렬 (사용자 위치 기준) ==========");
+        log.info("기준 위치: 강남역 (37.4981, 127.0276)");
+        log.info("총 개수: {}", result.getTotalElements());
 
         result.getContent().forEach(content -> {
             Double lat = content.getLatitude();
             Double lng = content.getLongitude();
             String location = (lat != null && lng != null) ?
                     String.format("(%.4f, %.4f)", lat, lng) : "위치정보없음";
-            System.out.println(content.getContentTitle() + " - " + location);
+            log.info(content.getContentTitle() + " - " + location);
         });
 
         verify(contentRepository).findFilteredContentsByDistance(
@@ -226,12 +228,11 @@ class ContentServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getContent()).isNotEmpty();
 
-        System.out.println("========== 북마크순 정렬 테스트 (Service 로직 검증) ==========");
-        System.out.println("Service가 Repository에 전달한 정렬 조건 확인");
-        System.out.println("총 개수: " + result.getTotalElements());
+        log.info("========== 북마크순 정렬 테스트 (Service 로직 검증) ==========");
+        log.info("Service가 Repository에 전달한 정렬 조건 확인");
+        log.info("총 개수: {}", result.getTotalElements());
         result.getContent().forEach(content ->
-                System.out.println(content.getContentTitle() +
-                        " - 북마크: " + content.getBookmarkCount())
+                log.info("{} - 북마크 {}",content.getContentTitle(),  content.getBookmarkCount())
         );
 
         verify(contentRepository).findFilteredContents(
@@ -242,7 +243,7 @@ class ContentServiceTest {
                             sort.getOrderFor("bookmarkCount") != null &&
                             sort.getOrderFor("bookmarkCount").getDirection() == Sort.Direction.DESC;
 
-                    System.out.println("Service가 올바른 정렬 조건을 전달했는지: " + isCorrectSort);
+                    log.info("Service가 올바른 정렬 조건을 전달했는지: {}", isCorrectSort);
                     return isCorrectSort;
                 }));
     }
@@ -251,7 +252,7 @@ class ContentServiceTest {
     @DisplayName("3. 마감 임박순 정렬 테스트 (가까운 날짜 순)")
     void testEndDateAscSort() {
         ContentFilterRequest request = new ContentFilterRequest();
-        request.setSortBy("endDate");  // startDate → endDate 변경
+        request.setSortBy("endDate");
         Pageable pageable = PageRequest.of(0, 10);
 
         List<Content> sortedByEndDate = mockContents.stream()
@@ -274,11 +275,11 @@ class ContentServiceTest {
             assertThat(current).isBeforeOrEqualTo(next);
         }
 
-        System.out.println("========== 마감 임박순 정렬 (가까운 날짜 순) ==========");
-        System.out.println("총 개수: " + result.getTotalElements());
+        log.info("========== 마감 임박순 정렬 (가까운 날짜 순) ==========");
+        log.info("총 개수: {}",result.getTotalElements());
         result.getContent().forEach(content ->
-                System.out.println(content.getContentTitle() +
-                        " - 마감일: " + content.getEndDate())
+                log.info("{} - 마감일: {}", content.getContentTitle(), content.getEndDate())
+
         );
 
         verify(contentRepository).findFilteredContents(any(), any(), any(), any(), any(), eq(false), any());
@@ -288,7 +289,7 @@ class ContentServiceTest {
     @DisplayName("4. 기본값 테스트 (가까운순이 기본값)")
     void testDefaultSort() {
         setupDistanceSortMocks();
-        ContentFilterRequest request = new ContentFilterRequest(); // sortBy 설정 안함
+        ContentFilterRequest request = new ContentFilterRequest();
         Pageable pageable = PageRequest.of(0, 5);
         Page<Content> mockPage = new PageImpl<>(mockContents.subList(0, 3), pageable, 3);
 
@@ -304,13 +305,12 @@ class ContentServiceTest {
         String expectedSort = request.getSortBy() != null ? request.getSortBy() : "distance";
         assertThat(expectedSort).isEqualTo("distance");
 
-        System.out.println("========== 기본값 테스트 (가까운순) ==========");
-        System.out.println("정렬 방식: " + expectedSort + " (기본값)");
-        System.out.println("총 개수: " + result.getTotalElements());
+        log.info("========== 기본값 테스트 (가까운순) ==========");
+        log.info("정렬 방식: " + expectedSort + " (기본값)");
+        log.info("총 개수: {}",result.getTotalElements());
         result.getContent().forEach(content ->
-                System.out.println(content.getContentTitle() +
-                        " - 시작일: " + content.getStartDate() +
-                        " (북마크: " + content.getBookmarkCount() + ")")
+                log.info("{} - 시작일: {} (북마크: {})", content.getContentTitle(), content.getStartDate(), content.getBookmarkCount())
+
         );
 
         verify(contentRepository).findFilteredContentsByDistance(
@@ -350,12 +350,11 @@ class ContentServiceTest {
             assertThat(current).isBeforeOrEqualTo(next);
         }
 
-        System.out.println("========== 위치 정보 없음 - fallback 테스트 ==========");
-        System.out.println("요청 정렬: distance → 실제 정렬: startDate (fallback)");
-        System.out.println("총 개수: " + result.getTotalElements());
+        log.info("========== 위치 정보 없음 - fallback 테스트 ==========");
+        log.info("요청 정렬: distance → 실제 정렬: startDate (fallback)");
+        log.info("총 개수: {}",result.getTotalElements());
         result.getContent().forEach(content ->
-                System.out.println(content.getContentTitle() +
-                        " - 시작일: " + content.getStartDate())
+                log.info("{} - 시작일: {}", content.getContentTitle(), content.getStartDate())
         );
 
         verify(contentRepository).findFilteredContents(any(), any(), any(), any(), any(), eq(false), any());
@@ -386,10 +385,10 @@ class ContentServiceTest {
 
         assertThat(result).isNotNull();
 
-        System.out.println("========== 키워드 검색 테스트 ==========");
-        System.out.println("검색어: 음악");
+        log.info("========== 키워드 검색 테스트 ==========");
+        log.info("검색어: 음악");
         result.getContent().forEach(content ->
-                System.out.println(content.getContentTitle() + " - 검색어 포함 확인"));
+                log.info("{} - 검색어 포함 확인",content.getContentTitle()));
 
         verify(contentRepository).findFilteredContentsByDistance(
                 any(), any(), any(), any(), eq("음악"),
@@ -419,10 +418,10 @@ class ContentServiceTest {
 
         assertThat(result).isNotNull();
 
-        System.out.println("========== 키워드 검색 테스트 (카테고리-한글) ==========");
-        System.out.println("검색어: 무용");
+        log.info("========== 키워드 검색 테스트 (카테고리-한글) ==========");
+        log.info("검색어: 무용");
         result.getContent().forEach(content ->
-                System.out.println(content.getContentTitle() + " - 카테고리: " + content.getCategory()));
+                log.info("{} - 카테고리: {}",content.getContentTitle(), content.getCategory()));
 
         verify(contentRepository).findFilteredContentsByDistance(
                 any(), any(), any(), any(), eq("무용"),
@@ -458,10 +457,10 @@ class ContentServiceTest {
 
         assertThat(result).isNotNull();
 
-        System.out.println("========== 키워드 검색 테스트 (주소) ==========");
-        System.out.println("검색어: 예술의전당");
+        log.info("========== 키워드 검색 테스트 (주소) ==========");
+        log.info("검색어: 예술의전당");
         result.getContent().forEach(content ->
-                System.out.println(content.getContentTitle() + " - 주소: " + content.getAddress()));
+                log.info("{} - 주소: {}", content.getContentTitle(),content.getAddress()));
 
         verify(contentRepository).findFilteredContentsByDistance(
                 any(), any(), any(), any(), eq("예술의전당"),

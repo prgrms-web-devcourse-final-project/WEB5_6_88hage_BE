@@ -1,13 +1,13 @@
 package com.grepp.funfun.app.domain.group.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.grepp.funfun.app.domain.group.dto.payload.GroupRequest;
 import com.grepp.funfun.app.domain.group.vo.GroupClassification;
 import com.grepp.funfun.app.domain.group.vo.GroupStatus;
 import com.grepp.funfun.app.domain.participant.entity.Participant;
 import com.grepp.funfun.app.domain.user.entity.User;
 import com.grepp.funfun.app.infra.entity.BaseEntity;
 import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -99,6 +99,18 @@ public class Group extends BaseEntity {
         this.status = status;
     }
 
+    public void minusGroupCount(){
+        this.nowPeople--;
+    }
+
+    public void changeStatus(GroupStatus status) {
+        this.status = status;
+    }
+
+    public void approveCount(Integer count){
+        this.nowPeople += count;
+    }
+
     @Override
     public String toString() {
         return "Group{" +
@@ -111,5 +123,23 @@ public class Group extends BaseEntity {
             "이며 모임은 " + during +
             "분동안 활동을 진행하고 category는 " + category.getKoreanName() + "입니다." +
             '}';
+    }
+
+    // 수정용 메서드
+    public void applyUpdateFrom(GroupRequest request, String newImageUrl) {
+        this.title = request.getTitle();
+        this.explain = request.getExplain();
+        this.simpleExplain = request.getSimpleExplain();
+        this.placeName = request.getPlaceName();
+        this.groupDate = request.getGroupDate();
+        this.address = request.getAddress();
+        this.category = request.getCategory();
+        this.maxPeople = request.getMaxPeople();
+        this.latitude = request.getLatitude();
+        this.longitude = request.getLongitude();
+        this.during = request.getDuring();
+        if (newImageUrl != null) {
+            this.imageUrl = newImageUrl;
+        }
     }
 }
