@@ -15,11 +15,17 @@ import lombok.NoArgsConstructor;
 public class GroupSimpleResponse {
 
     private Long groupId;
+
     private String groupTitle;
+
     private String explain;
+
     private String simpleExplain;
+
     private String groupImageUrl;
+
     private GroupStatus groupStatus;
+
     private GroupClassification category;
 
     public static GroupSimpleResponse toSimpleResponse(Group group) {

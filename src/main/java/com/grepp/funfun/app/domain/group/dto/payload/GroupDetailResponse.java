@@ -19,20 +19,16 @@ public class GroupDetailResponse {
 
     private Long id;
 
-    @Size(max = 255)
     private String title;
 
-    @Size(max = 255)
     private String explain;
 
     private String simpleExplain;
 
     private String imageUrl;
 
-    @Size(max = 255)
     private String placeName;
 
-    @Size(max = 255)
     private String address;
 
     private Integer viewCount;
@@ -55,8 +51,6 @@ public class GroupDetailResponse {
 
     private GroupClassification category;
 
-    @NotNull
-    @Size(max = 255)
     private String leaderNickname;
 
     private String leaderEmail;
