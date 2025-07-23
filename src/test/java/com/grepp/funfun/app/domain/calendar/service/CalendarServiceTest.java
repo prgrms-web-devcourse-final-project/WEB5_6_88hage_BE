@@ -208,8 +208,22 @@ class CalendarServiceTest {
         LocalDateTime start = month.atDay(1).atStartOfDay();
         LocalDateTime end = month.atEndOfMonth().atTime(LocalTime.MAX);
 
-        CalendarMonthlyResponse content1 = new CalendarMonthlyResponse(1L, ActivityType.CONTENT,1L, "축제", LocalDateTime.of(2025, 7, 5, 10, 0));
-        CalendarMonthlyResponse group1 = new CalendarMonthlyResponse(2L, ActivityType.GROUP, 1L, "모임", LocalDateTime.of(2025, 7, 12, 15, 0));
+        CalendarMonthlyResponse content1 = CalendarMonthlyResponse.builder()
+            .calendarId(1L)
+            .type(ActivityType.CONTENT)
+            .activityId(1L)
+            .title("축제")
+            .selectedDate(LocalDateTime.of(2025, 7, 5, 10, 0))
+            .address("주소1")
+            .build();
+        CalendarMonthlyResponse group1 = CalendarMonthlyResponse.builder()
+            .calendarId(2L)
+            .type(ActivityType.GROUP)
+            .activityId(1L)
+            .title("모임")
+            .selectedDate(LocalDateTime.of(2025, 7, 12, 15, 0))
+            .address("주소2")
+            .build();
 
         // when
         when(calendarRepository.findMonthlyContentCalendars(email, start, end))
