@@ -7,6 +7,7 @@ import com.grepp.funfun.app.domain.auth.vo.Role;
 import com.grepp.funfun.app.domain.user.dto.UserDTO;
 import com.grepp.funfun.app.domain.user.dto.payload.CoordinateResponse;
 import com.grepp.funfun.app.domain.user.dto.payload.OAuth2SignupRequest;
+import com.grepp.funfun.app.domain.user.dto.payload.UserInfoRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.SignupRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.UserInfoRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.UserInfoResponse;
@@ -366,5 +367,9 @@ public class UserService {
         int age = period.getYears();
 
         return "나는 만" + age + "세야. ";
+    }
+
+    public List<String> getAllUserEmails() {
+        return userRepository.findAllEmails();
     }
 }

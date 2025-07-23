@@ -37,4 +37,6 @@ public class Notification extends BaseEntity {
     private LocalDateTime scheduledAt;
 
     private LocalDateTime sentAt;
+
+    private Long calendarId;
 }

@@ -18,6 +18,7 @@ public class NotificationDTOMapper {
                 .type(entity.getType() != null ? entity.getType().name() : null)
                 .scheduledAt(entity.getScheduledAt())
                 .sentAt(entity.getSentAt())
+                .calendarId(entity.getCalendarId())
                 .build();
     }
 
@@ -30,6 +31,7 @@ public class NotificationDTOMapper {
                 .type(dto.getType() != null ? NotificationType.valueOf(dto.getType().toUpperCase()) : NotificationType.NOTICE)
                 .scheduledAt(dto.getScheduledAt())
                 .sentAt(dto.getSentAt())
+                .calendarId(dto.getCalendarId())
                 .build();
     }
 
