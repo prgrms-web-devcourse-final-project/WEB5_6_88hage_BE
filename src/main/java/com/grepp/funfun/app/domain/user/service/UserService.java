@@ -439,4 +439,8 @@ public class UserService {
             return user.getGroupPreferencesToString();
         }
     }
+
+    public List<String> getAllUserEmails() {
+        return userRepository.findAllEmails();
+    }
 }
