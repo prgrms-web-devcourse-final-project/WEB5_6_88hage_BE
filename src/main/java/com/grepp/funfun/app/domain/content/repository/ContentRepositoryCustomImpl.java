@@ -66,7 +66,6 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
                 .and(keywordEq(keyword));
 
         if (!includeExpired) {
-//            where.and(content.endDate.goe(LocalDate.now()));
             where.and(content.endDate.isNull().or(content.endDate.goe(LocalDate.now())));
         }
 
