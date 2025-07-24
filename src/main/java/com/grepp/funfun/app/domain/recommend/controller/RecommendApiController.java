@@ -1,7 +1,5 @@
 package com.grepp.funfun.app.domain.recommend.controller;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.grepp.funfun.app.domain.content.dto.ContentWithReasonDTO;
 import com.grepp.funfun.app.domain.content.service.ContentService;
 import com.grepp.funfun.app.domain.group.dto.GroupWithReasonDTO;
@@ -11,6 +9,7 @@ import com.grepp.funfun.app.domain.recommend.dto.RecommendDTO;
 import com.grepp.funfun.app.domain.recommend.dto.RecommendGroupDTO;
 import com.grepp.funfun.app.domain.recommend.dto.payload.ChatBotMessage;
 import com.grepp.funfun.app.domain.recommend.dto.payload.ChatBotRequest;
+import com.grepp.funfun.app.domain.recommend.dto.payload.RecommendContentResponse;
 import com.grepp.funfun.app.domain.recommend.dto.payload.RecommendGroupResponse;
 import com.grepp.funfun.app.domain.recommend.dto.payload.RecommendRequest;
 import com.grepp.funfun.app.domain.recommend.dto.payload.RecommendTwoListResponse;
@@ -48,8 +47,8 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = "/api/chatBots", produces = MediaType.APPLICATION_JSON_VALUE)
-public class ChatBotApiController {
+@RequestMapping(value = "/api", produces = MediaType.APPLICATION_JSON_VALUE)
+public class RecommendApiController {
 
     private final ChatBotService chatBotService;
     private final ContentAiService contentAiService;
@@ -60,7 +59,7 @@ public class ChatBotApiController {
     private final AiRequestQueue aiRequestQueue;
     private final ChatBotAiService chatBotAiService;
 
-    @PostMapping("chat")
+    @PostMapping("chatBot/chat")
     @Operation(summary = "챗봇 대화 기능", description = "챗봇과 대화하여 사용자의 취향을 분석함")
     public CompletableFuture<ResponseEntity<ApiResponse<String>>> chat(
         @RequestBody ChatBotRequest request) {
@@ -82,14 +81,13 @@ public class ChatBotApiController {
         );
     }
 
-    @PostMapping("end")
+    @PostMapping("chatBot/end")
     @Operation(summary = "챗봇 대화내용 요약 기능", description = "챗봇과의 대화내용을 바탕으로 사용자의 취향을 분석하여 저장")
     public CompletableFuture<ResponseEntity<ApiResponse<String>>> chatBotCloseAndSummary(
         @RequestBody ChatBotRequest request, Authentication authentication) {
         String prompt = buildChatBotPrompt(request.getChatBotHistory(), null);
         String email = authentication.getName();
         Optional<ChatBot> chatBot = chatBotService.findChatBotSummary(email);
-
         log.info("최종 대화 내역: {}", prompt);
         CompletableFuture<String> future = new CompletableFuture<>();
         aiRequestQueue.addRequest(
@@ -100,11 +98,17 @@ public class ChatBotApiController {
                     chatBotService.updateSummary(chatBot.get()
                                                         .getId(), summary);
                 } else {
-                    ChatBot newChatBot = ChatBot.builder()
-                                                .email(email)
-                                                .contentSummary(summary)
-                                                .build();
-                    chatBotService.registSummary(newChatBot);
+                    if(request.getEventType().equals("CONTENT")){
+                        chatBotService.registSummary(ChatBot.builder()
+                                                            .email(email)
+                                                            .contentSummary(summary)
+                                                            .build());
+                    } else if(request.getEventType().equals("GROUP")){
+                        chatBotService.registSummary(ChatBot.builder()
+                                                            .email(email)
+                                                            .groupSummary(summary)
+                                                            .build());
+                    }
                 }
                 return summary;
             }, future)
@@ -114,7 +118,193 @@ public class ChatBotApiController {
         );
     }
 
-    @PostMapping("content")
+    @PostMapping("chatBot/recommend/content")
+    @Operation(summary = "챗봇 추천 기능 (컨텐츠)", description = "시간, 장소를 입력하여 추천을 받습니다.")
+    public CompletableFuture<ResponseEntity<ApiResponse<RecommendContentResponse>>> chatBotRecommendContent(
+        @RequestBody RecommendRequest request, Authentication authentication
+    ){
+        String email = authentication.getName();
+        Optional<ChatBot> chatBot = chatBotService.findChatBotSummary(email);
+        String summary = null;
+        if (chatBot.isPresent()) {
+            summary = chatBot.get()
+                                    .getContentSummary();
+        }
+
+        String agePrompt = userService.getUserAgePromptByEmail(email);
+
+        String datePrompt = ChatBotService.getDate(request.getStartTime(),
+                                                   request.getEndTime()); // 여가시간
+
+        String prompt =
+            agePrompt + datePrompt + "나는 지금 " + request.getAddress() + "에 있어"
+                + summary
+                + " 이건 나의 취향을 분석한 후 요약한 내용인데 이걸 고려해서 "
+                + " 장소, 여가시간 맞게 실제로 실행할 수 있는 활동들을 추천해줘";
+
+        CompletableFuture<RecommendContentDTO> contentFuture = new CompletableFuture<>();
+
+        aiRequestQueue.addRequest(
+            new AiRequestQueue.AiRequestTask<>(() -> {
+                return contentAiService.chatBotRecommendContent(prompt);
+            }, contentFuture)
+        );
+
+        return contentFuture
+            .thenApplyAsync(contents -> {
+                List<RecommendDTO> recommendList = contents.event();
+                // 추천 이유 맵 생성
+                Map<Long, String> reasonMap = recommendList.stream()
+                                                           .collect(
+                                                               Collectors.toMap(RecommendDTO::id,
+                                                                                RecommendDTO::reason));
+
+                // ID 리스트 생성
+                List<Long> recommendIds = recommendList.stream()
+                                                       .map(RecommendDTO::id)
+                                                       .filter(Objects::nonNull)
+                                                       .toList();
+
+                log.info("모임 추천 결과 ==================");
+                for (RecommendDTO dto : recommendList) {
+                    log.info("id: {}", dto.id());
+                    log.info("추천이유 : {}", dto.reason());
+                }
+
+                List<ContentWithReasonDTO> recommendContents= contentService.findByIds(recommendIds);
+                recommendContents.forEach(content ->
+                                            content.setReason(reasonMap.get(
+                                                content.getId()))
+                );
+
+                RecommendContentResponse finalResponse = RecommendContentResponse.builder()
+                                                                             .contents(
+                                                                                 recommendContents)
+                                                                             .build();
+                return ResponseEntity.ok(ApiResponse.success(finalResponse));
+
+            })
+            .exceptionally(e -> {
+                log.error("API 호출 중 오류 발생: " + e.getMessage(), e);
+                Throwable cause = e.getCause();
+                if (cause instanceof OutputParsingException) {
+                    return ResponseEntity
+                        .status(HttpStatus.BAD_GATEWAY)
+                        .body(ApiResponse.error(ResponseCode.INVALID_API_RESPONSE, "AI 응답이 길어서 Json 파싱에서 문제 발생"));
+                } else if (cause instanceof SocketTimeoutException) {
+                    return ResponseEntity
+                        .status(HttpStatus.GATEWAY_TIMEOUT)
+                        .body(ApiResponse.error(ResponseCode.API_UNAVAILABLE,
+                                                "AI 서버 응답이 지연되고 있습니다. 잠시 후 다시 시도해 주세요."));
+
+                } else {
+                    return ResponseEntity
+                        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR,
+                                                "요청 처리 중 알 수 없는 오류가 발생했습니다."));
+                }
+            });
+    }
+
+    @PostMapping("chatBot/recommend/group")
+    @Operation(summary = "챗봇 추천 기능 (모임)", description = "시간, 장소를 입력하여 추천을 받습니다.")
+    public CompletableFuture<ResponseEntity<ApiResponse<RecommendGroupResponse>>> chatBotRecommendGroup(
+        @RequestBody RecommendRequest request, Authentication authentication
+    ){
+        String email = authentication.getName();
+        Optional<ChatBot> chatBot = chatBotService.findChatBotSummary(email);
+        String summary = null;
+        if (chatBot.isPresent()) {
+            summary = chatBot.get()
+                             .getGroupSummary();
+        }
+
+        String agePrompt = userService.getUserAgePromptByEmail(email);
+
+        String datePrompt = ChatBotService.getDate(request.getStartTime(),
+                                                   request.getEndTime()); // 여가시간
+
+        String prompt =
+            agePrompt + datePrompt + "나는 지금 " + request.getAddress() + "에 있어"
+                + summary
+                + " 이건 나의 취향을 분석한 후 요약한 내용인데 이걸 고려해서 "
+                + " 장소, 여가시간 맞게 실제로 실행할 수 있는 활동들을 추천해줘";
+
+        log.info("작성 프롬프트: {}", prompt);
+
+        CompletableFuture<RecommendGroupDTO> groupFuture = new CompletableFuture<>();
+
+        aiRequestQueue.addRequest(
+            new AiRequestQueue.AiRequestTask<>(() -> {
+                RecommendGroupDTO groups = groupAiService.chatBotRecommendGroup(prompt);
+                return groups;
+            }, groupFuture)
+        );
+
+        return groupFuture
+            .thenApplyAsync(groups -> {
+                List<RecommendDTO> recommendList = groups.group();
+                // 추천 이유 맵 생성
+                Map<Long, String> reasonMap = recommendList.stream()
+                                                           .collect(
+                                                               Collectors.toMap(RecommendDTO::id,
+                                                                                RecommendDTO::reason));
+
+                // ID 리스트 생성
+                List<Long> recommendIds = recommendList.stream()
+                                                       .map(RecommendDTO::id)
+                                                       .filter(Objects::nonNull)
+                                                       .toList();
+
+                log.info("모임 추천 결과 ==================");
+                for (RecommendDTO dto : recommendList) {
+                    log.info("id: {}", dto.id());
+                    log.info("추천이유 : {}", dto.reason());
+                }
+
+                List<GroupWithReasonDTO> recommendGroups = groupService.findByIds(recommendIds);
+                recommendGroups.forEach(content ->
+                                            content.setReason(reasonMap.get(
+                                                content.getId()))
+                );
+
+                RecommendGroupResponse finalResponse = RecommendGroupResponse.builder()
+                                                                             .groups(
+                                                                                 recommendGroups)
+                                                                             .build();
+                return ResponseEntity.ok(ApiResponse.success(finalResponse));
+
+            })
+            .exceptionally(e -> {
+                log.error("API 호출 중 오류 발생: " + e.getMessage(), e);
+
+                // CompletableFuture가 전달하는 예외는 ExecutionException으로 감싸져 있으므로,
+                // 실제 원인(cause)을 확인해야 함
+                Throwable cause = e.getCause();
+
+                // 1. JSON 파싱 오류인지 확인
+                if (cause instanceof OutputParsingException) {
+                    return ResponseEntity
+                        .status(HttpStatus.BAD_GATEWAY)
+                        .body(ApiResponse.error(ResponseCode.INVALID_API_RESPONSE, "AI 응답이 길어서 Json 파싱에서 문제 발생"));
+                    // 2. 소켓 타임아웃 오류인지 확인 (서버 과부하 가능성)
+                } else if (cause instanceof SocketTimeoutException) {
+                    return ResponseEntity
+                        .status(HttpStatus.GATEWAY_TIMEOUT)
+                        .body(ApiResponse.error(ResponseCode.API_UNAVAILABLE,
+                                                "AI 서버 응답이 지연되고 있습니다. 잠시 후 다시 시도해 주세요."));
+
+                    // 3. 그 외 알 수 없는 모든 오류
+                } else {
+                    return ResponseEntity
+                        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR,
+                                                "요청 처리 중 알 수 없는 오류가 발생했습니다."));
+                }
+            });
+    }
+
+    @PostMapping("recommend/content")
     @Operation(summary = "AI 빠른추천 기능 (컨텐츠)", description = "시간, 장소를 입력하여 추천을 받습니다.")
     public CompletableFuture<ResponseEntity<ApiResponse<RecommendTwoListResponse>>> quickRecommendContent(
         @RequestBody RecommendRequest request, Authentication authentication) {
@@ -267,7 +457,7 @@ public class ChatBotApiController {
 //                                                                                         .build();
     }
 
-    @PostMapping("group")
+    @PostMapping("recommend/group")
     @Operation(summary = "AI 빠른추천 기능 (모임)", description = "시간, 장소를 입력하여 추천을 받습니다.")
     public CompletableFuture<ResponseEntity<ApiResponse<RecommendGroupResponse>>> quickRecommendGroup(
         @RequestBody RecommendRequest request,
