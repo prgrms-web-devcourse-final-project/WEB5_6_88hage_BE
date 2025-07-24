@@ -30,25 +30,27 @@ public class ChatBotService {
         int day = startTime.getDayOfMonth();
         int hour = startTime.getHour();
         int minute = startTime.getMinute();
-        int dayOfWeekValue = startTime.getDayOfWeek().getValue(); // 월요일=1, 화요일=2, ..., 일요일=7
+        int dayOfWeekValue = startTime.getDayOfWeek()
+                                      .getValue(); // 월요일=1, 화요일=2, ..., 일요일=7
 
         int year2 = endTime.getYear();
         int month2 = endTime.getMonthValue();
         int day2 = endTime.getDayOfMonth();
         int hour2 = endTime.getHour();
         int minute2 = endTime.getMinute();
-        int dayOfWeekValue2 = endTime.getDayOfWeek().getValue();
+        int dayOfWeekValue2 = endTime.getDayOfWeek()
+                                     .getValue();
 
         String dayName = dayOfWeek[dayOfWeekValue];
         String dayName2 = dayOfWeek[dayOfWeekValue2];
 
-        log.info("시작:, {} {} 끝: {} {}",dayOfWeekValue, dayName, dayOfWeekValue2, dayName2 );
+        log.info("시작:, {} {} 끝: {} {}", dayOfWeekValue, dayName, dayOfWeekValue2, dayName2);
 
         // 문자열 조합
         String start = String.format("나는 %d-%02d-%02d %s %d시 %02d분 부터 ",
-                                      year, month, day, dayName, hour, minute);
+                                     year, month, day, dayName, hour, minute);
         String end = String.format("%d-%02d-%02d %s %d시 %02d분 까지 여기시간이야 ",
-                                      year2, month2, day2, dayName2, hour2, minute2);
+                                   year2, month2, day2, dayName2, hour2, minute2);
         return start + end;
     }
 
@@ -70,14 +72,29 @@ public class ChatBotService {
     public List<ChatBotDTO> findAll() {
         final List<ChatBot> chatBots = chatBotRepository.findAll(Sort.by("id"));
         return chatBots.stream()
-                .map(chatBot -> mapToDTO(chatBot, new ChatBotDTO()))
-                .toList();
+                       .map(chatBot -> mapToDTO(chatBot, new ChatBotDTO()))
+                       .toList();
     }
 
     public ChatBotDTO get(final Long id) {
         return chatBotRepository.findById(id)
-                .map(chatBot -> mapToDTO(chatBot, new ChatBotDTO()))
-                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+                                .map(chatBot -> mapToDTO(chatBot, new ChatBotDTO()))
+                                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+    }
+
+    public Long create(final ChatBotDTO chatBotDTO) {
+        final ChatBot chatBot = new ChatBot();
+        mapToEntity(chatBotDTO, chatBot);
+        return chatBotRepository.save(chatBot)
+                                .getId();
+    }
+
+    public void update(final Long id, final ChatBotDTO chatBotDTO) {
+        final ChatBot chatBot = chatBotRepository.findById(id)
+                                                 .orElseThrow(() -> new CommonException(
+                                                     ResponseCode.NOT_FOUND));
+        mapToEntity(chatBotDTO, chatBot);
+        chatBotRepository.save(chatBot);
     }
 
     public void delete(final Long id) {
@@ -93,6 +110,13 @@ public class ChatBotService {
         return chatBotDTO;
     }
 
-
-
+    private ChatBot mapToEntity(final ChatBotDTO chatBotDTO, final ChatBot chatBot) {
+        chatBot.builder()
+               .email(chatBotDTO.getEmail())
+               .contentSummary(chatBotDTO.getContentSummary())
+               .groupSummary(chatBotDTO.getGroupSummary())
+               .type(chatBotDTO.getType())
+               .build();
+        return chatBot;
+    }
 }
