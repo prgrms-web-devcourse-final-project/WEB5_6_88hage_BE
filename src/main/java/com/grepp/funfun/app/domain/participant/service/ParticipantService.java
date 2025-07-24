@@ -22,7 +22,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(readOnly = true)
 public class ParticipantService {
 
     private final ParticipantRepository participantRepository;
@@ -196,7 +196,6 @@ public class ParticipantService {
     }
 
     // 모임 신청한 사용자 조회
-    @Transactional(readOnly = true)
     public List<ParticipantResponse> getPendingParticipants(Long groupId) {
         validateActiveGroup(groupId);
 
@@ -208,7 +207,6 @@ public class ParticipantService {
     }
 
     // 모임 신청한 승인 사용자 조회
-    @Transactional(readOnly = true)
     public List<ParticipantResponse> getApproveParticipants(Long groupId) {
         validateActiveGroup(groupId);
 
@@ -263,19 +261,5 @@ public class ParticipantService {
         if(leader.getStatus() == UserStatus.SUSPENDED || leader.getStatus() == UserStatus.BANNED){
             throw new CommonException(ResponseCode.UNAUTHORIZED, "정지된 사용자입니다.");
         }
-    }
-    // ------------------------------여기 까지 ------------------------------------
-
-    public List<ParticipantResponse> findAll() {
-        final List<Participant> participants = participantRepository.findAll(Sort.by("id"));
-        return participants.stream()
-            .map(ParticipantResponse::from)
-            .toList();
-    }
-
-    public ParticipantResponse get(final Long id) {
-        return participantRepository.findById(id)
-            .map(ParticipantResponse::from)
-            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
     }
 }

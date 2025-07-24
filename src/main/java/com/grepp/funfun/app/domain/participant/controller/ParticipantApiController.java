@@ -4,7 +4,6 @@ import com.grepp.funfun.app.domain.participant.dto.payload.GroupCompletedStatsRe
 import com.grepp.funfun.app.domain.participant.dto.payload.ParticipantResponse;
 import com.grepp.funfun.app.domain.participant.service.ParticipantService;
 import com.grepp.funfun.app.infra.response.ApiResponse;
-import com.grepp.funfun.app.infra.response.ResponseCode;
 import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +32,7 @@ public class ParticipantApiController {
     @Operation(summary = "모임 신청 사용자 조회(for 승인/거절)", description = "특정 GROUP 의 TRUE/PENDING 상태의 사용자 조회")
     public ResponseEntity<ApiResponse<List<ParticipantResponse>>> pendingParticipant(
         @PathVariable Long groupId) {
+
         List<ParticipantResponse> participants = participantService.getPendingParticipants(groupId);
         return ResponseEntity.ok(ApiResponse.success(participants));
     }
@@ -42,6 +42,7 @@ public class ParticipantApiController {
     @Operation(summary = "모임 승인 사용자 조회(for 강제퇴장)", description = "특정 GROUP 의 TRUE/APPROVE 상태의 사용자 조회")
     public ResponseEntity<ApiResponse<List<ParticipantResponse>>> approveParticipant(
         @PathVariable Long groupId) {
+
         List<ParticipantResponse> participants = participantService.getApproveParticipants(groupId);
         return ResponseEntity.ok(ApiResponse.success(participants));
 
@@ -54,14 +55,9 @@ public class ParticipantApiController {
         @PathVariable Long groupId,
         Authentication authentication) {
 
-        try {
-            String userEmail = authentication.getName();
-            participantService.apply(groupId, userEmail);
-            return ResponseEntity.ok(ApiResponse.success("모임 신청 완료되었습니다."));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, e.getMessage()));
-        }
+        String userEmail = authentication.getName();
+        participantService.apply(groupId, userEmail);
+        return ResponseEntity.ok(ApiResponse.success("모임 신청 완료되었습니다."));
     }
 
     // 참여 승인
@@ -71,17 +67,9 @@ public class ParticipantApiController {
         @RequestBody List<String> userEmails,
         Authentication authentication) {
 
-        try {
-            String leaderEmail = authentication.getName();
-
-            participantService.approveParticipant(groupId, userEmails, leaderEmail);
-
-            return ResponseEntity.ok(ApiResponse.success("모임 승인 완료되었습니다."));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, e.getMessage()));
-        }
-
+        String leaderEmail = authentication.getName();
+        participantService.approveParticipant(groupId, userEmails, leaderEmail);
+        return ResponseEntity.ok(ApiResponse.success("모임 승인 완료되었습니다."));
     }
 
     // 참여 거절
@@ -91,17 +79,9 @@ public class ParticipantApiController {
         @RequestBody List<String> userEmails,
         Authentication authentication) {
 
-        try {
-            String leaderEmail = authentication.getName();
-
-            participantService.rejectParticipant(groupId, userEmails, leaderEmail);
-
-            return ResponseEntity.ok(ApiResponse.success("모임 거절 완료되었습니다."));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, e.getMessage()));
-        }
-
+        String leaderEmail = authentication.getName();
+        participantService.rejectParticipant(groupId, userEmails, leaderEmail);
+        return ResponseEntity.ok(ApiResponse.success("모임 거절 완료되었습니다."));
     }
 
     // 참여자 강퇴
@@ -111,17 +91,9 @@ public class ParticipantApiController {
         @RequestParam String targetEmail,
         Authentication authentication) {
 
-        try {
-            String leaderEmail = authentication.getName();
-
-            participantService.kickOut(groupId, targetEmail, leaderEmail);
-
-            return ResponseEntity.ok(ApiResponse.success("모임 강제퇴장이 완료되었습니다."));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, e.getMessage()));
-        }
-
+        String leaderEmail = authentication.getName();
+        participantService.kickOut(groupId, targetEmail, leaderEmail);
+        return ResponseEntity.ok(ApiResponse.success("모임 강제퇴장이 완료되었습니다."));
     }
 
     // 모임 나가기
@@ -130,23 +102,18 @@ public class ParticipantApiController {
     public ResponseEntity<ApiResponse<String>> leaveParticipant(@PathVariable Long groupId,
         Authentication authentication) {
 
-        try {
-            String userEmail = authentication.getName();
-            participantService.leave(groupId, userEmail);
-
-            return ResponseEntity.ok(ApiResponse.success("모임 나가기가 완료되었습니다."));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, e.getMessage()));
-        }
-
+        String userEmail = authentication.getName();
+        participantService.leave(groupId, userEmail);
+        return ResponseEntity.ok(ApiResponse.success("모임 나가기가 완료되었습니다."));
     }
 
     @GetMapping("/stats/group-completed")
     @Operation(summary = "모임 완료 통계", description = "유저가 완료한 모임을 카테고리별로 카운트합니다. (즐겨 찾는 여가 생활)")
-    public ResponseEntity<ApiResponse<List<GroupCompletedStatsResponse>>> getCompletedStats(Authentication authentication) {
+    public ResponseEntity<ApiResponse<List<GroupCompletedStatsResponse>>> getCompletedStats(
+        Authentication authentication) {
         String email = authentication.getName();
-        List<GroupCompletedStatsResponse> result = participantService.getGroupCompletionStats(email);
+        List<GroupCompletedStatsResponse> result = participantService.getGroupCompletionStats(
+            email);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 }
