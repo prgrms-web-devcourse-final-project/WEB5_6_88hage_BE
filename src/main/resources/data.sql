@@ -572,7 +572,7 @@ VALUES
 ('t10@aaa.aaa', 't1@aaa.aaa', true, NOW(), NOW()),
 ('t10@aaa.aaa', 't2@aaa.aaa', true, NOW(), NOW());
 
--- Group 테이블 데이터 삽입 (30개)
+-- Group 테이블 데이터 삽입 (서울 지역만, 최대 인원 10명 이하)
 INSERT INTO "group" (title, explain, simple_explain, place_name, address, group_date,
                      max_people, now_people, image_url, status, latitude, longitude, view_count,
                      during, category, leader_id, activated, created_at, modified_at)
@@ -582,8 +582,8 @@ VALUES
  '2025-07-20 14:00:00', 10, 3, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/0dd754ff-18ae-4172-8487-3632d9540b4e.jpg', 'RECRUITING', 37.5518, 126.9219, 180,
  2, 'ART', 't1@aaa.aaa', true, NOW(), NOW()),
 
-('제주도 여행 동행', '제주도 3박 4일 여행을 함께할 동행을 구합니다.', '제주도 힐링 여행 같이해요', '제주공항', '제주특별자치도 제주시 공항로 2',
- '2025-08-15 10:00:00', 4, 2, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/0dd754ff-18ae-4172-8487-3632d9540b4e.jpg', 'RECRUITING', 33.5066, 126.4920,
+('서울 근교 여행 동행', '서울 근교 당일치기 여행을 함께할 동행을 구합니다.', '서울 근교 힐링 여행 같이해요', '서울역', '서울특별시 용산구 한강대로 405',
+ '2025-08-15 10:00:00', 4, 2, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/0dd754ff-18ae-4172-8487-3632d9540b4e.jpg', 'RECRUITING', 37.5544, 126.9706,
  860, 2, 'TRAVEL', 't1@aaa.aaa', true, NOW(), NOW()),
 
 ('맛집 탐방 모임', '강남 맛집을 함께 탐방하는 모임입니다.', '강남 맛집 투어', '강남역 2번 출구', '서울특별시 강남구 강남대로 396',
@@ -606,10 +606,6 @@ VALUES
 ('뮤지컬 관람 모임', '라이온킹 뮤지컬을 함께 관람합니다.', '뮤지컬 감상 모임', '샤롯데씨어터', '서울특별시 송파구 올림픽로 240',
  '2025-07-25 19:30:00', 5, 3, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/0dd754ff-18ae-4172-8487-3632d9540b4e.jpg', 'RECRUITING', 37.5115, 127.0980,
  180, 4, 'CULTURE', 't2@aaa.aaa', true, NOW(), NOW()),
-
-('주말 등산 모임', '관악산 등산을 함께하는 모임입니다.', '건강한 주말 등산', '관악산 입구', '서울특별시 관악구 관악로 1', '2025-07-21 08:00:00',
- 12, 7, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/0dd754ff-18ae-4172-8487-3632d9540b4e.jpg', 'RECRUITING', 37.4486, 126.9466, 240, 2, 'SPORT',
- 't2@aaa.aaa', true, NOW(), NOW()),
 
 ('클래식 콘서트 모임', '예술의전당에서 클래식 콘서트를 감상합니다.', '클래식 음악 감상', '예술의전당', '서울특별시 서초구 남부순환로 2406',
  '2025-07-30 19:30:00', 6, 2, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/0dd754ff-18ae-4172-8487-3632d9540b4e.jpg', 'RECRUITING', 37.4797, 127.0114,
@@ -636,17 +632,9 @@ VALUES
  '2025-08-05 14:00:00', 5, 3, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/0dd754ff-18ae-4172-8487-3632d9540b4e.jpg', 'RECRUITING', 37.5567, 126.9230,
  76, 4, 'FOOD', 't3@aaa.aaa', true, NOW(), NOW()),
 
-('독립영화 상영회', '독립영화를 보고 감독과의 대화 시간', '인디영화 감상', '시네마테크', '서울특별시 종로구 돈화문로 13',
- '2025-08-07 18:00:00', 15, 8, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/0dd754ff-18ae-4172-8487-3632d9540b4e.jpg', 'RECRUITING', 37.5759, 126.9987,
- 125, 3, 'MOVIE', 't3@aaa.aaa', true, NOW(), NOW()),
-
 -- t4@aaa.aaa 리더 모임들
-('캘리그라피 클래스', '아름다운 손글씨를 배우는 모임', '캘리그라피 입문', '압구정 문화센터', '서울특별시 강남구 압구정로 165',
- '2025-08-10 10:00:00', 12, 5, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/0dd754ff-18ae-4172-8487-3632d9540b4e.jpg', 'RECRUITING', 37.5273, 127.0286,
- 89, 2, 'ART', 't4@aaa.aaa', true, NOW(), NOW()),
-
-('부산 여행 동행', '부산 2박 3일 여행 동행을 구합니다', '부산 바다 여행', '부산역', '부산광역시 동구 중앙대로 206',
- '2025-08-20 07:00:00', 6, 4, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/0dd754ff-18ae-4172-8487-3632d9540b4e.jpg', 'RECRUITING', 35.1164, 129.0414,
+('한강 여행 동행', '한강 공원에서 피크닉과 산책을 즐기는 모임', '한강 힐링 모임', '여의도 한강공원', '서울특별시 영등포구 여의동로 330',
+ '2025-08-20 07:00:00', 6, 4, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/0dd754ff-18ae-4172-8487-3632d9540b4e.jpg', 'RECRUITING', 37.5287, 126.9336,
  234, 3, 'TRAVEL', 't4@aaa.aaa', true, NOW(), NOW()),
 
 ('한식 요리 클래스', '전통 한식을 배우는 요리 모임', '김치찌개 만들기', '종로 요리학원', '서울특별시 종로구 종로 51',
@@ -666,17 +654,13 @@ VALUES
  '2025-08-18 13:00:00', 6, 3, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/0dd754ff-18ae-4172-8487-3632d9540b4e.jpg', 'RECRUITING', 37.5718, 126.9857,
  112, 4, 'ART', 't5@aaa.aaa', true, NOW(), NOW()),
 
-('강릉 여행 모임', '강릉 바다와 커피거리 여행', '강릉 1박 2일 여행', '강릉역', '강원특별자치도 강릉시 중앙로 1',
- '2025-08-25 08:00:00', 8, 5, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/0dd754ff-18ae-4172-8487-3632d9540b4e.jpg', 'RECRUITING', 37.7633, 128.8997,
+('북촌 한옥마을 투어', '북촌 한옥마을과 전통 문화 체험', '전통 문화 탐방', '북촌한옥마을', '서울특별시 종로구 계동길 37',
+ '2025-08-25 08:00:00', 8, 5, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/0dd754ff-18ae-4172-8487-3632d9540b4e.jpg', 'RECRUITING', 37.5814, 126.9834,
  187, 2, 'TRAVEL', 't5@aaa.aaa', true, NOW(), NOW()),
 
 ('브런치 카페 모임', '을지로 브런치 카페 투어', '브런치 맛집 탐방', '을지로3가역', '서울특별시 중구 을지로 100',
  '2025-08-22 11:00:00', 4, 2, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/0dd754ff-18ae-4172-8487-3632d9540b4e.jpg', 'RECRUITING', 37.5663, 126.9908,
  45, 3, 'FOOD', 't5@aaa.aaa', true, NOW(), NOW()),
-
-('배드민턴 동호회', '주말 배드민턴을 함께 치는 모임', '배드민턴 운동 모임', '잠실 체육관', '서울특별시 송파구 올림픽로 25',
- '2025-08-24 10:00:00', 16, 9, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/0dd754ff-18ae-4172-8487-3632d9540b4e.jpg', 'RECRUITING', 37.5145, 127.0741,
- 201, 3, 'SPORT', 't5@aaa.aaa', true, NOW(), NOW()),
 
 ('게임 대회 모임', 'PC방에서 롤 토너먼트 개최', 'LOL 토너먼트', '강남 PC방', '서울특별시 강남구 강남대로 320',
  '2025-08-26 20:00:00', 10, 8, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/0dd754ff-18ae-4172-8487-3632d9540b4e.jpg', 'RECRUITING', 37.4976, 127.0279,
@@ -687,21 +671,9 @@ VALUES
  '2025-08-28 21:00:00', 6, 4, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/0dd754ff-18ae-4172-8487-3632d9540b4e.jpg', 'RECRUITING', 37.5540, 126.9226,
  134, 4, 'CULTURE', 't6@aaa.aaa', true, NOW(), NOW()),
 
-('파이썬 스터디', '파이썬 기초부터 실무까지', '파이썬 프로그래밍', '역삼 코워킹스페이스', '서울특별시 강남구 역삼로 180',
- '2025-08-30 19:00:00', 12, 7, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/0dd754ff-18ae-4172-8487-3632d9540b4e.jpg', 'RECRUITING', 37.4996, 127.0357,
- 167, 8, 'STUDY', 't6@aaa.aaa', true, NOW(), NOW()),
-
-('애니메이션 상영회', '지브리 애니메이션 단체 관람', '지브리 영화제', '용산 아이파크몰', '서울특별시 용산구 한강대로 23',
- '2025-09-01 15:00:00', 20, 12, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/0dd754ff-18ae-4172-8487-3632d9540b4e.jpg', 'RECRUITING', 37.5305, 126.9647,
- 298, 2, 'MOVIE', 't6@aaa.aaa', true, NOW(), NOW()),
-
-('일본 여행 준비', '일본 여행 계획을 함께 세우는 모임', '일본 여행 플래닝', '강남 스터디룸', '서울특별시 강남구 논현로 842',
- '2025-09-03 18:00:00', 8, 3, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/0dd754ff-18ae-4172-8487-3632d9540b4e.jpg', 'RECRUITING', 37.5120, 127.0386,
- 89, 2, 'TRAVEL', 't6@aaa.aaa', true, NOW(), NOW()),
-
-('마라톤 준비 모임', '서울 마라톤 대회 준비 러닝 모임', '마라톤 훈련', '한강공원', '서울특별시 영등포구 여의동로 330',
- '2025-09-05 06:00:00', 15, 11, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/0dd754ff-18ae-4172-8487-3632d9540b4e.jpg', 'RECRUITING', 37.5287, 126.9336,
- 276, 2, 'SPORT', 't6@aaa.aaa', true, NOW(), NOW());
+('남산 등반 모임', '남산타워까지 등반하는 건강 모임', '남산 등반 챌린지', '남산공원', '서울특별시 중구 소월로 132',
+ '2025-09-03 18:00:00', 8, 3, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/0dd754ff-18ae-4172-8487-3632d9540b4e.jpg', 'RECRUITING', 37.5513, 126.9880,
+ 89, 2, 'SPORT', 't6@aaa.aaa', true, NOW(), NOW());
 
 -- 임의 데이터
 -- 강남구: 26개
@@ -914,7 +886,7 @@ VALUES
 ('한정식 맛집 탐방', '서울 시내 유명 한정식 맛집들을 탐방하는 모임입니다.', '한정식 맛집', '강남 한정식', '서울특별시 강남구 테헤란로 132', '2025-08-13 18:00:00', 5, 2, 'https://example.com/photo1192.jpg', 'RECRUITING', 37.5029, 127.0317, 90, 'FOOD', 't1@aaa.aaa', true, NOW(), NOW()),
 ('영어 토론 스터디', '시사 이슈에 대해 영어로 토론하며 회화 실력을 향상시키는 스터디 그룹입니다.', '영어 토론', '강남역 스터디룸', '서울특별시 강남구 테헤란로 1길 1', '2025-08-15 10:30:00', 7, 3, 'https://example.com/photo1194.jpg', 'RECRUITING', 37.4980, 127.0276, 120, 'STUDY', 't3@aaa.aaa', true, NOW(), NOW());
 
--- Group Hashtag 테이블 데이터 삽입 (30개 그룹용)
+-- Group Hashtag 테이블 데이터 삽입 (서울 지역 모임용)
 INSERT INTO group_hashtag (tag, group_id, created_at, modified_at)
 VALUES
 -- 그림 그리기 모임 (group_id = 1)
@@ -922,10 +894,10 @@ VALUES
 ('힐링', 1, NOW(), NOW()),
 ('창작', 1, NOW(), NOW()),
 
--- 제주도 여행 동행 (group_id = 2)
+-- 서울 근교 여행 동행 (group_id = 2)
 ('여행', 2, NOW(), NOW()),
-('제주도', 2, NOW(), NOW()),
-('바다', 2, NOW(), NOW()),
+('서울근교', 2, NOW(), NOW()),
+('당일치기', 2, NOW(), NOW()),
 
 -- 맛집 탐방 모임 (group_id = 3)
 ('맛집', 3, NOW(), NOW()),
@@ -952,165 +924,123 @@ VALUES
 ('문화', 7, NOW(), NOW()),
 ('라이온킹', 7, NOW(), NOW()),
 
--- 주말 등산 모임 (group_id = 8)
-('등산', 8, NOW(), NOW()),
-('건강', 8, NOW(), NOW()),
-('주말', 8, NOW(), NOW()),
+-- 클래식 콘서트 모임 (group_id = 8)
+('클래식', 8, NOW(), NOW()),
+('콘서트', 8, NOW(), NOW()),
+('음악', 8, NOW(), NOW()),
 
--- 클래식 콘서트 모임 (group_id = 9)
-('클래식', 9, NOW(), NOW()),
-('콘서트', 9, NOW(), NOW()),
-('음악', 9, NOW(), NOW()),
+-- 테니스 레슨 모임 (group_id = 9)
+('테니스', 9, NOW(), NOW()),
+('레슨', 9, NOW(), NOW()),
+('초보자', 9, NOW(), NOW()),
 
--- 테니스 레슨 모임 (group_id = 10)
-('테니스', 10, NOW(), NOW()),
-('레슨', 10, NOW(), NOW()),
-('초보자', 10, NOW(), NOW()),
+-- 영화 감상 모임 (group_id = 10)
+('영화', 10, NOW(), NOW()),
+('토론', 10, NOW(), NOW()),
+('감상', 10, NOW(), NOW()),
 
--- 영화 감상 모임 (group_id = 11)
-('영화', 11, NOW(), NOW()),
-('토론', 11, NOW(), NOW()),
-('감상', 11, NOW(), NOW()),
+-- 요리 클래스 모임 (group_id = 11)
+('요리', 11, NOW(), NOW()),
+('파스타', 11, NOW(), NOW()),
+('이탈리안', 11, NOW(), NOW()),
 
--- 요리 클래스 모임 (group_id = 12)
-('요리', 12, NOW(), NOW()),
-('파스타', 12, NOW(), NOW()),
-('이탈리안', 12, NOW(), NOW()),
+-- 사진 촬영 모임 (group_id = 12)
+('사진', 12, NOW(), NOW()),
+('야경', 12, NOW(), NOW()),
+('한강', 12, NOW(), NOW()),
 
--- 사진 촬영 모임 (group_id = 13)
-('사진', 13, NOW(), NOW()),
-('야경', 13, NOW(), NOW()),
-('한강', 13, NOW(), NOW()),
+-- 디저트 카페 투어 (group_id = 13)
+('디저트', 13, NOW(), NOW()),
+('카페', 13, NOW(), NOW()),
+('홍대', 13, NOW(), NOW()),
 
--- 디저트 카페 투어 (group_id = 14)
-('디저트', 14, NOW(), NOW()),
-('카페', 14, NOW(), NOW()),
-('홍대', 14, NOW(), NOW()),
+-- 한강 여행 동행 (group_id = 14)
+('한강', 14, NOW(), NOW()),
+('피크닉', 14, NOW(), NOW()),
+('힐링', 14, NOW(), NOW()),
 
--- 독립영화 상영회 (group_id = 15)
-('독립영화', 15, NOW(), NOW()),
-('인디', 15, NOW(), NOW()),
-('감독', 15, NOW(), NOW()),
+-- 한식 요리 클래스 (group_id = 15)
+('한식', 15, NOW(), NOW()),
+('김치찌개', 15, NOW(), NOW()),
+('전통', 15, NOW(), NOW()),
 
--- 캘리그라피 클래스 (group_id = 16)
-('캘리그라피', 16, NOW(), NOW()),
-('손글씨', 16, NOW(), NOW()),
-('예술', 16, NOW(), NOW()),
+-- 영어 회화 모임 (group_id = 16)
+('영어', 16, NOW(), NOW()),
+('회화', 16, NOW(), NOW()),
+('스피킹', 16, NOW(), NOW()),
 
--- 부산 여행 동행 (group_id = 17)
-('부산', 17, NOW(), NOW()),
-('여행', 17, NOW(), NOW()),
-('바다', 17, NOW(), NOW()),
+-- 심야 영화 모임 (group_id = 17)
+('심야', 17, NOW(), NOW()),
+('영화', 17, NOW(), NOW()),
+('밤샘', 17, NOW(), NOW()),
 
--- 한식 요리 클래스 (group_id = 18)
-('한식', 18, NOW(), NOW()),
-('김치찌개', 18, NOW(), NOW()),
-('전통', 18, NOW(), NOW()),
+-- 도자기 만들기 (group_id = 18)
+('도자기', 18, NOW(), NOW()),
+('체험', 18, NOW(), NOW()),
+('도예', 18, NOW(), NOW()),
 
--- 영어 회화 모임 (group_id = 19)
-('영어', 19, NOW(), NOW()),
-('회화', 19, NOW(), NOW()),
-('스피킹', 19, NOW(), NOW()),
+-- 북촌 한옥마을 투어 (group_id = 19)
+('북촌', 19, NOW(), NOW()),
+('한옥마을', 19, NOW(), NOW()),
+('전통문화', 19, NOW(), NOW()),
 
--- 심야 영화 모임 (group_id = 20)
-('심야', 20, NOW(), NOW()),
-('영화', 20, NOW(), NOW()),
-('밤샘', 20, NOW(), NOW()),
+-- 브런치 카페 모임 (group_id = 20)
+('브런치', 20, NOW(), NOW()),
+('카페', 20, NOW(), NOW()),
+('을지로', 20, NOW(), NOW()),
 
--- 도자기 만들기 (group_id = 21)
-('도자기', 21, NOW(), NOW()),
-('체험', 21, NOW(), NOW()),
-('도예', 21, NOW(), NOW()),
+-- 게임 대회 모임 (group_id = 21)
+('게임', 21, NOW(), NOW()),
+('LOL', 21, NOW(), NOW()),
+('토너먼트', 21, NOW(), NOW()),
 
--- 강릉 여행 모임 (group_id = 22)
-('강릉', 22, NOW(), NOW()),
-('커피', 22, NOW(), NOW()),
-('바다', 22, NOW(), NOW()),
+-- 재즈 바 투어 (group_id = 22)
+('재즈', 22, NOW(), NOW()),
+('바', 22, NOW(), NOW()),
+('음악', 22, NOW(), NOW()),
 
--- 브런치 카페 모임 (group_id = 23)
-('브런치', 23, NOW(), NOW()),
-('카페', 23, NOW(), NOW()),
-('을지로', 23, NOW(), NOW()),
-
--- 배드민턴 동호회 (group_id = 24)
-('배드민턴', 24, NOW(), NOW()),
-('운동', 24, NOW(), NOW()),
-('동호회', 24, NOW(), NOW()),
-
--- 게임 대회 모임 (group_id = 25)
-('게임', 25, NOW(), NOW()),
-('LOL', 25, NOW(), NOW()),
-('토너먼트', 25, NOW(), NOW()),
-
--- 재즈 바 투어 (group_id = 26)
-('재즈', 26, NOW(), NOW()),
-('바', 26, NOW(), NOW()),
-('음악', 26, NOW(), NOW()),
-
--- 파이썬 스터디 (group_id = 27)
-('파이썬', 27, NOW(), NOW()),
-('프로그래밍', 27, NOW(), NOW()),
-('스터디', 27, NOW(), NOW()),
-
--- 애니메이션 상영회 (group_id = 28)
-('애니메이션', 28, NOW(), NOW()),
-('지브리', 28, NOW(), NOW()),
-('영화제', 28, NOW(), NOW()),
-
--- 일본 여행 준비 (group_id = 29)
-('일본', 29, NOW(), NOW()),
-('여행', 29, NOW(), NOW()),
-('플래닝', 29, NOW(), NOW()),
-
--- 마라톤 준비 모임 (group_id = 30)
-('마라톤', 30, NOW(), NOW()),
-('러닝', 30, NOW(), NOW()),
-('훈련', 30, NOW(), NOW());
+-- 남산 등반 모임 (group_id = 23)
+('남산', 23, NOW(), NOW()),
+('등반', 23, NOW(), NOW()),
+('건강', 23, NOW(), NOW());
 
 -- Participant 테이블 데이터 삽입 (리더들 자동 참여)
 INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
 VALUES
 -- t1@aaa.aaa 리더 모임들 (group_id: 1,2,3,4,5)
 ('LEADER', 'APPROVED', 't1@aaa.aaa', 1, NOW(), NOW()), -- 그림 그리기 모임
-('LEADER', 'APPROVED', 't1@aaa.aaa', 2, NOW(), NOW()), -- 제주도 여행 동행
+('LEADER', 'APPROVED', 't1@aaa.aaa', 2, NOW(), NOW()), -- 서울 근교 여행 동행
 ('LEADER', 'APPROVED', 't1@aaa.aaa', 3, NOW(), NOW()), -- 맛집 탐방 모임
 ('LEADER', 'APPROVED', 't1@aaa.aaa', 4, NOW(), NOW()), -- 독서 토론 모임
 ('LEADER', 'APPROVED', 't1@aaa.aaa', 5, NOW(), NOW()), -- 수채화 클래스
 
--- t2@aaa.aaa 리더 모임들 (group_id: 6,7,8,9,10)
+-- t2@aaa.aaa 리더 모임들 (group_id: 6,7,8,9)
 ('LEADER', 'APPROVED', 't2@aaa.aaa', 6, NOW(), NOW()), -- 보드게임 카페 모임
 ('LEADER', 'APPROVED', 't2@aaa.aaa', 7, NOW(), NOW()), -- 뮤지컬 관람 모임
-('LEADER', 'APPROVED', 't2@aaa.aaa', 8, NOW(), NOW()), -- 주말 등산 모임
-('LEADER', 'APPROVED', 't2@aaa.aaa', 9, NOW(), NOW()), -- 클래식 콘서트 모임
-('LEADER', 'APPROVED', 't2@aaa.aaa', 10, NOW(), NOW()), -- 테니스 레슨 모임
+('LEADER', 'APPROVED', 't2@aaa.aaa', 8, NOW(), NOW()), -- 클래식 콘서트 모임
+('LEADER', 'APPROVED', 't2@aaa.aaa', 9, NOW(), NOW()), -- 테니스 레슨 모임
 
--- t3@aaa.aaa 리더 모임들 (group_id: 11,12,13,14,15)
-('LEADER', 'APPROVED', 't3@aaa.aaa', 11, NOW(), NOW()), -- 영화 감상 모임
-('LEADER', 'APPROVED', 't3@aaa.aaa', 12, NOW(), NOW()), -- 요리 클래스 모임
-('LEADER', 'APPROVED', 't3@aaa.aaa', 13, NOW(), NOW()), -- 사진 촬영 모임
-('LEADER', 'APPROVED', 't3@aaa.aaa', 14, NOW(), NOW()), -- 디저트 카페 투어
-('LEADER', 'APPROVED', 't3@aaa.aaa', 15, NOW(), NOW()), -- 독립영화 상영회
+-- t3@aaa.aaa 리더 모임들 (group_id: 10,11,12,13)
+('LEADER', 'APPROVED', 't3@aaa.aaa', 10, NOW(), NOW()), -- 영화 감상 모임
+('LEADER', 'APPROVED', 't3@aaa.aaa', 11, NOW(), NOW()), -- 요리 클래스 모임
+('LEADER', 'APPROVED', 't3@aaa.aaa', 12, NOW(), NOW()), -- 사진 촬영 모임
+('LEADER', 'APPROVED', 't3@aaa.aaa', 13, NOW(), NOW()), -- 디저트 카페 투어
 
--- t4@aaa.aaa 리더 모임들 (group_id: 16,17,18,19,20)
-('LEADER', 'APPROVED', 't4@aaa.aaa', 16, NOW(), NOW()), -- 캘리그라피 클래스
-('LEADER', 'APPROVED', 't4@aaa.aaa', 17, NOW(), NOW()), -- 부산 여행 동행
-('LEADER', 'APPROVED', 't4@aaa.aaa', 18, NOW(), NOW()), -- 한식 요리 클래스
-('LEADER', 'APPROVED', 't4@aaa.aaa', 19, NOW(), NOW()), -- 영어 회화 모임
-('LEADER', 'APPROVED', 't4@aaa.aaa', 20, NOW(), NOW()), -- 심야 영화 모임
+-- t4@aaa.aaa 리더 모임들 (group_id: 14,15,16,17)
+('LEADER', 'APPROVED', 't4@aaa.aaa', 14, NOW(), NOW()), -- 한강 여행 동행
+('LEADER', 'APPROVED', 't4@aaa.aaa', 15, NOW(), NOW()), -- 한식 요리 클래스
+('LEADER', 'APPROVED', 't4@aaa.aaa', 16, NOW(), NOW()), -- 영어 회화 모임
+('LEADER', 'APPROVED', 't4@aaa.aaa', 17, NOW(), NOW()), -- 심야 영화 모임
 
--- t5@aaa.aaa 리더 모임들 (group_id: 21,22,23,24,25)
-('LEADER', 'APPROVED', 't5@aaa.aaa', 21, NOW(), NOW()), -- 도자기 만들기
-('LEADER', 'APPROVED', 't5@aaa.aaa', 22, NOW(), NOW()), -- 강릉 여행 모임
-('LEADER', 'APPROVED', 't5@aaa.aaa', 23, NOW(), NOW()), -- 브런치 카페 모임
-('LEADER', 'APPROVED', 't5@aaa.aaa', 24, NOW(), NOW()), -- 배드민턴 동호회
-('LEADER', 'APPROVED', 't5@aaa.aaa', 25, NOW(), NOW()), -- 게임 대회 모임
+-- t5@aaa.aaa 리더 모임들 (group_id: 18,19,20,21)
+('LEADER', 'APPROVED', 't5@aaa.aaa', 18, NOW(), NOW()), -- 도자기 만들기
+('LEADER', 'APPROVED', 't5@aaa.aaa', 19, NOW(), NOW()), -- 북촌 한옥마을 투어
+('LEADER', 'APPROVED', 't5@aaa.aaa', 20, NOW(), NOW()), -- 브런치 카페 모임
+('LEADER', 'APPROVED', 't5@aaa.aaa', 21, NOW(), NOW()), -- 게임 대회 모임
 
--- t6@aaa.aaa 리더 모임들 (group_id: 26,27,28,29,30)
-('LEADER', 'APPROVED', 't6@aaa.aaa', 26, NOW(), NOW()), -- 재즈 바 투어
-('LEADER', 'APPROVED', 't6@aaa.aaa', 27, NOW(), NOW()), -- 파이썬 스터디
-('LEADER', 'APPROVED', 't6@aaa.aaa', 28, NOW(), NOW()), -- 애니메이션 상영회
-('LEADER', 'APPROVED', 't6@aaa.aaa', 29, NOW(), NOW()), -- 일본 여행 준비
-('LEADER', 'APPROVED', 't6@aaa.aaa', 30, NOW(), NOW()); -- 마라톤 준비 모임
+-- t6@aaa.aaa 리더 모임들 (group_id: 22,23)
+('LEADER', 'APPROVED', 't6@aaa.aaa', 22, NOW(), NOW()), -- 재즈 바 투어
+('LEADER', 'APPROVED', 't6@aaa.aaa', 23, NOW(), NOW()); -- 남산 등반 모임
 -- 사진 촬영 모임
 
 -- Calendar 테이블 데이터 삽입
@@ -1217,275 +1147,189 @@ VALUES
     (20, 'GROUP_CHAT', '20번 그룹 채팅방', NOW(), NOW()),
     (21, 'GROUP_CHAT', '21번 그룹 채팅방', NOW(), NOW()),
     (22, 'GROUP_CHAT', '22번 그룹 채팅방', NOW(), NOW()),
-    (23, 'GROUP_CHAT', '23번 그룹 채팅방', NOW(), NOW()),
-    (24, 'GROUP_CHAT', '24번 그룹 채팅방', NOW(), NOW()),
-    (25, 'GROUP_CHAT', '25번 그룹 채팅방', NOW(), NOW()),
-    (26, 'GROUP_CHAT', '26번 그룹 채팅방', NOW(), NOW()),
-    (27, 'GROUP_CHAT', '27번 그룹 채팅방', NOW(), NOW()),
-    (28, 'GROUP_CHAT', '28번 그룹 채팅방', NOW(), NOW()),
-    (29, 'GROUP_CHAT', '29번 그룹 채팅방', NOW(), NOW()),
-    (30, 'GROUP_CHAT', '30번 그룹 채팅방', NOW(), NOW());
+    (23, 'GROUP_CHAT', '23번 그룹 채팅방', NOW(), NOW());
 
 -- 추가 참가자 데이터 (그룹 1-10은 기존 데이터 유지, 11-30 추가)
 
+-- 멤버 참가자 데이터 삽입 (서울 지역 23개 모임용)
 -- 그룹 1: 그림 그리기 모임 (now_people: 3, 리더 포함이므로 +2명 APPROVED)
-INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
-VALUES ('MEMBER', 'APPROVED', 't4@aaa.aaa', 1, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't6@aaa.aaa', 1, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't7@aaa.aaa', 1, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't8@aaa.aaa', 1, NOW(), NOW());
+INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at, activated)
+VALUES ('MEMBER', 'APPROVED', 't4@aaa.aaa', 1, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't6@aaa.aaa', 1, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't7@aaa.aaa', 1, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't8@aaa.aaa', 1, NOW(), NOW(), true);
 
--- 그룹 2: 제주도 여행 동행 (now_people: 2, 리더 포함이므로 +1명 APPROVED)
-INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
-VALUES ('MEMBER', 'APPROVED', 't5@aaa.aaa', 2, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't9@aaa.aaa', 2, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't10@aaa.aaa', 2, NOW(), NOW());
+-- 그룹 2: 서울 근교 여행 동행 (now_people: 2, 리더 포함이므로 +1명 APPROVED)
+INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at, activated)
+VALUES ('MEMBER', 'APPROVED', 't5@aaa.aaa', 2, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't9@aaa.aaa', 2, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't10@aaa.aaa', 2, NOW(), NOW(), true);
 
 -- 그룹 3: 맛집 탐방 모임 (now_people: 4, 리더 포함이므로 +3명 APPROVED)
-INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
-VALUES ('MEMBER', 'APPROVED', 't6@aaa.aaa', 3, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't7@aaa.aaa', 3, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't8@aaa.aaa', 3, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't4@aaa.aaa', 3, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't10@aaa.aaa', 3, NOW(), NOW());
+INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at, activated)
+VALUES ('MEMBER', 'APPROVED', 't6@aaa.aaa', 3, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't7@aaa.aaa', 3, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't8@aaa.aaa', 3, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't4@aaa.aaa', 3, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't10@aaa.aaa', 3, NOW(), NOW(), true);
 
 -- 그룹 4: 독서 토론 모임 (now_people: 4, 리더 포함이므로 +3명 APPROVED)
-INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
-VALUES ('MEMBER', 'APPROVED', 't9@aaa.aaa', 4, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't10@aaa.aaa', 4, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't5@aaa.aaa', 4, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't6@aaa.aaa', 4, NOW(), NOW());
+INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at, activated)
+VALUES ('MEMBER', 'APPROVED', 't9@aaa.aaa', 4, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't10@aaa.aaa', 4, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't5@aaa.aaa', 4, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't6@aaa.aaa', 4, NOW(), NOW(), true);
 
 -- 그룹 5: 수채화 클래스 (now_people: 3, 리더 포함이므로 +2명 APPROVED)
-INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
-VALUES ('MEMBER', 'APPROVED', 't3@aaa.aaa', 5, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't4@aaa.aaa', 5, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't7@aaa.aaa', 5, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't8@aaa.aaa', 5, NOW(), NOW());
+INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at, activated)
+VALUES ('MEMBER', 'APPROVED', 't3@aaa.aaa', 5, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't4@aaa.aaa', 5, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't7@aaa.aaa', 5, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't8@aaa.aaa', 5, NOW(), NOW(), true);
 
 -- 그룹 6: 보드게임 카페 모임 (now_people: 5, 리더 포함이므로 +4명 APPROVED)
-INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
-VALUES ('MEMBER', 'APPROVED', 't4@aaa.aaa', 6, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't7@aaa.aaa', 6, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't8@aaa.aaa', 6, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't9@aaa.aaa', 6, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't10@aaa.aaa', 6, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't1@aaa.aaa', 6, NOW(), NOW());
+INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at, activated)
+VALUES ('MEMBER', 'APPROVED', 't4@aaa.aaa', 6, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't7@aaa.aaa', 6, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't8@aaa.aaa', 6, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't9@aaa.aaa', 6, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't10@aaa.aaa', 6, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't1@aaa.aaa', 6, NOW(), NOW(), true);
 
 -- 그룹 7: 뮤지컬 관람 모임 (now_people: 3, 리더 포함이므로 +2명 APPROVED)
-INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
-VALUES ('MEMBER', 'APPROVED', 't1@aaa.aaa', 7, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't3@aaa.aaa', 7, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't5@aaa.aaa', 7, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't6@aaa.aaa', 7, NOW(), NOW());
+INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at, activated)
+VALUES ('MEMBER', 'APPROVED', 't1@aaa.aaa', 7, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't3@aaa.aaa', 7, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't5@aaa.aaa', 7, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't6@aaa.aaa', 7, NOW(), NOW(), true);
 
--- 그룹 8: 주말 등산 모임 (now_people: 7, 리더 포함이므로 +6명 APPROVED)
-INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
-VALUES ('MEMBER', 'APPROVED', 't1@aaa.aaa', 8, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't3@aaa.aaa', 8, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't4@aaa.aaa', 8, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't6@aaa.aaa', 8, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't8@aaa.aaa', 8, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't10@aaa.aaa', 8, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't5@aaa.aaa', 8, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't9@aaa.aaa', 8, NOW(), NOW());
+-- 그룹 8: 클래식 콘서트 모임 (now_people: 2, 리더 포함이므로 +1명 APPROVED)
+INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at, activated)
+VALUES ('MEMBER', 'APPROVED', 't5@aaa.aaa', 8, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't7@aaa.aaa', 8, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't9@aaa.aaa', 8, NOW(), NOW(), true);
 
--- 그룹 9: 클래식 콘서트 모임 (now_people: 2, 리더 포함이므로 +1명 APPROVED)
-INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
-VALUES ('MEMBER', 'APPROVED', 't5@aaa.aaa', 9, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't7@aaa.aaa', 9, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't9@aaa.aaa', 9, NOW(), NOW());
+-- 그룹 9: 테니스 레슨 모임 (now_people: 6, 리더 포함이므로 +5명 APPROVED)
+INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at, activated)
+VALUES ('MEMBER', 'APPROVED', 't1@aaa.aaa', 9, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't3@aaa.aaa', 9, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't4@aaa.aaa', 9, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't6@aaa.aaa', 9, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't8@aaa.aaa', 9, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't7@aaa.aaa', 9, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't9@aaa.aaa', 9, NOW(), NOW(), true);
 
--- 그룹 10: 테니스 레슨 모임 (now_people: 6, 리더 포함이므로 +5명 APPROVED)
-INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
-VALUES ('MEMBER', 'APPROVED', 't1@aaa.aaa', 10, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't3@aaa.aaa', 10, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't4@aaa.aaa', 10, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't6@aaa.aaa', 10, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't8@aaa.aaa', 10, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't7@aaa.aaa', 10, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't9@aaa.aaa', 10, NOW(), NOW());
+-- 그룹 10: 영화 감상 모임 (now_people: 3, 리더 포함이므로 +2명 APPROVED)
+INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at, activated)
+VALUES ('MEMBER', 'APPROVED', 't1@aaa.aaa', 10, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't2@aaa.aaa', 10, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't4@aaa.aaa', 10, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't7@aaa.aaa', 10, NOW(), NOW(), true);
 
--- 그룹 11: 영화 감상 모임 (now_people: 3, 리더 포함이므로 +2명 APPROVED)
-INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
-VALUES ('MEMBER', 'APPROVED', 't1@aaa.aaa', 11, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't2@aaa.aaa', 11, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't4@aaa.aaa', 11, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't7@aaa.aaa', 11, NOW(), NOW());
+-- 그룹 11: 요리 클래스 모임 (now_people: 6, 리더 포함이므로 +5명 APPROVED)
+INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at, activated)
+VALUES ('MEMBER', 'APPROVED', 't1@aaa.aaa', 11, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't2@aaa.aaa', 11, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't4@aaa.aaa', 11, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't6@aaa.aaa', 11, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't7@aaa.aaa', 11, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't8@aaa.aaa', 11, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't10@aaa.aaa', 11, NOW(), NOW(), true);
 
--- 그룹 12: 요리 클래스 모임 (now_people: 6, 리더 포함이므로 +5명 APPROVED)
-INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
-VALUES ('MEMBER', 'APPROVED', 't1@aaa.aaa', 12, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't2@aaa.aaa', 12, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't4@aaa.aaa', 12, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't6@aaa.aaa', 12, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't7@aaa.aaa', 12, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't8@aaa.aaa', 12, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't10@aaa.aaa', 12, NOW(), NOW());
+-- 그룹 12: 사진 촬영 모임 (now_people: 2, 리더 포함이므로 +1명 APPROVED)
+INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at, activated)
+VALUES ('MEMBER', 'APPROVED', 't2@aaa.aaa', 12, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't5@aaa.aaa', 12, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't7@aaa.aaa', 12, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't9@aaa.aaa', 12, NOW(), NOW(), true);
 
--- 그룹 13: 사진 촬영 모임 (now_people: 2, 리더 포함이므로 +1명 APPROVED)
-INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
-VALUES ('MEMBER', 'APPROVED', 't2@aaa.aaa', 13, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't5@aaa.aaa', 13, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't7@aaa.aaa', 13, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't9@aaa.aaa', 13, NOW(), NOW());
+-- 그룹 13: 디저트 카페 투어 (now_people: 3, 리더 포함이므로 +2명 APPROVED)
+INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at, activated)
+VALUES ('MEMBER', 'APPROVED', 't1@aaa.aaa', 13, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't5@aaa.aaa', 13, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't8@aaa.aaa', 13, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't10@aaa.aaa', 13, NOW(), NOW(), true);
 
--- 그룹 14: 디저트 카페 투어 (now_people: 3, 리더 포함이므로 +2명 APPROVED)
-INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
-VALUES ('MEMBER', 'APPROVED', 't1@aaa.aaa', 14, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't5@aaa.aaa', 14, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't8@aaa.aaa', 14, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't10@aaa.aaa', 14, NOW(), NOW());
+-- 그룹 14: 한강 여행 동행 (now_people: 4, 리더 포함이므로 +3명 APPROVED)
+INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at, activated)
+VALUES ('MEMBER', 'APPROVED', 't2@aaa.aaa', 14, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't6@aaa.aaa', 14, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't8@aaa.aaa', 14, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't3@aaa.aaa', 14, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't5@aaa.aaa', 14, NOW(), NOW(), true);
 
--- 그룹 15: 독립영화 상영회 (now_people: 8, 리더 포함이므로 +7명 APPROVED)
-INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
-VALUES ('MEMBER', 'APPROVED', 't1@aaa.aaa', 15, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't2@aaa.aaa', 15, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't4@aaa.aaa', 15, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't5@aaa.aaa', 15, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't6@aaa.aaa', 15, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't7@aaa.aaa', 15, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't8@aaa.aaa', 15, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't9@aaa.aaa', 15, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't10@aaa.aaa', 15, NOW(), NOW());
+-- 그룹 15: 한식 요리 클래스 (now_people: 7, 리더 포함이므로 +6명 APPROVED)
+INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at, activated)
+VALUES ('MEMBER', 'APPROVED', 't1@aaa.aaa', 15, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't2@aaa.aaa', 15, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't3@aaa.aaa', 15, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't5@aaa.aaa', 15, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't7@aaa.aaa', 15, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't9@aaa.aaa', 15, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't6@aaa.aaa', 15, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't10@aaa.aaa', 15, NOW(), NOW(), true);
 
--- 그룹 16: 캘리그라피 클래스 (now_people: 5, 리더 포함이므로 +4명 APPROVED)
-INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
-VALUES ('MEMBER', 'APPROVED', 't1@aaa.aaa', 16, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't3@aaa.aaa', 16, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't5@aaa.aaa', 16, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't7@aaa.aaa', 16, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't9@aaa.aaa', 16, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't10@aaa.aaa', 16, NOW(), NOW());
+-- 그룹 16: 영어 회화 모임 (now_people: 6, 리더 포함이므로 +5명 APPROVED)
+INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at, activated)
+VALUES ('MEMBER', 'APPROVED', 't2@aaa.aaa', 16, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't3@aaa.aaa', 16, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't6@aaa.aaa', 16, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't8@aaa.aaa', 16, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't10@aaa.aaa', 16, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't5@aaa.aaa', 16, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't7@aaa.aaa', 16, NOW(), NOW(), true);
 
--- 그룹 17: 부산 여행 동행 (now_people: 4, 리더 포함이므로 +3명 APPROVED)
-INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
-VALUES ('MEMBER', 'APPROVED', 't2@aaa.aaa', 17, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't6@aaa.aaa', 17, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't8@aaa.aaa', 17, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't3@aaa.aaa', 17, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't5@aaa.aaa', 17, NOW(), NOW());
+-- 그룹 17: 심야 영화 모임 (now_people: 2, 리더 포함이므로 +1명 APPROVED)
+INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at, activated)
+VALUES ('MEMBER', 'APPROVED', 't6@aaa.aaa', 17, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't1@aaa.aaa', 17, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't9@aaa.aaa', 17, NOW(), NOW(), true);
 
--- 그룹 18: 한식 요리 클래스 (now_people: 7, 리더 포함이므로 +6명 APPROVED)
-INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
-VALUES ('MEMBER', 'APPROVED', 't1@aaa.aaa', 18, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't2@aaa.aaa', 18, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't3@aaa.aaa', 18, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't5@aaa.aaa', 18, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't7@aaa.aaa', 18, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't9@aaa.aaa', 18, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't6@aaa.aaa', 18, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't10@aaa.aaa', 18, NOW(), NOW());
+-- 그룹 18: 도자기 만들기 (now_people: 3, 리더 포함이므로 +2명 APPROVED)
+INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at, activated)
+VALUES ('MEMBER', 'APPROVED', 't2@aaa.aaa', 18, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't4@aaa.aaa', 18, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't7@aaa.aaa', 18, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't8@aaa.aaa', 18, NOW(), NOW(), true);
 
--- 그룹 19: 영어 회화 모임 (now_people: 6, 리더 포함이므로 +5명 APPROVED)
-INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
-VALUES ('MEMBER', 'APPROVED', 't2@aaa.aaa', 19, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't3@aaa.aaa', 19, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't6@aaa.aaa', 19, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't8@aaa.aaa', 19, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't10@aaa.aaa', 19, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't5@aaa.aaa', 19, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't7@aaa.aaa', 19, NOW(), NOW());
+-- 그룹 19: 북촌 한옥마을 투어 (now_people: 5, 리더 포함이므로 +4명 APPROVED)
+INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at, activated)
+VALUES ('MEMBER', 'APPROVED', 't1@aaa.aaa', 19, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't3@aaa.aaa', 19, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't6@aaa.aaa', 19, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't9@aaa.aaa', 19, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't4@aaa.aaa', 19, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't8@aaa.aaa', 19, NOW(), NOW(), true);
 
--- 그룹 20: 심야 영화 모임 (now_people: 2, 리더 포함이므로 +1명 APPROVED)
-INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
-VALUES ('MEMBER', 'APPROVED', 't6@aaa.aaa', 20, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't1@aaa.aaa', 20, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't9@aaa.aaa', 20, NOW(), NOW());
+-- 그룹 20: 브런치 카페 모임 (now_people: 2, 리더 포함이므로 +1명 APPROVED)
+INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at, activated)
+VALUES ('MEMBER', 'APPROVED', 't7@aaa.aaa', 20, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't2@aaa.aaa', 20, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't10@aaa.aaa', 20, NOW(), NOW(), true);
 
--- 그룹 21: 도자기 만들기 (now_people: 3, 리더 포함이므로 +2명 APPROVED)
-INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
-VALUES ('MEMBER', 'APPROVED', 't2@aaa.aaa', 21, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't4@aaa.aaa', 21, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't7@aaa.aaa', 21, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't8@aaa.aaa', 21, NOW(), NOW());
+-- 그룹 21: 게임 대회 모임 (now_people: 8, 리더 포함이므로 +7명 APPROVED)
+INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at, activated)
+VALUES ('MEMBER', 'APPROVED', 't1@aaa.aaa', 21, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't2@aaa.aaa', 21, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't3@aaa.aaa', 21, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't4@aaa.aaa', 21, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't6@aaa.aaa', 21, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't7@aaa.aaa', 21, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't8@aaa.aaa', 21, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't9@aaa.aaa', 21, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't10@aaa.aaa', 21, NOW(), NOW(), true);
 
--- 그룹 22: 강릉 여행 모임 (now_people: 5, 리더 포함이므로 +4명 APPROVED)
-INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
-VALUES ('MEMBER', 'APPROVED', 't1@aaa.aaa', 22, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't3@aaa.aaa', 22, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't6@aaa.aaa', 22, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't9@aaa.aaa', 22, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't4@aaa.aaa', 22, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't8@aaa.aaa', 22, NOW(), NOW());
+-- 그룹 22: 재즈 바 투어 (now_people: 4, 리더 포함이므로 +3명 APPROVED)
+INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at, activated)
+VALUES ('MEMBER', 'APPROVED', 't2@aaa.aaa', 22, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't4@aaa.aaa', 22, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't8@aaa.aaa', 22, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't3@aaa.aaa', 22, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't5@aaa.aaa', 22, NOW(), NOW(), true);
 
--- 그룹 23: 브런치 카페 모임 (now_people: 2, 리더 포함이므로 +1명 APPROVED)
-INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
-VALUES ('MEMBER', 'APPROVED', 't7@aaa.aaa', 23, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't2@aaa.aaa', 23, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't10@aaa.aaa', 23, NOW(), NOW());
-
--- 그룹 24: 배드민턴 동호회 (now_people: 9, 리더 포함이므로 +8명 APPROVED)
-INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
-VALUES ('MEMBER', 'APPROVED', 't1@aaa.aaa', 24, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't2@aaa.aaa', 24, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't3@aaa.aaa', 24, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't4@aaa.aaa', 24, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't6@aaa.aaa', 24, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't7@aaa.aaa', 24, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't8@aaa.aaa', 24, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't9@aaa.aaa', 24, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't10@aaa.aaa', 24, NOW(), NOW());
-
--- 그룹 25: 게임 대회 모임 (now_people: 8, 리더 포함이므로 +7명 APPROVED)
-INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
-VALUES ('MEMBER', 'APPROVED', 't1@aaa.aaa', 25, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't2@aaa.aaa', 25, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't3@aaa.aaa', 25, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't4@aaa.aaa', 25, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't6@aaa.aaa', 25, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't7@aaa.aaa', 25, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't8@aaa.aaa', 25, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't9@aaa.aaa', 25, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't10@aaa.aaa', 25, NOW(), NOW());
-
--- 그룹 26: 재즈 바 투어 (now_people: 4, 리더 포함이므로 +3명 APPROVED)
-INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
-VALUES ('MEMBER', 'APPROVED', 't2@aaa.aaa', 26, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't4@aaa.aaa', 26, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't8@aaa.aaa', 26, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't3@aaa.aaa', 26, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't5@aaa.aaa', 26, NOW(), NOW());
-
--- 그룹 27: 파이썬 스터디 (now_people: 7, 리더 포함이므로 +6명 APPROVED)
-INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
-VALUES ('MEMBER', 'APPROVED', 't1@aaa.aaa', 27, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't3@aaa.aaa', 27, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't4@aaa.aaa', 27, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't5@aaa.aaa', 27, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't7@aaa.aaa', 27, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't9@aaa.aaa', 27, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't2@aaa.aaa', 27, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't10@aaa.aaa', 27, NOW(), NOW());
-
--- 그룹 28: 애니메이션 상영회 (now_people: 12, 리더 포함이므로 +11명 APPROVED)
-INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
-VALUES ('MEMBER', 'APPROVED', 't1@aaa.aaa', 28, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't2@aaa.aaa', 28, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't3@aaa.aaa', 28, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't4@aaa.aaa', 28, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't5@aaa.aaa', 28, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't7@aaa.aaa', 28, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't8@aaa.aaa', 28, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't9@aaa.aaa', 28, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't10@aaa.aaa', 28, NOW(), NOW());
-
-
--- 그룹 29: 일본 여행 준비 (now_people: 3, 리더 포함이므로 +2명 APPROVED)
-INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
-VALUES ('MEMBER', 'APPROVED', 't5@aaa.aaa', 29, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't8@aaa.aaa', 29, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't2@aaa.aaa', 29, NOW(), NOW()),
-       ('MEMBER', 'PENDING', 't7@aaa.aaa', 29, NOW(), NOW());
-
--- 그룹 30: 마라톤 준비 모임 (now_people: 11, 리더 포함이므로 +10명 APPROVED)
-INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at)
-VALUES ('MEMBER', 'APPROVED', 't1@aaa.aaa', 30, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't2@aaa.aaa', 30, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't3@aaa.aaa', 30, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't4@aaa.aaa', 30, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't5@aaa.aaa', 30, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't7@aaa.aaa', 30, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't8@aaa.aaa', 30, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't9@aaa.aaa', 30, NOW(), NOW()),
-       ('MEMBER', 'APPROVED', 't10@aaa.aaa', 30, NOW(), NOW());
+-- 그룹 23: 남산 등반 모임 (now_people: 3, 리더 포함이므로 +2명 APPROVED)
+INSERT INTO participant (role, status, user_id, group_id, created_at, modified_at, activated)
+VALUES ('MEMBER', 'APPROVED', 't5@aaa.aaa', 23, NOW(), NOW(), true),
+       ('MEMBER', 'APPROVED', 't8@aaa.aaa', 23, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't2@aaa.aaa', 23, NOW(), NOW(), true),
+       ('MEMBER', 'PENDING', 't7@aaa.aaa', 23, NOW(), NOW(), true);
