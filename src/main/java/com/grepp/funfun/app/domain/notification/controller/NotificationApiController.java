@@ -20,7 +20,7 @@ public class NotificationApiController {
     private final NotificationService notificationService;
 
     @GetMapping
-    @Operation(summary = "알림 목록 조회", description = "모든 알림 또는 특정 사용자의 알림을 조회합니다.")
+    @Operation(summary = "알림 전체 목록 조회", description = "관리자용 - 전체 사용자의 모든 알림 또는 특정 사용자의 알림을 조회합니다.")
     public ResponseEntity<ApiResponse<List<NotificationDTO>>> getNotifications(
             @RequestParam(required = false) String email) {
 
@@ -62,27 +62,6 @@ public class NotificationApiController {
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
-    @DeleteMapping("/{id}")
-    @Operation(summary = "단건 알림 삭제", description = "알림을 삭제합니다.")
-    public ResponseEntity<ApiResponse<Void>> deleteNotification(@PathVariable Long id) {
-        notificationService.delete(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @DeleteMapping("/all")
-    @Operation(summary = "모든 알림 삭제", description = "해당 사용자의 모든 알림을 삭제합니다.")
-    public ResponseEntity<ApiResponse<Void>> deleteAllNotifications(@RequestParam String email) {
-        notificationService.deleteAllByEmail(email);
-        return ResponseEntity.ok(ApiResponse.success(null));
-    }
-
-    @DeleteMapping
-    @Operation(summary = "선택 알림 삭제", description = "선택한 알림들을 삭제합니다.")
-    public ResponseEntity<ApiResponse<Void>> deleteSelected(@RequestBody List<Long> ids) {
-        notificationService.deleteSelected(ids);
-        return ResponseEntity.ok(ApiResponse.success(null));
-    }
-
     // 안읽은 알림 수 조회
     @Operation(summary = "안읽은 알림 수 조회", description = "해당 사용자의 읽지 않은 알림 수를 반환합니다.")
     @GetMapping("/unread-count")
@@ -92,7 +71,7 @@ public class NotificationApiController {
     }
 
     // 개별 알림 읽음 처리
-    @Operation(summary = "개별 알림 읽음 처리", description = "알림을 읽음 처리합니다.")
+    @Operation(summary = "개별 알림 읽음 처리", description = "클릭하여 조회한 알림을 읽음 처리합니다.")
     @PatchMapping("/{id}/read")
     public ResponseEntity<ApiResponse<Void>> markAsRead(@PathVariable Long id) {
         notificationService.markAsRead(id);
@@ -100,10 +79,26 @@ public class NotificationApiController {
     }
 
     // 전체 알림 읽음 처리
-    @Operation(summary = "전체 알림 읽음 처리", description = "해당 사용자의 모든 알림을 읽음 처리합니다.")
+    @Operation(summary = "전체 알림 읽음 처리", description = "사용자의 모든 알림을 읽음 처리합니다.")
     @PatchMapping("/read-all")
     public ResponseEntity<ApiResponse<Void>> markAllAsRead(@RequestParam String email) {
         notificationService.markAllAsRead(email);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
+
+    @GetMapping("/read")
+    @Operation(summary = "읽은 알림 조회", description = "사용자가 이미 읽은 알림을 조회합니다.")
+    public ResponseEntity<ApiResponse<List<NotificationDTO>>> getReadNotifications(@RequestParam String email) {
+        List<NotificationDTO> result = notificationService.findReadByEmail(email);
+        return ResponseEntity.ok(ApiResponse.success(result));
+    }
+
+    // 체크박스 선택 알림 읽음 처리
+    @PatchMapping("/read-selected")
+    @Operation(summary = "선택 알림 읽음 처리", description = "체크박스로 선택한 알림들을 읽음 처리합니다.")
+    public ResponseEntity<ApiResponse<Void>> markSelectedAsRead(@RequestBody List<Long> ids) {
+        notificationService.markSelectedAsRead(ids);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
 }

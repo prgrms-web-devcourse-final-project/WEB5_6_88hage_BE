@@ -1,6 +1,7 @@
 package com.grepp.funfun.app.domain.group.dto.payload;
 
 import com.grepp.funfun.app.domain.chat.vo.ChatRoomType;
+import com.grepp.funfun.app.domain.participant.vo.ParticipantRole;
 import com.grepp.funfun.app.domain.participant.vo.ParticipantStatus;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -15,13 +16,23 @@ import lombok.NoArgsConstructor;
 public class GroupMyResponse {
 
     private Long groupId;
+
     private String groupTitle;
-    private String userEmail;// 참여자 이메일 (현재 사용자)
+
+    private String groupLeaderEmail;
+
     private String groupImageUrl;
-    private String userImageUrl;
-    private String userNickname;
+
+    private String currentUserEmail;
+
+    private String currenUserImageUrl;
+
+    private String currentUserNickname;
+
     private Integer participantCount;
+
     private ParticipantStatus status;
+
     private ChatRoomType type;
 }
 

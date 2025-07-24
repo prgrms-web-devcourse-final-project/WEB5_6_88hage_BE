@@ -2,6 +2,7 @@ package com.grepp.funfun.app.domain.notification.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Getter;
@@ -32,4 +33,7 @@ public class NotificationDTO {
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private final LocalDateTime sentAt;
+
+    @Schema(description = "일정 ID(해당 알림이 어떤 캘린더 일정과 연관되는지 확인용)")
+    private final Long calendarId;
 }

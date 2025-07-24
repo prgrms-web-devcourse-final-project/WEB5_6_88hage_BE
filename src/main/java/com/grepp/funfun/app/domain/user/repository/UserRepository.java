@@ -4,6 +4,7 @@ import com.grepp.funfun.app.domain.user.vo.UserStatus;
 import com.grepp.funfun.app.domain.user.entity.User;
 import com.grepp.funfun.app.domain.user.entity.UserInfo;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,4 +25,7 @@ public interface UserRepository extends JpaRepository<User, String>, UserReposit
     Optional<User> findByNickname(String nickname);
 
     Optional<User> findOptionalByEmail(String email);
+
+    @Query("SELECT u.email FROM User u")
+    List<String> findAllEmails();
 }

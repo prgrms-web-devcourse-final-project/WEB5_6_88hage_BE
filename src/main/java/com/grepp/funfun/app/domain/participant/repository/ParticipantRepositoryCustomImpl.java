@@ -7,6 +7,7 @@ import com.grepp.funfun.app.domain.participant.entity.Participant;
 import com.grepp.funfun.app.domain.participant.entity.QParticipant;
 import com.grepp.funfun.app.domain.participant.vo.ParticipantStatus;
 import com.grepp.funfun.app.domain.user.entity.QUser;
+import com.grepp.funfun.app.domain.user.entity.QUserInfo;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
@@ -24,6 +25,7 @@ public class ParticipantRepositoryCustomImpl implements ParticipantRepositoryCus
     private final QParticipant qParticipant = QParticipant.participant;
     private final QUser qUser = QUser.user;
     private final QGroup group = QGroup.group;
+    private final QUserInfo qUserInfo = QUserInfo.userInfo;
 
     // 모임 참여 신청 대기자 조회
     @Override
@@ -46,6 +48,7 @@ public class ParticipantRepositoryCustomImpl implements ParticipantRepositoryCus
         return queryFactory
             .selectFrom(qParticipant)
             .join(qParticipant.user, qUser)
+            .join(qUser.info, qUserInfo)
             .where(
                 qParticipant.group.id.eq(groupId),
                 qParticipant.status.eq(ParticipantStatus.APPROVED),

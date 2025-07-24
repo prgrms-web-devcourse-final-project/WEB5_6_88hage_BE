@@ -1,7 +1,5 @@
 package com.grepp.funfun.app.domain.group.service;
 
-import com.grepp.funfun.app.delete.util.ReferencedWarning;
-import com.grepp.funfun.app.domain.calendar.entity.Calendar;
 import com.grepp.funfun.app.domain.calendar.repository.CalendarRepository;
 import com.grepp.funfun.app.domain.calendar.service.CalendarService;
 import com.grepp.funfun.app.domain.chat.entity.GroupChatRoom;
@@ -10,10 +8,11 @@ import com.grepp.funfun.app.domain.chat.vo.ChatRoomType;
 import com.grepp.funfun.app.domain.group.dto.GroupHashtagDTO;
 import com.grepp.funfun.app.domain.group.dto.GroupParticipantDTO;
 import com.grepp.funfun.app.domain.group.dto.GroupWithReasonDTO;
+import com.grepp.funfun.app.domain.group.dto.payload.GroupDetailResponse;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupListResponse;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupMyResponse;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupRequest;
-import com.grepp.funfun.app.domain.group.dto.payload.GroupResponse;
+import com.grepp.funfun.app.domain.group.dto.payload.GroupSimpleResponse;
 import com.grepp.funfun.app.domain.group.entity.Group;
 import com.grepp.funfun.app.domain.group.entity.GroupHashtag;
 import com.grepp.funfun.app.domain.group.repository.GroupHashtagRepository;
@@ -23,6 +22,7 @@ import com.grepp.funfun.app.domain.participant.entity.Participant;
 import com.grepp.funfun.app.domain.participant.repository.ParticipantRepository;
 import com.grepp.funfun.app.domain.participant.vo.ParticipantRole;
 import com.grepp.funfun.app.domain.participant.vo.ParticipantStatus;
+import com.grepp.funfun.app.domain.preference.entity.GroupPreference;
 import com.grepp.funfun.app.domain.s3.service.S3FileService;
 import com.grepp.funfun.app.domain.user.entity.User;
 import com.grepp.funfun.app.domain.user.repository.UserRepository;
@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -59,7 +60,7 @@ public class GroupService {
 
 
     // 모든 모임 조회
-    public List<GroupResponse> findAll() {
+    public List<GroupDetailResponse> findAll() {
         final List<Group> groups = groupRepository.findAll();
         return groups.stream()
             .map(this::convertToGroupResponse)
@@ -68,11 +69,36 @@ public class GroupService {
 
     // 모임 상세 조회
     @Transactional(readOnly = true)
-    public GroupResponse get(final Long groupId, String userEmail) {
+    public GroupDetailResponse get(final Long groupId, String userEmail) {
         increaseViewCountIfNotCounted(groupId, userEmail);
-        return groupRepository.findByIdWithFullInfo(groupId)
-            .map(this::convertToGroupResponse)
-            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+
+        Group group = groupRepository.findByIdWithFullInfo(groupId)
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND, "모임을 찾을 수 없습니다.(빈 값이 있을 경우 존재)"));
+
+        // 관련 모임 2개 조회 (동일 카테고리, 거리순)
+        List<GroupDetailResponse> relatedGroups = getRelatedGroups(group, userEmail);
+
+        return GroupDetailResponse.fromWithRelated(group, relatedGroups);
+    }
+
+    // 관련 모임 조회 메소드 (기존 findGroups 활용)
+    @Transactional(readOnly = true)
+    public List<GroupDetailResponse> getRelatedGroups(Group currentGroup, String userEmail) {
+        Pageable pageable = PageRequest.of(0, 3);
+        Page<Group> relatedGroupsPage = groupRepository.findGroups(
+            currentGroup.getCategory().toString(),
+            null,
+            "recent",
+            userEmail,
+            pageable
+        );
+
+        // 현재 그룹 제외하고 변환
+        return relatedGroupsPage.getContent().stream()
+            .filter(group -> !group.getId().equals(currentGroup.getId()))
+            .limit(2)
+            .map(group -> GroupDetailResponse.fromWithRelated(group, null))
+            .collect(Collectors.toList());
     }
 
     //조회수 redis[중복 방지]
@@ -120,9 +146,9 @@ public class GroupService {
 
     // 내가 리더인 모임 조회
     @Transactional(readOnly = true)
-    public List<GroupResponse> findMyLeaderGroups(String userEmail) {
+    public List<GroupSimpleResponse> findMyLeaderGroups(String userEmail) {
         return groupRepository.findByLeaderEmailAndActivatedTrue(userEmail).stream()
-            .map(this::convertToGroupResponse)
+            .map(GroupSimpleResponse::toSimpleResponse)
             .collect(Collectors.toList());
     }
 
@@ -280,14 +306,14 @@ public class GroupService {
     private GroupMyResponse convertToGroupMyResponse(Group group, String userEmail) {
         User currentUser = userRepository.findByEmail(userEmail);
 
-        // 내 참가자 정보 찾기
         return GroupMyResponse.builder()
             .groupId(group.getId())
             .groupTitle(group.getTitle())
+            .groupLeaderEmail(group.getLeader().getEmail())
             .groupImageUrl(group.getImageUrl())
-            .userEmail(userEmail)
-            .userImageUrl(currentUser.getInfo().getImageUrl())
-            .userNickname(currentUser.getNickname())
+            .currentUserEmail(userEmail)
+            .currenUserImageUrl(currentUser.getInfo().getImageUrl())
+            .currentUserNickname(currentUser.getNickname())
             .participantCount(group.getNowPeople())
             .status(ParticipantStatus.APPROVED)
             .type(ChatRoomType.GROUP_CHAT)
@@ -312,8 +338,8 @@ public class GroupService {
         }
     }
 
-    private GroupResponse convertToGroupResponse(Group group) {
-        return GroupResponse.builder()
+    private GroupDetailResponse convertToGroupResponse(Group group) {
+        return GroupDetailResponse.builder()
             .id(group.getId())
             .title(group.getTitle())
             .explain(group.getExplain())
@@ -334,35 +360,14 @@ public class GroupService {
             .activated(group.getActivated())
             .leaderNickname(group.getLeader().getNickname())
             .leaderEmail(group.getLeader().getEmail())
+            .leaderExplain(group.getLeader().getInfo().getIntroduction())
+            .leaderHashTags(group.getLeader().getGroupPreferences().stream()
+                .map(GroupPreference::getCategory)
+                .collect(Collectors.toList()))
             .hashTags(group.getHashtags().stream()
                 .map(GroupHashtag::getTag)
                 .collect(Collectors.toList()))
             .build();
-    }
-
-    public ReferencedWarning getReferencedWarning(final Long id) {
-        final ReferencedWarning referencedWarning = new ReferencedWarning();
-        final Group group = groupRepository.findById(id)
-            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        final Participant groupParticipant = participantRepository.findFirstByGroup(group);
-        if (groupParticipant != null) {
-            referencedWarning.setKey("group.participant.group.referenced");
-            referencedWarning.addParam(groupParticipant.getId());
-            return referencedWarning;
-        }
-        final Calendar groupCalendar = calendarRepository.findFirstByGroup(group);
-        if (groupCalendar != null) {
-            referencedWarning.setKey("group.calendar.group.referenced");
-            referencedWarning.addParam(groupCalendar.getId());
-            return referencedWarning;
-        }
-        final GroupHashtag groupGroupHashtag = groupHashtagRepository.findFirstByGroup(group);
-        if (groupGroupHashtag != null) {
-            referencedWarning.setKey("group.groupHashtag.group.referenced");
-            referencedWarning.addParam(groupGroupHashtag.getId());
-            return referencedWarning;
-        }
-        return null;
     }
 
     @Transactional(readOnly = true)

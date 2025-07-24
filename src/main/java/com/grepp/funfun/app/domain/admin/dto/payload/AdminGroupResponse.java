@@ -17,4 +17,5 @@ public class AdminGroupResponse {
     private int participantCount;
     private LocalDateTime groupDate;
     private String deletedReason;
+    private LocalDateTime createdAt;
 }

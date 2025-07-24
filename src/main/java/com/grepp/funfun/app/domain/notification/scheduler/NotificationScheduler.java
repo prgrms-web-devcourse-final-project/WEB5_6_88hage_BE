@@ -32,12 +32,12 @@ public class NotificationScheduler {
 
         for (Calendar calendar : schedules) {
 
-            if (notificationService.existsScheduleNotification(calendar.getEmail(), start, end)) {
+            if (notificationService.existsScheduleNotification(calendar.getId())) {
                 continue;
             }
 
             String activityType = calendar.getType().name().equals("GROUP") ? "모임" : "콘텐츠";
-            String message = String.format("내일 [%s] 일정이 있습니다. 캘린더를 확인해보세요.", activityType);
+            String message = String.format("오늘 [%s] 일정이 있습니다. 캘린더를 확인해보세요.", activityType);
 
             NotificationDTO dto = NotificationDTO.builder()
                     .email(calendar.getEmail())
@@ -47,6 +47,7 @@ public class NotificationScheduler {
                     .type(NotificationType.SCHEDULE.name())
                     .scheduledAt(LocalDateTime.now())
                     .sentAt(LocalDateTime.now())
+                    .calendarId(calendar.getId())
                     .build();
 
             notificationService.create(dto);

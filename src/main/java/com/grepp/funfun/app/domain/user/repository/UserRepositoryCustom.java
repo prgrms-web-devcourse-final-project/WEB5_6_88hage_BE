@@ -2,6 +2,7 @@ package com.grepp.funfun.app.domain.user.repository;
 
 import com.grepp.funfun.app.domain.user.entity.User;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.Query;
