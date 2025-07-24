@@ -1,7 +1,5 @@
 package com.grepp.funfun.app.domain.notification.service;
 
-import com.grepp.funfun.app.domain.admin.dto.AdminNoticeDTO;
-import com.grepp.funfun.app.domain.admin.entity.AdminNotice;
 import com.grepp.funfun.app.domain.notification.dto.NotificationDTO;
 import com.grepp.funfun.app.domain.notification.entity.Notification;
 import com.grepp.funfun.app.domain.notification.mapper.NotificationDTOMapper;
