@@ -20,7 +20,7 @@ public class AdminGroupMapper {
                 .participantCount(group.getParticipants().size())
                 .groupDate(group.getGroupDate())
                 .deletedReason(extractReason(group.getExplain()))
-                .createdAt(group.getCreatedAt()) // ← createdAt 누락됐으면 이것도 추가!
+                .createdAt(group.getCreatedAt())
                 .build();
     }
 
