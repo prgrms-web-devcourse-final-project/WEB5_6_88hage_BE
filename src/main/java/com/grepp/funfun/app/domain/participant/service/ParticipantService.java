@@ -42,7 +42,7 @@ public class ParticipantService {
     public void apply(Long groupId, String userEmail){
         // 모임[모집중, True]
         Group group = groupRepository.findActiveRecruitingGroup(groupId)
-            .orElseThrow(()-> new CommonException(ResponseCode.NOT_FOUND, "모임을 찾을 수 없습니다."));
+            .orElseThrow(()-> new CommonException(ResponseCode.BAD_REQUEST, "모임 신청할 수 없습니다.[모집중 아님]"));
 
         // 사용자 검증
         User user = userRepository.findByEmail(userEmail);
@@ -71,7 +71,7 @@ public class ParticipantService {
                 case GROUP_KICKOUT ->
                     throw new CommonException(ResponseCode.BAD_REQUEST, "강제퇴장으로 인해 참여할 수 없습니다.");
                 case LEAVE -> {
-                    existingParticipant.get().setStatus(ParticipantStatus.PENDING);
+                    existingParticipant.get().changeLeaveStatusAndActivated(ParticipantStatus.PENDING);
                     participantRepository.save(existingParticipant.get());
                     return;
                 }
@@ -178,10 +178,10 @@ public class ParticipantService {
 
         // 검증(그룹에 속해있는 사용자가 맞는지)
         Participant participant = participantRepository.findTrueMember(groupId,userEmail)
-            .orElseThrow(()-> new CommonException(ResponseCode.NOT_FOUND));
+            .orElseThrow(()-> new CommonException(ResponseCode.NOT_FOUND,"모임에 속한 사용자가 아닙니다."));
 
         // 모임 나가기 : LEAVE 처리
-        participant.setStatus(ParticipantStatus.LEAVE);
+        participant.changeStatusAndActivated(ParticipantStatus.LEAVE);
 
         group.minusGroupCount();
 
