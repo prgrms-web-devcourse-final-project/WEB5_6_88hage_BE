@@ -23,6 +23,7 @@ public class GroupRequest {
     //모임 이름
     @NotBlank(message = "제목은 필수로 입력해야 합니다.")
     private String title;
+
     //모임 설명
     @NotBlank(message = "설명은 필수로 입력해야 합니다.")
     private String explain;
@@ -51,9 +52,11 @@ public class GroupRequest {
     @Min(value = 2, message = "최소 2명 이상이어야 합니다.")
     @Max(value = 10, message = "최대 10명까지 가능합니다.")
     private Integer maxPeople;
+
     //위도
     @NotNull(message = "위도는 필수입니다.")
     private Double latitude;
+
     //경도
     @NotNull(message = "경도는 필수입니다.")
     private Double longitude;
