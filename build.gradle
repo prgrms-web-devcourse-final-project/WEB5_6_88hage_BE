@@ -61,8 +61,10 @@ dependencies {
 
     // Database Driver
     implementation 'org.postgresql:postgresql:42.7.7'
-// MYSQL
+    // MYSQL
     runtimeOnly 'com.mysql:mysql-connector-j'
+    // Elastic Search
+    implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
 
     // LLM (LangChain4j)
     implementation 'dev.langchain4j:langchain4j-google-ai-gemini-spring-boot-starter:1.0.0-beta3'
