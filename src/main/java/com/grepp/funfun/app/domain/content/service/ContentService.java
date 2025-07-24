@@ -17,7 +17,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -145,7 +147,14 @@ public class ContentService {
 
         if (userLat == null || userLng == null) {
             log.warn("사용자 위치 정보를 확인할 수 없어 '마감 임박순'으로 정렬 방식을 변경합니다.");
-            return findByFiltersOrderByEndDate(request, pageable);
+
+            Pageable endDateSortedPageable = PageRequest.of(
+                    pageable.getPageNumber(),
+                    pageable.getPageSize(),
+                    Sort.by(Sort.Direction.ASC, "endDate")
+            );
+
+            return findByFiltersOrderByEndDate(request, endDateSortedPageable);
         }
 
         return contentRepository.findFilteredContentsByDistance(
