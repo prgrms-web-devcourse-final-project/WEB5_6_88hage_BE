@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ContactService {
 
     private final ContactRepository contactRepository;
@@ -105,7 +106,6 @@ public class ContactService {
         contact.unActivated();
     }
 
-    @Transactional(readOnly = true)
     public ContactDetailResponse getDetail(Long contactId, String email) {
         Contact contact = getContact(contactId);
 
@@ -116,7 +116,6 @@ public class ContactService {
         return ContactDetailResponse.from(contact);
     }
 
-    @Transactional(readOnly = true)
     public Page<ContactResponse> findAll(String email, String status, Pageable pageable) {
         ContactStatus contactStatus = switch (status.toLowerCase()) {
             case "pending" -> ContactStatus.PENDING;
