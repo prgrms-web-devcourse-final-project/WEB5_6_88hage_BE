@@ -3,7 +3,8 @@ package com.grepp.funfun.app.domain.group.controller;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupListResponse;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupMyResponse;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupRequest;
-import com.grepp.funfun.app.domain.group.dto.payload.GroupResponse;
+import com.grepp.funfun.app.domain.group.dto.payload.GroupDetailResponse;
+import com.grepp.funfun.app.domain.group.dto.payload.GroupSimpleResponse;
 import com.grepp.funfun.app.domain.group.service.GroupService;
 import com.grepp.funfun.app.infra.response.ApiResponse;
 import com.grepp.funfun.app.infra.response.ResponseCode;
@@ -25,7 +26,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,7 +42,7 @@ public class GroupApiController {
     // 모임 상세 조회
     @GetMapping("/{groupId}")
     @Operation(summary = "모임 상세 조회", description = "모임을 상세 조회합니다.")
-    public ResponseEntity<ApiResponse<GroupResponse>> getGroup(@PathVariable Long groupId,
+    public ResponseEntity<ApiResponse<GroupDetailResponse>> getGroup(@PathVariable Long groupId,
         Authentication authentication) {
         String userEmail = authentication != null ? authentication.getName() : null;
         return ResponseEntity.ok(ApiResponse.success(groupService.get(groupId,userEmail)));
@@ -50,8 +50,8 @@ public class GroupApiController {
 
     // 내가 리더인 모임 조회
     @GetMapping("/getLeaderMy")
-    @Operation(summary = "내가 리더 역할인 모임 조회", description = "내가 리더 역할인 모임을 조회합니다.")
-    public ResponseEntity<ApiResponse<List<GroupResponse>>> getLeaderMyGroups(
+    @Operation(summary = "내가 리더 역할인 모임 조회(for 프로필)", description = "내가 리더 역할인 모임을 조회합니다.")
+    public ResponseEntity<ApiResponse<List<GroupSimpleResponse>>> getLeaderMyGroups(
         Authentication authentication
     ){
         String userEmail = authentication.getName();
@@ -60,7 +60,7 @@ public class GroupApiController {
 
     // 내가 속한 모임 조회
     @GetMapping("/getMy")
-    @Operation(summary = "내가 속한 모임 조회", description = "내가 속한 모임을 조회합니다.")
+    @Operation(summary = "내가 속한 모임 조회(for 모임 채팅)", description = "내가 속한 모임을 조회합니다.")
     public ResponseEntity<ApiResponse<List<GroupMyResponse>>> getMyGroups(
         Authentication authentication
     ) {

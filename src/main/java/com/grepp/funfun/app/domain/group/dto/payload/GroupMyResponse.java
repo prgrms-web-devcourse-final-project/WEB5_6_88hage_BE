@@ -15,13 +15,21 @@ import lombok.NoArgsConstructor;
 public class GroupMyResponse {
 
     private Long groupId;
+
     private String groupTitle;
+
     private String userEmail;// 참여자 이메일 (현재 사용자)
+
     private String groupImageUrl;
+
     private String userImageUrl;
+
     private String userNickname;
+
     private Integer participantCount;
+
     private ParticipantStatus status;
+
     private ChatRoomType type;
 }
 
