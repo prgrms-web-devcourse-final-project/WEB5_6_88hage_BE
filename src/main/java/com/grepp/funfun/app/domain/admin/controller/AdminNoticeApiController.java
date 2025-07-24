@@ -1,8 +1,7 @@
 package com.grepp.funfun.app.domain.admin.controller;
 
-import com.grepp.funfun.app.domain.notification.dto.NotificationDTO;
-import com.grepp.funfun.app.domain.notification.service.NotificationService;
-import com.grepp.funfun.app.domain.user.service.UserService;
+import com.grepp.funfun.app.domain.admin.dto.AdminNoticeDTO;
+import com.grepp.funfun.app.domain.admin.service.AdminNoticeService;
 import com.grepp.funfun.app.infra.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -10,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -18,29 +16,24 @@ import java.util.List;
 @RequestMapping("/api/admin/notices")
 public class AdminNoticeApiController {
 
-    private final NotificationService notificationService;
-    private final UserService userService;
+    private final AdminNoticeService adminNoticeService;
 
-    @PostMapping("/notice")
-    @Operation(summary = "전체 사용자에게 공지사항 발송", description = "관리자가 공지사항 알림을 모든 사용자에게 일괄 전송합니다.")
-    public ResponseEntity<ApiResponse<Void>> broadcastNotice(@RequestBody @Valid NotificationDTO dto) {
+    @PostMapping
+    @Operation(summary = "공지사항 등록 및 전체 알림 전송", description = "관리자가 공지사항을 작성하고, 전체 사용자에게 알림을 발송합니다.")
+    public ResponseEntity<ApiResponse<Long>> createNotice(@RequestBody @Valid AdminNoticeDTO dto) {
+        Long noticeId = adminNoticeService.create(dto);
+        return ResponseEntity.ok(ApiResponse.success(noticeId));
+    }
 
-        List<String> allEmails = userService.getAllUserEmails();
+    @GetMapping
+    @Operation(summary = "공지사항 전체 조회", description = "공지사항 목록을 조회합니다.")
+    public ResponseEntity<ApiResponse<List<AdminNoticeDTO>>> findAll() {
+        return ResponseEntity.ok(ApiResponse.success(adminNoticeService.findAll()));
+    }
 
-        for (String email : allEmails) {
-            NotificationDTO individualDTO = NotificationDTO.builder()
-                    .email(email)
-                    .message(dto.getMessage())
-                    .link(dto.getLink())
-                    .isRead(false)
-                    .type("NOTICE")
-                    .scheduledAt(dto.getScheduledAt() != null ? dto.getScheduledAt() : LocalDateTime.now())
-                    .sentAt(LocalDateTime.now())
-                    .build();
-
-            notificationService.create(individualDTO);
-        }
-
-        return ResponseEntity.ok(ApiResponse.success(null));
+    @GetMapping("/{id}")
+    @Operation(summary = "공지사항 상세 조회", description = "공지사항의 상세 내용을 조회합니다.")
+    public ResponseEntity<ApiResponse<AdminNoticeDTO>> findById(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(adminNoticeService.findById(id)));
     }
 }
