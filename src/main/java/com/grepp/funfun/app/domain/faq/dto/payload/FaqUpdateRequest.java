@@ -11,9 +11,9 @@ public class FaqUpdateRequest {
 
     @NotBlank
     @Size(max=255)
-    private String question;
+    private String title;
 
     @NotBlank
     @Size(max=5000)
-    private String answer;
+    private String content;
 }

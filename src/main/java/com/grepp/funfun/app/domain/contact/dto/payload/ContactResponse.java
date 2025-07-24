@@ -17,6 +17,7 @@ public class ContactResponse {
     private ContactStatus status;
     private String title;
     private LocalDateTime createdAt;
+    private String writerEmail;
 
     public static ContactResponse from(Contact contact) {
         return ContactResponse.builder()
@@ -25,6 +26,7 @@ public class ContactResponse {
             .status(contact.getStatus())
             .title(contact.getTitle())
             .createdAt(contact.getCreatedAt())
+            .writerEmail(contact.getUser().getEmail())
             .build();
     }
 }

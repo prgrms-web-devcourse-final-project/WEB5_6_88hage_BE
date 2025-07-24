@@ -4,6 +4,7 @@ import com.grepp.funfun.app.domain.group.entity.Group;
 import com.grepp.funfun.app.domain.group.entity.QGroup;
 import com.grepp.funfun.app.domain.group.vo.GroupStatus;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,9 +25,12 @@ public class AdminGroupRepositoryImpl implements AdminGroupRepositoryCustom {
         // enum 이라서
         BooleanExpression statusCondition = (status != null) ? group.status.eq(status) : null;
 
-        List<Group> content = queryFactory
-                .selectFrom(group)
-                .where(statusCondition)
+        JPAQuery<Group> query = queryFactory.selectFrom(group);
+        if (statusCondition != null) {
+            query = query.where(statusCondition);
+        }
+
+        List<Group> content = query
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
