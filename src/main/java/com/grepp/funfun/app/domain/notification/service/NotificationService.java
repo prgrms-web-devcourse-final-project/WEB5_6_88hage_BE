@@ -71,9 +71,8 @@ public class NotificationService {
     }
 
     // 알림 생성
-    public Long create(final NotificationDTO dto) {
+    public Long create(NotificationDTO dto) {
         Notification notification = notificationDTOMapper.toEntity(dto);
-
         Notification saved = notificationRepository.save(notification);
         notifyViaSse(saved);
         return saved.getId();

@@ -37,7 +37,7 @@ public class NotificationScheduler {
             }
 
             String activityType = calendar.getType().name().equals("GROUP") ? "모임" : "콘텐츠";
-            String message = String.format("내일 [%s] 일정이 있습니다. 캘린더를 확인해보세요.", activityType);
+            String message = String.format("오늘 [%s] 일정이 있습니다. 캘린더를 확인해보세요.", activityType);
 
             NotificationDTO dto = NotificationDTO.builder()
                     .email(calendar.getEmail())

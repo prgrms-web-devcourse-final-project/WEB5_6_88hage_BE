@@ -1,15 +1,14 @@
 package com.grepp.funfun.app.domain.calendar.service;
 
-import com.grepp.funfun.app.domain.calendar.dto.payload.CalendarContentRequest;
-import com.grepp.funfun.app.domain.calendar.dto.payload.CalendarContentResponse;
-import com.grepp.funfun.app.domain.calendar.dto.payload.CalendarDailyResponse;
-import com.grepp.funfun.app.domain.calendar.dto.payload.CalendarMonthlyResponse;
+import com.grepp.funfun.app.domain.calendar.dto.payload.*;
 import com.grepp.funfun.app.domain.calendar.entity.Calendar;
 import com.grepp.funfun.app.domain.calendar.repository.CalendarRepository;
 import com.grepp.funfun.app.domain.calendar.vo.ActivityType;
 import com.grepp.funfun.app.domain.content.entity.Content;
 import com.grepp.funfun.app.domain.content.repository.ContentRepository;
 import com.grepp.funfun.app.domain.group.entity.Group;
+import com.grepp.funfun.app.domain.notification.dto.NotificationDTO;
+import com.grepp.funfun.app.domain.notification.service.NotificationService;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
 import java.time.LocalDate;
@@ -32,6 +31,7 @@ public class CalendarService {
 
     private final CalendarRepository calendarRepository;
     private final ContentRepository contentRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public void addContentCalendar(String email, CalendarContentRequest request) {
@@ -143,5 +143,52 @@ public class CalendarService {
     public void deleteGroupCalendarForUser(String email, Long groupId) {
         // 특정 유저만 삭제 (모임 나가기, 강퇴)
         calendarRepository.deleteByEmailAndGroupId(email, groupId);
+    }
+
+    public void createSchedule(CalendarScheduleRequest request) {
+        Calendar calendar = calendarRepository.save(Calendar.builder()
+                .email(request.getEmail())
+                .selectedDate(request.getStartDate())
+                .type(request.getType())
+                .build());
+
+        if (!notificationService.existsScheduleNotification(calendar.getId())) {
+            NotificationDTO notification = NotificationDTO.builder()
+                    .email(request.getEmail())
+                    .link("/calendar/" + calendar.getId())
+                    .type("SCHEDULE")
+                    .isRead(false)
+                    .scheduledAt(request.getStartDate().toLocalDate().atStartOfDay())
+                    .calendarId(calendar.getId())
+                    .build();
+
+            notificationService.create(notification);
+        }
+    }
+
+    public void updateSchedule(Long id, CalendarScheduleRequest request) {
+        Calendar calendar = calendarRepository.findById(id)
+                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+
+        calendar.updateSelectedDateForContent(request.getStartDate());
+        calendarRepository.save(calendar);
+
+        notificationService.deleteByCalendarId(id);
+
+        NotificationDTO notification = NotificationDTO.builder()
+                .email(request.getEmail())
+                .link("/calendar/" + calendar.getId())
+                .type("SCHEDULE")
+                .isRead(false)
+                .scheduledAt(request.getStartDate().toLocalDate().atStartOfDay())
+                .calendarId(calendar.getId())
+                .build();
+
+        notificationService.create(notification);
+    }
+
+    public void deleteSchedule(Long id) {
+        calendarRepository.deleteById(id);
+        notificationService.deleteByCalendarId(id);
     }
 }
