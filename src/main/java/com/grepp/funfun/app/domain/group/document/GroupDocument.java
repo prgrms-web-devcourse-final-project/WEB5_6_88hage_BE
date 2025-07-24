@@ -18,7 +18,10 @@ import org.springframework.data.elasticsearch.annotations.Setting;
 public class GroupDocument {
 
     @Id
-    private String id;
+    private String esId;
+
+    @Field(type = FieldType.Long)
+    private Long id;
 
     @Field(type = FieldType.Text, analyzer = "groups_title_analyzer")
     private String title;
@@ -42,10 +45,10 @@ public class GroupDocument {
     private Integer viewCount;
 
     @Field(type = FieldType.Date)
-    private LocalDateTime groupDate;
+    private String groupDate;
 
     @Field(type = FieldType.Date)
-    private LocalDateTime createdAt;
+    private String createdAt;
 
     @Field(type = FieldType.Integer)
     private Integer maxPeople;

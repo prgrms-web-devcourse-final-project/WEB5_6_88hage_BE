@@ -182,5 +182,16 @@ public class GroupApiController {
                 .body(ApiResponse.error(ResponseCode.BAD_REQUEST, e.getMessage()));
         }
     }
+
+    @GetMapping("/search/es")
+    @Operation(summary = "그룹 검색", description = "query 와 category 로 그룹을 검색합니다.")
+    public ResponseEntity<ApiResponse<Page<GroupListResponse>>> searchGroups(
+        @RequestParam(required = false) String query,
+        @RequestParam(required = false) String category,
+        @PageableDefault(size = 16) Pageable pageable
+    ) {
+        Page<GroupListResponse> result = groupService.searchGroups(query, category, pageable);
+        return ResponseEntity.ok(ApiResponse.success(result));
+    }
 }
 

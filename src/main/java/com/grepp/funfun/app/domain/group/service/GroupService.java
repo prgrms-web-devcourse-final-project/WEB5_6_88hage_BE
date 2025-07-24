@@ -1,10 +1,18 @@
 package com.grepp.funfun.app.domain.group.service;
 
+import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.MultiMatchQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.NumberRangeQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch._types.query_dsl.TermQuery;
+import com.grepp.funfun.app.delete.util.ReferencedWarning;
+import com.grepp.funfun.app.domain.calendar.entity.Calendar;
 import com.grepp.funfun.app.domain.calendar.repository.CalendarRepository;
 import com.grepp.funfun.app.domain.calendar.service.CalendarService;
 import com.grepp.funfun.app.domain.chat.entity.GroupChatRoom;
 import com.grepp.funfun.app.domain.chat.repository.GroupChatRoomRepository;
 import com.grepp.funfun.app.domain.chat.vo.ChatRoomType;
+import com.grepp.funfun.app.domain.group.document.GroupDocument;
 import com.grepp.funfun.app.domain.group.dto.GroupHashtagDTO;
 import com.grepp.funfun.app.domain.group.dto.GroupParticipantDTO;
 import com.grepp.funfun.app.domain.group.dto.GroupWithReasonDTO;
@@ -30,14 +38,25 @@ import com.grepp.funfun.app.domain.user.vo.UserStatus;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.elasticsearch.client.elc.NativeQuery;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.SearchHit;
+import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.elasticsearch.core.query.HighlightQuery;
+import org.springframework.data.elasticsearch.core.query.highlight.Highlight;
+import org.springframework.data.elasticsearch.core.query.highlight.HighlightField;
+import org.springframework.data.elasticsearch.core.query.highlight.HighlightParameters;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,6 +76,8 @@ public class GroupService {
     private final CalendarService calendarService;
     private final RedisTemplate<String, String> redisTemplate;
     private final S3FileService s3FileService;
+    private final ElasticsearchOperations elasticsearchOperations;
+
 
 
     // 모든 모임 조회
@@ -410,5 +431,68 @@ public class GroupService {
                                                                                .build())
                                                 .collect(Collectors.toList()))
                             .build();
+    }
+
+    // ------------ ES ------------
+    public Page<GroupListResponse> searchGroups(
+        String query, String category, Pageable pageable
+    ) {
+
+        List<Query> mustQueries = new ArrayList<>();
+
+        if (query != null && !query.isBlank()) {
+            Query multiMatchQuery = MultiMatchQuery.of(m -> m
+                .query(query)
+                .fields("title^2", "simpleExplain^1")
+                .fuzziness("AUTO")
+            )._toQuery();
+
+            mustQueries.add(multiMatchQuery);
+        }
+
+        List<Query> filters = new ArrayList<>();
+        if (category != null && !category.isBlank()) {
+            Query categoryFilter = TermQuery.of(t -> t
+                .field("category")
+                .value(category)
+            )._toQuery();
+            filters.add(categoryFilter);
+        }
+
+        Query boolQuery = BoolQuery.of(b -> b
+            .must(mustQueries)
+            .filter(filters)
+        )._toQuery();
+
+        NativeQuery nativeQuery = NativeQuery.builder()
+            .withQuery(boolQuery)
+            .withPageable(pageable)
+            .build();
+
+        SearchHits<GroupDocument> searchHits = this.elasticsearchOperations.search(nativeQuery,
+            GroupDocument.class);
+
+        return new PageImpl<>(searchHits.getSearchHits().stream()
+            .map(hit -> {
+                GroupDocument groupDocument = hit.getContent();
+                return GroupListResponse.builder()
+                    .id(groupDocument.getId())
+                    .title(groupDocument.getTitle())
+                    .explain(groupDocument.getExplain())
+                    .simpleExplain(groupDocument.getSimpleExplain())
+                    .imageUrl(groupDocument.getImageUrl())
+                    .placeName(groupDocument.getPlaceName())
+                    .address(groupDocument.getAddress())
+                    .viewCount(groupDocument.getViewCount())
+                    .groupDate(LocalDateTime.parse(groupDocument.getGroupDate()))
+                    .createdAt(LocalDateTime.parse(groupDocument.getCreatedAt()))
+                    .maxPeople(groupDocument.getMaxPeople())
+                    .nowPeople(groupDocument.getNowPeople())
+                    .status(groupDocument.getStatus())
+                    .during(groupDocument.getDuring())
+                    .category(groupDocument.getCategory())
+                    .activated(groupDocument.getActivated())
+                    .build();
+            }).toList());
     }
 }
