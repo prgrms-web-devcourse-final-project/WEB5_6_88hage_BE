@@ -27,7 +27,7 @@ public class GroupSearchIntegrateTest {
         // 시간 측정 시작
         long startTime = System.nanoTime();
 
-        String keyword = "테니스";
+        String keyword = "화났다";
         Page<GroupListResponse> result = groupService.getGroups(null, keyword, "recent", null,
             Pageable.ofSize(16));
 
@@ -50,4 +50,10 @@ public class GroupSearchIntegrateTest {
     // e스포츠 검색 쿼리 실행 시간 : 628 ms
     // 테니스 검색 쿼리 실행 시간 : 522 ms
 
+    // 1,000,000 건 - page size 16
+    // 전체 조회 쿼리 실행 시간 : 1354 ms
+    // e스포츠 검색 쿼리 실행 시간 : 3296 ms
+    // 테니스 검색 쿼리 실행 시간 : 3421 ms
+    // 독립영화 검색 쿼리 실행 시간 : 3756 ms
+    // 화났다 검색 쿼리 실행 시간 : 2066 ms
 }

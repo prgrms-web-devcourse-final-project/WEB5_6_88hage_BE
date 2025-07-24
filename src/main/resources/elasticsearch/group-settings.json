@@ -1,0 +1,16 @@
+{
+  "analysis": {
+    "analyzer": {
+      "groups_title_analyzer": {
+        "char_filter": [],
+        "tokenizer": "nori_tokenizer",
+        "filter": ["nori_part_of_speech", "nori_readingform", "lowercase"]
+      },
+      "groups_simpleExplain_analyzer": {
+        "char_filter": [],
+        "tokenizer": "nori_tokenizer",
+        "filter": ["nori_part_of_speech", "nori_readingform", "lowercase"]
+      }
+    }
+  }
+}
