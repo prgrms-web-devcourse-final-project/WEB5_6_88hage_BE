@@ -71,14 +71,12 @@ public class KakaoGeoService {
             }
             String fullAddress = addressOpt.get();
 
-            // 🔹 주소 시/도 불일치 시 삭제
             if (area != null && !fullAddress.startsWith(area)) {
                 log.warn("시/도 불일치: area={}, fullAddress={} → 삭제: {}", area, fullAddress, content.getId());
                 contentRepository.delete(content);
                 continue;
             }
 
-            // 구 이름 추출
             if (content.getGuname() == null) {
                 String guname = extractGunameFromAddress(fullAddress);
                 if (guname != null) {
@@ -86,7 +84,6 @@ public class KakaoGeoService {
                 }
             }
 
-            // 최종 주소 저장
             String finalAddress = fullAddress + " " + cleanedPlaceName;
             content.setAddress(finalAddress.trim());
 
