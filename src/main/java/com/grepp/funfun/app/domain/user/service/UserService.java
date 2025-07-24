@@ -37,6 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserService {
 
     private final UserRepository userRepository;
@@ -288,6 +289,7 @@ public class UserService {
             .build();
     }
 
+    @Transactional
     public void update(final String email, final UserDTO userDTO) {
         final User user = userRepository.findById(email)
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
@@ -295,6 +297,7 @@ public class UserService {
         userRepository.save(user);
     }
 
+    @Transactional
     public void delete(final String email) {
         userRepository.deleteById(email);
     }

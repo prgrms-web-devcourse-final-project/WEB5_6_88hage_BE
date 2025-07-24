@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class CalendarService {
 
     private final CalendarRepository calendarRepository;
@@ -84,7 +85,6 @@ public class CalendarService {
         calendar.updateSelectedDateForContent(selectedDate);
     }
 
-    @Transactional(readOnly = true)
     public List<CalendarMonthlyResponse> getMonthly(String email, YearMonth month) {
         LocalDateTime start = month.atDay(1).atStartOfDay();
         LocalDateTime end = month.atEndOfMonth().atTime(LocalTime.MAX);
@@ -96,7 +96,6 @@ public class CalendarService {
             .toList();
     }
 
-    @Transactional(readOnly = true)
     public List<CalendarDailyResponse> getDaily(String email, LocalDate date) {
         LocalDateTime start = date.atStartOfDay();
         LocalDateTime end = start.plusDays(1).minusNanos(1);
@@ -109,7 +108,6 @@ public class CalendarService {
             .toList();
     }
 
-    @Transactional(readOnly = true)
     public List<CalendarDailyResponse> getDailyForContent(String email, LocalDate date) {
         LocalDateTime start = date.atStartOfDay();
         LocalDateTime end = start.plusDays(1).minusNanos(1);
@@ -117,7 +115,6 @@ public class CalendarService {
         return calendarRepository.findDailyContentCalendars(email, start, end);
     }
 
-    @Transactional(readOnly = true)
     public Page<CalendarContentResponse> getContent(String email, boolean pastIncluded, Pageable pageable) {
         return calendarRepository.findContentByEmail(email, pastIncluded, pageable);
     }
@@ -145,6 +142,7 @@ public class CalendarService {
         calendarRepository.deleteByEmailAndGroupId(email, groupId);
     }
 
+    @Transactional
     public void createSchedule(CalendarScheduleRequest request) {
         Calendar calendar = calendarRepository.save(Calendar.builder()
                 .email(request.getEmail())
@@ -166,6 +164,7 @@ public class CalendarService {
         }
     }
 
+    @Transactional
     public void updateSchedule(Long id, CalendarScheduleRequest request) {
         Calendar calendar = calendarRepository.findById(id)
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
@@ -187,6 +186,7 @@ public class CalendarService {
         notificationService.create(notification);
     }
 
+    @Transactional
     public void deleteSchedule(Long id) {
         calendarRepository.deleteById(id);
         notificationService.deleteByCalendarId(id);
