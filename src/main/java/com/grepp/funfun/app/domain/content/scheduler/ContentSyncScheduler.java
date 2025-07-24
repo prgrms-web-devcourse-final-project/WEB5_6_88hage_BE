@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-// 스케줄링만 담당
+// 스케줄링(현재 날짜로부터 등록/수정된 항목 업데이트)
 public class ContentSyncScheduler {
 
     private final DataPipeline dataPipeline;
@@ -17,7 +17,7 @@ public class ContentSyncScheduler {
     @Scheduled(cron = "0 0 0 * * *")
     public void importContentFromOpenAPI() {
         try {
-            dataPipeline.importFromOpenApi();
+            dataPipeline.importIncrementalData();
         } catch (Exception e) {
             log.error("콘텐츠 수집 중 오류 발생", e);
         }

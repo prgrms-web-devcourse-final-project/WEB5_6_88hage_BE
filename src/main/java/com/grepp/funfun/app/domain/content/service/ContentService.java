@@ -59,8 +59,7 @@ public class ContentService {
             }
 
             if (contents.isEmpty()) {
-                log.warn("필터 결과 없음 - 요청 필터: {}", request);
-                throw new CommonException(ResponseCode.NOT_FOUND);
+                log.info("필터 결과 없음 - 요청 필터: {}", request);
             }
 
             log.info("조회된 컨텐츠 수: {}", contents.getTotalElements());

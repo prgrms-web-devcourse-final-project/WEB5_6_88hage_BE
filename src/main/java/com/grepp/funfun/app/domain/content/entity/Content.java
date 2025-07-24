@@ -40,17 +40,21 @@ public class Content extends BaseEntity {
     @Column(nullable = false)
     private Long id;
 
-    @Column(nullable = false)
+    private String externalId;
+
+    @Column(nullable = false, length = 500)
     private String contentTitle;
 
     private String age;
 
+    @Column(length = 500)
     private String fee;
 
     private LocalDate startDate;
 
     private LocalDate endDate;
 
+    @Column(length = 500)
     private String address;
 
     private Double latitude;
@@ -61,10 +65,12 @@ public class Content extends BaseEntity {
 
     private String guname;
 
+    @Column(length = 500)
     private String time;
 
     private String runTime;
 
+    @Column(length = 500)
     private String startTime;
 
     private String poster;
@@ -88,7 +94,6 @@ public class Content extends BaseEntity {
     @JoinColumn(name = "category_id", nullable = false)
     private ContentCategory category;
 
-    @Column(nullable = false)
     private Integer bookmarkCount;
 
     @Override

@@ -32,10 +32,7 @@ import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -59,18 +56,32 @@ public class DataPipeline {
     private static final String DETAIL_URL = "http://www.kopis.or.kr/openApi/restful/pblprfr";
     private static final int MAX_API_CALLS = 1500;
 
-    public void importFromOpenApi() {
+    // 전체 데이터 수집
+    public void importFullData() {
+        importFromOpenApi(false);
+    }
 
-        log.info("API로 컨텐츠 수집 시작");
+    // 증분 데이터 수집
+    public void importIncrementalData() {
+        importFromOpenApi(true);
+    }
+
+    private void importFromOpenApi(boolean incremental) {
+        log.info("API로 컨텐츠 수집 시작 ({})", incremental ? "증분" : "전체");
+
         try {
-            String startDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String startDate = today;
             String endDate = LocalDate.now().plusMonths(6).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String afterDate = incremental ? today : null;
 
             List<String> dataTypes = List.of("performance");
             int totalSaved = 0;
 
+            List<Content> updatedOrInserted = new ArrayList<>();
+
             for (String dataType : dataTypes) {
-                int savedCount = collectDataType(dataType, startDate, endDate);
+                int savedCount = collectDataType(dataType, startDate, endDate, afterDate, updatedOrInserted);
                 totalSaved += savedCount;
 
                 if (getCurrentApiCallCount() >= MAX_API_CALLS) {
@@ -79,7 +90,11 @@ public class DataPipeline {
                 }
             }
 
-            kakaoGeoService.updateAllContentCoordinates();
+            if (incremental) {
+                kakaoGeoService.updateContentCoordinates(updatedOrInserted);
+            } else {
+                kakaoGeoService.updateAllContentCoordinates();
+            }
 
             log.info("자동화 수집 완료: 총 {}개 저장", totalSaved);
 
@@ -88,10 +103,10 @@ public class DataPipeline {
         }
     }
 
-    private int collectDataType(String dataType, String startDate, String endDate) {
+    private int collectDataType(String dataType, String startDate, String endDate, String afterDate, List<Content> updatedOrInserted) {
         int savedCount = 0;
 
-        List<String> contentIds = getIdList(dataType, startDate, endDate);
+        List<String> contentIds = getIdList(dataType, startDate, endDate, afterDate);
 
         // 테스트 50개만
 //        int limit = Math.min(50, contentIds.size());
@@ -103,8 +118,9 @@ public class DataPipeline {
                 break;
             }
 
-            boolean saved = processContent(contentId);
-            if (saved) {
+            Optional<Content> result = processContent(contentId);
+            result.ifPresent(updatedOrInserted::add);
+            if (result.isPresent()) {
                 savedCount++;
             }
 
@@ -132,34 +148,38 @@ public class DataPipeline {
         apiCallCount++;
     }
 
-    private boolean processContent(String contentId) {
+    protected Optional<Content> processContent(String contentId) {
         try {
             ContentDTO contentDTO = getDetailInfo(contentId);
             if (contentDTO == null) {
-                log.debug("ContentDTO가 null입니다: {}", contentId);
-                return false;
+                return Optional.empty();
             }
 
-            if (contentRepository.existsByContentTitle(contentDTO.getContentTitle())) {
-                log.debug("중복 데이터: {}", contentDTO.getContentTitle());
-                return false;
+            Content existingContent = contentRepository.findByExternalId(contentDTO.getExternalId()).orElse(null);
+
+            if (existingContent != null) {
+                // 업데이트
+                updateContent(existingContent, contentDTO);
+                contentRepository.save(existingContent);
+                log.debug("기존 콘텐츠 업데이트 완료: {}", existingContent.getContentTitle());
+                return Optional.of(existingContent);
             }
 
             Content content = toEntity(contentDTO);
             if (content == null) {
                 log.debug("Content 변환 실패: {}", contentId);
-                return false;
+                return Optional.empty();
             }
 
             addImagesAndUrls(content, contentDTO);
             contentRepository.save(content);
 
             log.debug("저장 완료: {}", content.getContentTitle());
-            return true;
+            return Optional.of(content);
 
         } catch (Exception e) {
             log.debug("저장 실패: {} - {}", contentId, e.getMessage());
-            return false;
+            return Optional.empty();
         }
     }
 
@@ -186,7 +206,29 @@ public class DataPipeline {
         }
     }
 
-    private List<String> getIdList(String dataType, String startDate, String endDate) {
+    private void updateContent(Content content, ContentDTO dto) {
+        content.setContentTitle(dto.getContentTitle());
+        content.setAge(dto.getAge());
+        content.setStartDate(dto.getStartDate());
+        content.setEndDate(dto.getEndDate());
+        content.setFee(dto.getFee());
+        content.setArea(dto.getArea());
+        content.setTime(dto.getTime());
+        content.setRunTime(dto.getRunTime());
+        content.setStartTime(dto.getStartTime());
+        content.setPoster(dto.getPoster());
+        content.setAddress(dto.getAddress());
+        content.setGuname(dto.getGuname());
+        content.setLatitude(dto.getLatitude());
+        content.setLongitude(dto.getLongitude());
+
+        // 기존 이미지 및 URL은 삭제하고 새로 추가
+        content.getImages().clear();
+        content.getUrls().clear();
+        addImagesAndUrls(content, dto);
+    }
+
+    protected List<String> getIdList(String dataType, String startDate, String endDate, String afterDate) {
         List<String> allIds = new ArrayList<>();
         String baseUrl = KOPIS_URLS.get(dataType);
         int page = 1;
@@ -194,8 +236,10 @@ public class DataPipeline {
         while (getCurrentApiCallCount() < MAX_API_CALLS) {
             try {
                 String url = String.format(
-                        "%s?service=%s&stdate=%s&eddate=%s&cpage=%d&rows=100&signgucode=11",
-                        baseUrl, kopisApiKey, startDate, endDate, page
+                        "%s?service=%s&stdate=%s&eddate=%s%s&cpage=%d&rows=100&signgucode=11",
+                        baseUrl, kopisApiKey, startDate, endDate,
+                        (afterDate != null ? "&afterdate=" + afterDate : ""),
+                        page
                 );
 
                 RestTemplate restTemplate = createRestTemplate();
@@ -226,7 +270,7 @@ public class DataPipeline {
         return allIds;
     }
 
-    private ContentDTO getDetailInfo(String contentId) {
+    protected ContentDTO getDetailInfo(String contentId) {
         try {
             String url = String.format("%s/%s?service=%s", DETAIL_URL, contentId, kopisApiKey);
 
@@ -282,6 +326,7 @@ public class DataPipeline {
                 .orElseThrow(() -> new IllegalArgumentException("해당 카테고리를 찾을 수 없습니다: " + dto.getCategory()));
 
         return Content.builder()
+                .externalId(dto.getExternalId())
                 .contentTitle(dto.getContentTitle())
                 .age(dto.getAge())
                 .startDate(dto.getStartDate())
