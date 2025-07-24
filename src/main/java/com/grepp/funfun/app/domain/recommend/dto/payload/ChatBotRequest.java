@@ -24,7 +24,8 @@ import lombok.Setter;
               "ai": "운동은 힘든 만큼 보람 있는 일이죠. 점심을 많이 드셨다고 너무 걱정하지 마세요. 오늘 하루를 잘 마무리하는 것이 더 중요해요!"
             }
           ],
-          "userMessage": "그렇죠? 조언 고마워!"
+          "userMessage": "그렇죠? 조언 고마워!",
+          "eventType": "CONTENT"
         }
         """)
 public class ChatBotRequest {
@@ -32,7 +33,9 @@ public class ChatBotRequest {
     @Schema(description = "과거 대화 이력 (선택 사항) 프론트 측에서 리스트 만들어서 관리해주셔야 합니다.")
     private List<ChatBotMessage> chatBotHistory;
 
-    @Schema(description = "사용자의 현재 메시지", required = true)
+    @Schema(description = "사용자의 현재 메시지")
     private String userMessage;
+
+    private String eventType;
 
 }
