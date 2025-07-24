@@ -213,6 +213,7 @@ public class ContentService {
     private ContentDTO toDTO(Content content) {
         return ContentDTO.builder()
                 .id(content.getId())
+                .externalId(content.getExternalId())
                 .contentTitle(content.getContentTitle())
                 .age(content.getAge())
                 .startDate(content.getStartDate())
