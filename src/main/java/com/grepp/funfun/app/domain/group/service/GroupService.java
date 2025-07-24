@@ -1,7 +1,5 @@
 package com.grepp.funfun.app.domain.group.service;
 
-import com.grepp.funfun.app.delete.util.ReferencedWarning;
-import com.grepp.funfun.app.domain.calendar.entity.Calendar;
 import com.grepp.funfun.app.domain.calendar.repository.CalendarRepository;
 import com.grepp.funfun.app.domain.calendar.service.CalendarService;
 import com.grepp.funfun.app.domain.chat.entity.GroupChatRoom;
@@ -10,10 +8,10 @@ import com.grepp.funfun.app.domain.chat.vo.ChatRoomType;
 import com.grepp.funfun.app.domain.group.dto.GroupHashtagDTO;
 import com.grepp.funfun.app.domain.group.dto.GroupParticipantDTO;
 import com.grepp.funfun.app.domain.group.dto.GroupWithReasonDTO;
+import com.grepp.funfun.app.domain.group.dto.payload.GroupDetailResponse;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupListResponse;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupMyResponse;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupRequest;
-import com.grepp.funfun.app.domain.group.dto.payload.GroupDetailResponse;
 import com.grepp.funfun.app.domain.group.dto.payload.GroupSimpleResponse;
 import com.grepp.funfun.app.domain.group.entity.Group;
 import com.grepp.funfun.app.domain.group.entity.GroupHashtag;
@@ -75,7 +73,7 @@ public class GroupService {
         increaseViewCountIfNotCounted(groupId, userEmail);
 
         Group group = groupRepository.findByIdWithFullInfo(groupId)
-            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND, "모임을 찾을 수 없습니다.(빈 값이 있을 경우 존재"));
+            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND, "모임을 찾을 수 없습니다.(빈 값이 있을 경우 존재)"));
 
         // 관련 모임 2개 조회 (동일 카테고리, 거리순)
         List<GroupDetailResponse> relatedGroups = getRelatedGroups(group, userEmail);
@@ -311,10 +309,11 @@ public class GroupService {
         return GroupMyResponse.builder()
             .groupId(group.getId())
             .groupTitle(group.getTitle())
+            .groupLeaderEmail(group.getLeader().getEmail())
             .groupImageUrl(group.getImageUrl())
-            .userEmail(userEmail)
-            .userImageUrl(currentUser.getInfo().getImageUrl())
-            .userNickname(currentUser.getNickname())
+            .currentUserEmail(userEmail)
+            .currenUserImageUrl(currentUser.getInfo().getImageUrl())
+            .currentUserNickname(currentUser.getNickname())
             .participantCount(group.getNowPeople())
             .status(ParticipantStatus.APPROVED)
             .type(ChatRoomType.GROUP_CHAT)
