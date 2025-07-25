@@ -6,6 +6,8 @@ import com.grepp.funfun.app.infra.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,8 +29,8 @@ public class AdminNoticeApiController {
 
     @GetMapping
     @Operation(summary = "공지사항 전체 조회", description = "공지사항 목록을 조회합니다.")
-    public ResponseEntity<ApiResponse<List<AdminNoticeDTO>>> findAll() {
-        return ResponseEntity.ok(ApiResponse.success(adminNoticeService.findAll()));
+    public ResponseEntity<ApiResponse<Page<AdminNoticeDTO>>> findAll(Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.success(adminNoticeService.findAll(pageable)));
     }
 
     @GetMapping("/{id}")
