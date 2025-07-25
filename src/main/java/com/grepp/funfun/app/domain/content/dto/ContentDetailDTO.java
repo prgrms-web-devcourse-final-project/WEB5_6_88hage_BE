@@ -2,10 +2,16 @@ package com.grepp.funfun.app.domain.content.dto;
 
 import com.grepp.funfun.app.domain.content.vo.EventType;
 import jakarta.validation.constraints.NotNull;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.util.List;
 
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ContentDetailDTO {
 
     private Long id;
@@ -21,8 +27,6 @@ public class ContentDetailDTO {
     private LocalDate endDate;
 
     private String address;
-
-    private String area;
 
     private String guname;
 

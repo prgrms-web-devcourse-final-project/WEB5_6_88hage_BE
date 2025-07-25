@@ -2,9 +2,15 @@ package com.grepp.funfun.app.domain.content.dto;
 
 import com.grepp.funfun.app.domain.content.vo.EventType;
 import jakarta.validation.constraints.NotNull;
+import lombok.*;
 
 import java.time.LocalDate;
 
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ContentListDTO {
 
     private Long id;

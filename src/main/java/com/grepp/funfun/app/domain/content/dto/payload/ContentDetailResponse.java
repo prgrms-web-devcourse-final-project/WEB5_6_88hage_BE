@@ -1,6 +1,7 @@
 package com.grepp.funfun.app.domain.content.dto.payload;
 
 import com.grepp.funfun.app.domain.content.dto.ContentDTO;
+import com.grepp.funfun.app.domain.content.dto.ContentDetailDTO;
 import com.grepp.funfun.app.domain.content.dto.ContentSimpleDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,7 +14,7 @@ import java.util.List;
 @Builder
 public class ContentDetailResponse {
 
-    private ContentDTO content;
+    private ContentDetailDTO content;
 
     private List<ContentSimpleDTO> related;
 

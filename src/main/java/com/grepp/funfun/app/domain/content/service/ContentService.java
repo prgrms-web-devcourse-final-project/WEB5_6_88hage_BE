@@ -36,14 +36,14 @@ public class ContentService {
     private final ModelMapper modelMapper;
 
     // 컨텐츠 상세 조회
-    public ContentDTO getContents(final Long id) {
+    public ContentDetailDTO getContents(final Long id) {
         Content content = contentRepository.findByIdWithCategory(id)
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        return toDTO(content);
+        return toDetailDTO(content);
     }
 
     // 컨텐츠 필터링(컨텐츠 조회)
-    public Page<ContentDTO> findByFiltersWithSort(ContentFilterRequest request, Pageable pageable) {
+    public Page<ContentListDTO> findByFiltersWithSort(ContentFilterRequest request, Pageable pageable) {
         try {
             Page<Content> contents;
             if (request.isBookmarkSort()) {
@@ -60,7 +60,7 @@ public class ContentService {
             }
 
             log.info("조회된 컨텐츠 수: {}", contents.getTotalElements());
-            return contents.map(this::toDTO);
+            return contents.map(this::toContentListDTO);
 
         } catch (CommonException e) {
             log.error("NOT_FOUND 예외 발생 - 필터링 조건: {}, 메시지: {}", request, e.getMessage());
@@ -213,18 +213,12 @@ public class ContentService {
                 .toList();
     }
 
-    private ContentSimpleDTO toSimpleDTO(Content content) {
-        return ContentSimpleDTO.builder()
-                .id(content.getId())
-                .contentTitle(content.getContentTitle())
-                .poster(content.getPoster())
-                .guname(content.getGuname())
-                .build();
-    }
+    private ContentSimpleDTO toSimpleDTO(Content content) { return modelMapper.map(content, ContentSimpleDTO.class); }
 
+    private ContentListDTO toContentListDTO(Content content) { return modelMapper.map(content, ContentListDTO.class); }
 
-    private ContentDTO toDTO(Content content) {
-        return modelMapper.map(content, ContentDTO.class);
+    private ContentDetailDTO toDetailDTO(Content content) {
+        return modelMapper.map(content, ContentDetailDTO.class);
     }
 
     public List<ContentWithReasonDTO> findByIds(List<Long> recommendIds) {
