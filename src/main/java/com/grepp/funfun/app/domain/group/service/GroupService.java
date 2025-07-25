@@ -42,10 +42,10 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(readOnly = true)
 public class GroupService {
 
     private final GroupRepository groupRepository;
@@ -68,7 +68,6 @@ public class GroupService {
     }
 
     // 모임 상세 조회
-    @Transactional(readOnly = true)
     public GroupDetailResponse get(final Long groupId, String userEmail) {
         increaseViewCountIfNotCounted(groupId, userEmail);
 
@@ -82,7 +81,6 @@ public class GroupService {
     }
 
     // 관련 모임 조회 메소드 (기존 findGroups 활용)
-    @Transactional(readOnly = true)
     public List<GroupDetailResponse> getRelatedGroups(Group currentGroup, String userEmail) {
         Pageable pageable = PageRequest.of(0, 3);
         Page<Group> relatedGroupsPage = groupRepository.findGroups(
@@ -122,7 +120,6 @@ public class GroupService {
     }
 
     // 모임 조회
-    @Transactional(readOnly = true)
     public Page<GroupListResponse> getGroups(
         String category,
         String keyword,
@@ -137,7 +134,6 @@ public class GroupService {
     }
 
     // 내가 속한 모임 조회
-    @Transactional(readOnly = true)
     public List<GroupMyResponse> findMyGroups(String userEmail) {
         return groupRepository.findMyGroups(userEmail).stream()
             .map(group -> convertToGroupMyResponse(group, userEmail))
@@ -145,7 +141,6 @@ public class GroupService {
     }
 
     // 내가 리더인 모임 조회
-    @Transactional(readOnly = true)
     public List<GroupSimpleResponse> findMyLeaderGroups(String userEmail) {
         return groupRepository.findByLeaderEmailAndActivatedTrue(userEmail).stream()
             .map(GroupSimpleResponse::toSimpleResponse)
