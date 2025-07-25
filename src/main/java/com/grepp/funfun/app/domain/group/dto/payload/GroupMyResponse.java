@@ -25,7 +25,7 @@ public class GroupMyResponse {
 
     private String currentUserEmail;
 
-    private String currenUserImageUrl;
+    private String currentUserImageUrl;
 
     private String currentUserNickname;
 

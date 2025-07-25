@@ -18,6 +18,7 @@ public class ChatResponse {
     private ChatRoomType roomType;
     private String senderNickname;
     private String senderEmail;
+    private String senderImageUrl;
     private String message;
     private String time;
 
@@ -27,6 +28,7 @@ public class ChatResponse {
         this.roomType = chat.getRoomType();
         this.senderNickname = chat.getSenderNickname();
         this.senderEmail = chat.getSenderEmail();
+        this.senderImageUrl = chat.getSenderImageUrl();
         this.message = chat.getMessage();
         this.time = chat.getCreatedAt().format(DateTimeFormatter.ofPattern("HH:mm"));
     }
