@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.domain.content.controller;
 
+import com.grepp.funfun.app.domain.content.dto.ContentSimpleDTO;
 import com.grepp.funfun.app.domain.content.dto.payload.ContentDetailResponse;
 import com.grepp.funfun.app.domain.content.dto.payload.ContentFilterRequest;
 import com.grepp.funfun.app.domain.content.dto.ContentDTO;
@@ -60,8 +61,8 @@ public class ContentApiController {
             @PathVariable Long id
     ) {
         ContentDTO content = contentService.getContents(id);
-        List<ContentDTO> related = contentService.findRandomByCategory(id, 2, false);
-        List<ContentDTO> nearby = contentService.findNearbyContents(id, 10.0, 2, false);
+        List<ContentSimpleDTO> related = contentService.findRandomByCategory(id, 2, false);
+        List<ContentSimpleDTO> nearby = contentService.findNearbyContents(id, 10.0, 2, false);
 
         ContentDetailResponse response = ContentDetailResponse.builder()
                 .content(content)

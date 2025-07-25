@@ -1,10 +1,7 @@
 package com.grepp.funfun.app.domain.content.service;
 
 import com.grepp.funfun.app.domain.calendar.repository.CalendarRepository;
-import com.grepp.funfun.app.domain.content.dto.ContentDTO;
-import com.grepp.funfun.app.domain.content.dto.ContentImageDTO;
-import com.grepp.funfun.app.domain.content.dto.ContentUrlDTO;
-import com.grepp.funfun.app.domain.content.dto.ContentWithReasonDTO;
+import com.grepp.funfun.app.domain.content.dto.*;
 import com.grepp.funfun.app.domain.content.dto.payload.ContentFilterRequest;
 import com.grepp.funfun.app.domain.content.entity.Content;
 import com.grepp.funfun.app.domain.content.repository.ContentRepository;
@@ -171,7 +168,7 @@ public class ContentService {
     }
 
     // 거리순 컨텐츠 노출
-    public List<ContentDTO> findNearbyContents(Long id, double radiusInKm, int limit, boolean includeExpired) {
+    public List<ContentSimpleDTO> findNearbyContents(Long id, double radiusInKm, int limit, boolean includeExpired) {
         Content content = contentRepository.findById(id)
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
 
@@ -186,7 +183,7 @@ public class ContentService {
         try {
             List<Content> nearby = contentRepository.findNearby(latitude, longitude, radiusInKm, id, limit, includeExpired);
             return nearby.stream()
-                    .map(this::toDTO)
+                    .map(this::toSimpleDTO)
                     .toList();
         } catch (Exception e) {
             log.error("주변 컨텐츠 조회 실패: contentId={}, lat={}, lng={}", id, latitude, longitude, e);
@@ -196,7 +193,7 @@ public class ContentService {
 
     // 카테고리별 컨텐츠 노출
     @Transactional(readOnly = true)
-    public List<ContentDTO> findRandomByCategory(Long id, int limit, boolean includeExpired) {
+    public List<ContentSimpleDTO> findRandomByCategory(Long id, int limit, boolean includeExpired) {
         Content content = contentRepository.findById(id)
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
 
@@ -212,9 +209,19 @@ public class ContentService {
 
         return filtered.stream()
                 .limit(limit)
-                .map(this::toDTO)
+                .map(this::toSimpleDTO)
                 .toList();
     }
+
+    private ContentSimpleDTO toSimpleDTO(Content content) {
+        return ContentSimpleDTO.builder()
+                .id(content.getId())
+                .contentTitle(content.getContentTitle())
+                .poster(content.getPoster())
+                .guname(content.getGuname())
+                .build();
+    }
+
 
     private ContentDTO toDTO(Content content) {
         return modelMapper.map(content, ContentDTO.class);
