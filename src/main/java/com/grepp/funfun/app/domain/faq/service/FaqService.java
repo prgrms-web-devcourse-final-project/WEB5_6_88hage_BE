@@ -41,6 +41,7 @@ public class FaqService {
         Faq faq = new Faq();
         faq.setTitle(request.getTitle());
         faq.setContent(request.getContent());
+        faq.setActivated(true);
         return faqRepository.save(faq).getId();
     }
 
