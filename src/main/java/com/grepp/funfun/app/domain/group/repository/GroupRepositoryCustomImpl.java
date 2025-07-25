@@ -90,12 +90,12 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
         if (keyword == null || keyword.isBlank()) return null;
 
         return group.title.containsIgnoreCase(keyword)
-            .or(group.simpleExplain.containsIgnoreCase(keyword))
-            .or(JPAExpressions.selectOne()
-                .from(groupHashtag)
-                .where(groupHashtag.group.eq(group)
-                    .and(groupHashtag.tag.containsIgnoreCase(keyword)))
-                .exists());
+            .or(group.simpleExplain.containsIgnoreCase(keyword));
+//            .or(JPAExpressions.selectOne()
+//                .from(groupHashtag)
+//                .where(groupHashtag.group.eq(group)
+//                    .and(groupHashtag.tag.containsIgnoreCase(keyword)))
+//                .exists());
     }
 
     // 거리순 조회(for 가독성)

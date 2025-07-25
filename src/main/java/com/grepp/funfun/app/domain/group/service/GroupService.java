@@ -467,6 +467,7 @@ public class GroupService {
         NativeQuery nativeQuery = NativeQuery.builder()
             .withQuery(boolQuery)
             .withPageable(pageable)
+            .withTrackTotalHits(true)
             .build();
 
         SearchHits<GroupDocument> searchHits = this.elasticsearchOperations.search(nativeQuery,
@@ -493,6 +494,6 @@ public class GroupService {
                     .category(groupDocument.getCategory())
                     .activated(groupDocument.getActivated())
                     .build();
-            }).toList());
+            }).toList(), pageable, searchHits.getTotalHits());
     }
 }
