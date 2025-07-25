@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserInfoService {
 
     private final UserRepository userRepository;
@@ -51,7 +52,6 @@ public class UserInfoService {
         }
     }
 
-    @Transactional(readOnly = true)
     public UserDetailResponse getUserDetail(String email) {
         User user = getUser(email);
 

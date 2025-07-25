@@ -51,4 +51,9 @@ public class Participant extends BaseEntity {
         this.status = status;
     }
 
+    public void changeLeaveStatusAndActivated(ParticipantStatus status) {
+        this.activated = true;
+        this.status = status;
+    }
+
 }

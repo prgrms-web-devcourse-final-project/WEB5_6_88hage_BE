@@ -143,11 +143,11 @@ public class ContactApiController {
 
     @PatchMapping("/{contactId}")
     @Operation(summary = "문의 삭제", description = "문의를 삭제(비활성화)합니다.")
-    public ResponseEntity<Void> deleteContact(@PathVariable Long contactId,
+    public ResponseEntity<ApiResponse<String>> deleteContact(@PathVariable Long contactId,
         Authentication authentication) {
         String email = authentication.getName();
         contactService.delete(contactId, email);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.success("문의가 삭제되었습니다."));
     }
 
 }

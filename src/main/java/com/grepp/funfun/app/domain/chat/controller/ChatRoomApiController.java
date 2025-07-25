@@ -36,9 +36,7 @@ public class ChatRoomApiController {
         Authentication authentication) {
 
         String userEmail = authentication.getName();
-
         chatRoomService.createPersonalChatRoom(userEmail, targetUserEmail);
-
         return ResponseEntity.ok(ApiResponse.success("채팅방 생성이 완료되었습니다."));
     }
 
@@ -49,9 +47,7 @@ public class ChatRoomApiController {
         Authentication authentication) {
 
         String userEmail = authentication.getName();
-
         List<PersonalChatRoomResponse> chatRooms = chatRoomService.getMyPersonalChatRooms(userEmail);
-
         return ResponseEntity.ok(ApiResponse.success(chatRooms));
     }
 
@@ -62,7 +58,6 @@ public class ChatRoomApiController {
         Authentication authentication) {
 
         String userEmail = authentication.getName();
-
         PersonalChatRoom chatRoom = personalChatRoomRepository.findById(roomId)
             .orElseThrow(() -> new CommonException(ResponseCode.BAD_REQUEST, "채팅방이 존재하지 않습니다."));
 

@@ -28,21 +28,9 @@ public class ChatApiController {
     @Operation(summary = "채팅 기록 조회", description = "팀의 이전 채팅 내용을 조회합니다.")
     public ResponseEntity<ApiResponse<List<ChatResponse>>> getChatHistory(@PathVariable Long roomId,
         @PathVariable ChatRoomType type) {
-        try {
-            if (roomId == null || roomId <= 0) {
-                return ResponseEntity.badRequest()
-                    .body(ApiResponse.error(ResponseCode.BAD_REQUEST));
-            }
+
             List<ChatResponse> chatHistory = chatService.getChatHistory(roomId, type);
             return ResponseEntity.ok(ApiResponse.success(chatHistory));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest()
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST));
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError()
-                .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR));
-        }
-
     }
 
     @GetMapping("/{roomId}/{type}/lastHistory")
@@ -50,18 +38,8 @@ public class ChatApiController {
     public ResponseEntity<ApiResponse<Optional<ChatResponse>>> getLastHistory(
         @PathVariable Long roomId,
         @PathVariable ChatRoomType type) {
-        try {
-            if (roomId == null || roomId <= 0) {
-                return ResponseEntity.badRequest()
-                    .body(ApiResponse.error(ResponseCode.BAD_REQUEST));
-            }
+
             Optional<ChatResponse> chatLastHistory = chatService.getLastChatHistory(roomId, type);
-
             return ResponseEntity.ok(ApiResponse.success(chatLastHistory));
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError()
-                .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR));
-        }
     }
-
 }
