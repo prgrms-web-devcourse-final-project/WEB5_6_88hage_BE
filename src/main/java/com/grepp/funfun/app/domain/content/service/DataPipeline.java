@@ -207,6 +207,11 @@ public class DataPipeline {
     }
 
     private void updateContent(Content content, ContentDTO dto) {
+        log.info("업데이트 전 제목: {}", content.getContentTitle());
+        log.info("업데이트 후 제목: {}", dto.getContentTitle());
+
+        log.info("업데이트 전 주소: {}", content.getAddress());
+        log.info("업데이트 후 주소: {}", dto.getAddress());
         content.setContentTitle(dto.getContentTitle());
         content.setAge(dto.getAge());
         content.setStartDate(dto.getStartDate());

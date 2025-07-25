@@ -60,8 +60,8 @@ public class ContentApiController {
             @PathVariable Long id
     ) {
         ContentDTO content = contentService.getContents(id);
-        List<ContentDTO> related = contentService.findRandomByCategory(id, 5, false);
-        List<ContentDTO> nearby = contentService.findNearbyContents(id, 10.0, 5, false);
+        List<ContentDTO> related = contentService.findRandomByCategory(id, 2, false);
+        List<ContentDTO> nearby = contentService.findNearbyContents(id, 10.0, 2, false);
 
         ContentDetailResponse response = ContentDetailResponse.builder()
                 .content(content)
