@@ -5,6 +5,7 @@ import com.grepp.funfun.app.domain.admin.dto.payload.AdminContactCategoryRespons
 import com.grepp.funfun.app.domain.admin.dto.payload.AdminContactStatusResponse;
 import com.grepp.funfun.app.domain.admin.service.AdminContactAnswerService;
 import com.grepp.funfun.app.domain.admin.service.AdminContactQueryService;
+import com.grepp.funfun.app.domain.contact.dto.payload.ContactDetailResponse;
 import com.grepp.funfun.app.domain.contact.dto.payload.ContactResponse;
 import com.grepp.funfun.app.infra.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -57,9 +58,9 @@ public class AdminContactApiController {
 
     @GetMapping("/{contactId}")
     @Operation(summary = "문의 상세 조회 (관리자)", description = "각각의 문의 상세 내용을 조회합니다.")
-    public ResponseEntity<ApiResponse<ContactResponse>> getContactDetail(
+    public ResponseEntity<ApiResponse<ContactDetailResponse>> getContactDetail(
             @PathVariable Long contactId) {
-        ContactResponse response = adminContactQueryService.getDetail(contactId);
+        ContactDetailResponse response = adminContactQueryService.getDetail(contactId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
