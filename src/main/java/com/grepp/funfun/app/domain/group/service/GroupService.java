@@ -307,7 +307,7 @@ public class GroupService {
             .groupLeaderEmail(group.getLeader().getEmail())
             .groupImageUrl(group.getImageUrl())
             .currentUserEmail(userEmail)
-            .currenUserImageUrl(currentUser.getInfo().getImageUrl())
+            .currentUserImageUrl(currentUser.getInfo().getImageUrl())
             .currentUserNickname(currentUser.getNickname())
             .participantCount(group.getNowPeople())
             .status(ParticipantStatus.APPROVED)

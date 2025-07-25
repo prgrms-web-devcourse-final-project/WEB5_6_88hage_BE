@@ -38,6 +38,7 @@ public class ChatService {
             .roomId(chatResponse.getRoomId())
             .senderNickname(chatResponse.getSenderNickname())
             .senderEmail(chatResponse.getSenderEmail())
+            .senderImageUrl(chatResponse.getSenderImageUrl())
             .message(chatResponse.getMessage())
             .build();
 
@@ -47,7 +48,7 @@ public class ChatService {
     @Transactional(readOnly = true)
     public List<ChatResponse> getChatHistory(Long roomId, ChatRoomType roomType) {
         // todo : 나중에 지울 코드
-        log.debug("Getting chat history for roomId: {}", roomId);
+        log.info("Getting chat history for roomId: {}", roomId);
         List<Chat> chatList = chatRepository.findByRoomIdAndRoomTypeOrderByCreatedAt(roomId, roomType);
 
         return chatList.stream()
@@ -58,7 +59,7 @@ public class ChatService {
     @Transactional(readOnly = true)
     public Optional<ChatResponse> getLastChatHistory(Long roomId, ChatRoomType roomType) {
         // todo : 나중에 지울 코드
-        log.debug("Getting chat history for roomId: {}", roomId);
+        log.info("Getting chat history for roomId: {}", roomId);
         return chatRepository.findTop1ByRoomIdAndRoomTypeOrderByCreatedAtDesc(roomId, roomType)
             .map(ChatResponse::new);
     }
