@@ -8,6 +8,8 @@ import com.grepp.funfun.app.domain.notification.dto.NotificationDTO;
 import com.grepp.funfun.app.domain.notification.service.NotificationService;
 import com.grepp.funfun.app.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -46,10 +48,9 @@ public class AdminNoticeService {
         return saved.getId();
     }
 
-    public List<AdminNoticeDTO> findAll() {
-        return repository.findAllByOrderByCreatedAtDesc().stream()
-                .map(mapper::toDTO)
-                .toList();
+    public Page<AdminNoticeDTO> findAll(Pageable pageable) {
+        return repository.findAllByOrderByCreatedAtDesc(pageable)
+                .map(mapper::toDTO);
     }
 
     public AdminNoticeDTO findById(Long id) {
