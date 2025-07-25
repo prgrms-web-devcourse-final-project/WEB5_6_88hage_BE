@@ -476,7 +476,7 @@ public class GroupService {
             .map(hit -> {
                 GroupDocument groupDocument = hit.getContent();
                 return GroupListResponse.builder()
-                    .id(groupDocument.getId())
+                    .id(Long.valueOf(groupDocument.getId()))
                     .title(groupDocument.getTitle())
                     .explain(groupDocument.getExplain())
                     .simpleExplain(groupDocument.getSimpleExplain())

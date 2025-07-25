@@ -18,10 +18,7 @@ import org.springframework.data.elasticsearch.annotations.Setting;
 public class GroupDocument {
 
     @Id
-    private String esId;
-
-    @Field(type = FieldType.Long)
-    private Long id;
+    private String id;
 
     @Field(type = FieldType.Text, analyzer = "groups_title_analyzer")
     private String title;

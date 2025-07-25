@@ -66,7 +66,7 @@ public class GroupSearchIntegrateTest {
         // 시간 측정 시작
         long startTime = System.nanoTime();
 
-        String keyword = "";
+        String keyword = "로맨스";
         Page<GroupListResponse> result = groupService.searchGroups(keyword, null, Pageable.ofSize(16));
 
         // 시간 측정 끝
@@ -80,6 +80,11 @@ public class GroupSearchIntegrateTest {
 
         // 전체 조회 쿼리 실행 시간 : 179 ms
         // 디지털 검색 쿼리 실행 시간 : 188 ms
+
+        // 1,000,000 건 - page size 16
+        // 전체 조회 쿼리 실행 시간 : 234 ms
+        // 로맨스 검색 쿼리 실행 시간 : 323 ms
+        // 독립영화 검색 쿼리 실행 시간 : 457 ms
     }
 
 
