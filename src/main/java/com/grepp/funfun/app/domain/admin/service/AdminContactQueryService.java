@@ -2,6 +2,7 @@ package com.grepp.funfun.app.domain.admin.service;
 
 import com.grepp.funfun.app.domain.admin.dto.payload.AdminContactStatusResponse;
 import com.grepp.funfun.app.domain.admin.dto.payload.AdminContactCategoryResponse;
+import com.grepp.funfun.app.domain.contact.dto.payload.ContactDetailResponse;
 import com.grepp.funfun.app.domain.contact.dto.payload.ContactResponse;
 import com.grepp.funfun.app.domain.contact.entity.Contact;
 import com.grepp.funfun.app.domain.contact.repository.ContactRepository;
@@ -54,9 +55,9 @@ public class AdminContactQueryService {
 
     // 문의 상세 조회
     @Transactional(readOnly = true)
-    public ContactResponse getDetail(Long contactId) {
+    public ContactDetailResponse getDetail(Long contactId) {
         Contact contact = contactRepository.findById(contactId)
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND, "존재하지 않는 문의입니다."));
-        return ContactResponse.from(contact);
+        return ContactDetailResponse.from(contact);
     }
 }

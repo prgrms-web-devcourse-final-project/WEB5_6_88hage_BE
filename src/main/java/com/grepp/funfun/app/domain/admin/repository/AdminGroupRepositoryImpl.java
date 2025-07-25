@@ -35,11 +35,9 @@ public class AdminGroupRepositoryImpl implements AdminGroupRepositoryCustom {
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        Long total = queryFactory
-                .select(group.count())
-                .from(group)
-                .where(statusCondition)
-                .fetchOne();
+        Long total = (statusCondition != null)
+                ? queryFactory.select(group.count()).from(group).where(statusCondition).fetchOne()
+                : queryFactory.select(group.count()).from(group).fetchOne();
 
         return new PageImpl<>(content, pageable, total != null ? total : 0);
     }
