@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.domain.admin.service;
 
+import com.grepp.funfun.app.domain.admin.dto.payload.AdminGroupResponse;
 import com.grepp.funfun.app.domain.admin.repository.AdminGroupRepository;
 import com.grepp.funfun.app.domain.group.entity.Group;
 import com.grepp.funfun.app.domain.group.vo.GroupStatus;

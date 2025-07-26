@@ -10,6 +10,7 @@ import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -41,7 +42,6 @@ public class FaqService {
         Faq faq = new Faq();
         faq.setTitle(request.getTitle());
         faq.setContent(request.getContent());
-        faq.setActivated(true);
         return faqRepository.save(faq).getId();
     }
 

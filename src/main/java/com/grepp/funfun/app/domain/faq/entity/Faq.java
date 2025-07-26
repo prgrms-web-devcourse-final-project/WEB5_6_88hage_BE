@@ -20,7 +20,4 @@ public class Faq extends BaseEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    public void setActivated(Boolean activated) {
-        this.activated = activated;
-    }
 }
