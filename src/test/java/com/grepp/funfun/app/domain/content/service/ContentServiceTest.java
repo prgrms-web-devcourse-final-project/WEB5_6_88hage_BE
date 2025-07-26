@@ -498,7 +498,7 @@ class ContentServiceTest {
         log.info("========== 키워드 검색 테스트 (주소) ==========");
         log.info("검색어: 예술의전당");
         result.getContent().forEach(content ->
-                log.info("{} - 주소: {}", content.getContentTitle(),content.getGuname()));
+                log.info("{} - 주소: {}", content.getContentTitle(),content.getAddress()));
 
         verify(contentRepository).findFilteredContentsByDistance(
                 any(), any(), any(), any(), eq("예술의전당"),
