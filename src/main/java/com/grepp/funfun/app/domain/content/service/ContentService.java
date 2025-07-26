@@ -121,6 +121,10 @@ public class ContentService {
             String currentUserEmail = SecurityContextHolder.getContext()
                     .getAuthentication().getName();
 
+            if (currentUserEmail.equals("anonymousUser")){
+                return new Double[]{null, null};
+            }
+
             UserDTO user = userService.get(currentUserEmail);
             if (user != null && user.getLatitude() != null && user.getLongitude() != null) {
                 log.info("사용자 기본 위치 조회 : 위도={}, 경도={}",
