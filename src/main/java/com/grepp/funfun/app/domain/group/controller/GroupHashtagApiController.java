@@ -25,7 +25,7 @@ public class GroupHashtagApiController {
     @Operation(summary = "자동 완성을 위한 단어 저장", description = "자동 완성을 위한 단어 저장합니다.(모임 해시태그)")
     public ResponseEntity<ApiResponse<String>> saveWord(@RequestParam String keyword){
         groupHashtagService.saveWord(keyword);
-        return ResponseEntity.ok(com.grepp.funfun.app.infra.response.ApiResponse.success("접두어 저장 완료"));
+        return ResponseEntity.ok(com.grepp.funfun.app.infra.response.ApiResponse.success("단어 저장 완료"));
     }
 
     @GetMapping("/complete")
