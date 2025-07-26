@@ -5,7 +5,6 @@ import com.grepp.funfun.app.domain.content.dto.ContentListDTO;
 import com.grepp.funfun.app.domain.content.dto.ContentSimpleDTO;
 import com.grepp.funfun.app.domain.content.dto.payload.ContentDetailResponse;
 import com.grepp.funfun.app.domain.content.dto.payload.ContentFilterRequest;
-import com.grepp.funfun.app.domain.content.dto.ContentDTO;
 import com.grepp.funfun.app.domain.content.service.ContentService;
 import com.grepp.funfun.app.infra.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,10 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,16 +37,6 @@ public class ContentApiController {
     public ResponseEntity<ApiResponse<Page<ContentListDTO>>> getAllContents(
             @Valid @ParameterObject ContentFilterRequest request,
             @ParameterObject Pageable pageable) {
-        if (request.isBookmarkSort()) {
-            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
-                    Sort.by(Sort.Direction.DESC, "bookmarkCount"));
-        } else if (request.isEndDateSort()) {
-            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
-                    Sort.by(Sort.Direction.ASC, "endDate"));
-        } else {
-            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
-                    Sort.by(Sort.Direction.ASC, "distance"));
-        }
 
         Page<ContentListDTO> contents = contentService.findByFiltersWithSort(request, pageable);
         return ResponseEntity.ok(ApiResponse.success(contents));

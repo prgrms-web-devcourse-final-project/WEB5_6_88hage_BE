@@ -21,6 +21,7 @@ import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -69,21 +70,19 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
             where.and(content.endDate.isNull().or(content.endDate.goe(LocalDate.now())));
         }
 
-        OrderSpecifier<?> orderSpecifier = null;
-        Sort sort = pageable.getSort();
-        log.info("정렬 조건 확인: {}", sort);
+        List<OrderSpecifier<?>> orderSpecifiers = new ArrayList<>();
+        for (Sort.Order order : pageable.getSort()) {
+            String property = order.getProperty();
+            boolean isAsc = order.getDirection().isAscending();
 
-        if (sort.isSorted()) {
-            String property = sort.iterator().next().getProperty();
-            log.info("정렬 필드명: {}", property);
-            log.info("북마크 기준 정렬 여부: {}", "bookmarkCount".equals(property));
+            log.info("정렬 필드: {}, 방향: {}", property, isAsc ? "ASC" : "DESC");
 
-            if ("bookmarkCount".equals(property)) {
-                orderSpecifier = content.bookmarkCount.desc();
-                log.info("북마크 DESC OrderSpecifier 생성: {}", orderSpecifier);
-            } else if ("endDate".equals(property)) {
-                orderSpecifier = content.endDate.asc();
-                log.info("마감일 ASC OrderSpecifier 생성: {}", orderSpecifier);
+            switch (property) {
+                case "bookmarkCount" -> orderSpecifiers.add(isAsc ?
+                        content.bookmarkCount.asc() : content.bookmarkCount.desc());
+                case "endDate" -> orderSpecifiers.add(isAsc ?
+                        content.endDate.asc() : content.endDate.desc());
+                default -> log.warn("지원하지 않는 정렬 필드: {}", property);
             }
         }
         long total = queryFactory
@@ -99,10 +98,9 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize());
 
-        if (orderSpecifier != null) {
-            log.info("OrderSpecifier 적용 전 쿼리");
-            query.orderBy(orderSpecifier);
-            log.info("OrderSpecifier 적용 완료: {}", orderSpecifier);
+        if (!orderSpecifiers.isEmpty()) {
+            query.orderBy(orderSpecifiers.toArray(new OrderSpecifier[0]));
+            log.info("정렬 조건 적용됨: {}", orderSpecifiers);
         }
 
         log.info("최종 쿼리 실행 전");

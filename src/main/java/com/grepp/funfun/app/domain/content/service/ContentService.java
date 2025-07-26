@@ -74,35 +74,27 @@ public class ContentService {
     // 북마크순 정렬
     private Page<Content> findByFiltersOrderByBookmark(ContentFilterRequest request, Pageable pageable) {
 
-        log.info("생성된 sortedPageable: {}", pageable.getSort());
-        log.info("북마크순 정렬을 위해 repository 호출");
+        Sort sort = Sort.by(Sort.Direction.DESC, "bookmarkCount");
+        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
 
-        Page<Content> result = contentRepository.findFilteredContents(
+        log.info("생성된 정렬: {}", sortedPageable.getSort());
+        
+        return contentRepository.findFilteredContents(
                 request.getCategory(),
                 request.getGuname(),
                 request.getStartDate(),
                 request.getEndDate(),
                 request.getKeyword(),
                 false,
-                pageable
+                sortedPageable
         );
-
-        log.info("repository에서 반환된 결과 개수: {}", result.getContent().size());
-        if (!result.getContent().isEmpty()) {
-            Content first = result.getContent().get(0);
-            log.info("첫 번째 결과 - ID: {}, bookmarkCount: {}", first.getId(), first.getBookmarkCount());
-            if (result.getContent().size() > 1) {
-                Content second = result.getContent().get(1);
-                log.info("두 번째 결과 - ID: {}, bookmarkCount: {}", second.getId(), second.getBookmarkCount());
-            }
-        }
-
-        return result;
     }
 
     // 마감 임박순 정렬
     private Page<Content> findByFiltersOrderByEndDate(ContentFilterRequest request, Pageable pageable) {
 
+        Sort sort = Sort.by(Sort.Direction.ASC, "endDate");
+        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
 
         return contentRepository.findFilteredContents(
                 request.getCategory(),
@@ -111,7 +103,7 @@ public class ContentService {
                 request.getEndDate(),
                 request.getKeyword(),
                 false,
-                pageable
+                sortedPageable
         );
     }
 
@@ -217,9 +209,11 @@ public class ContentService {
                 .toList();
     }
 
-    private ContentSimpleDTO toSimpleDTO(Content content) { return modelMapper.map(content, ContentSimpleDTO.class); }
+    private ContentSimpleDTO toSimpleDTO(Content content) {
+        return modelMapper.map(content, ContentSimpleDTO.class); }
 
-    private ContentListDTO toContentListDTO(Content content) { return modelMapper.map(content, ContentListDTO.class); }
+    private ContentListDTO toContentListDTO(Content content) {
+        return modelMapper.map(content, ContentListDTO.class); }
 
     private ContentDetailDTO toDetailDTO(Content content) {
         return modelMapper.map(content, ContentDetailDTO.class);
