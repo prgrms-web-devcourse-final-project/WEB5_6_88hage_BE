@@ -17,11 +17,10 @@ import java.util.List;
 public class AdminGroupRepositoryImpl implements AdminGroupRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
+    private final  QGroup group = QGroup.group;
 
     @Override
     public Page<Group> findByStatus(GroupStatus status, Pageable pageable) {
-        QGroup group = QGroup.group;
-
         // enum 이라서
         BooleanExpression statusCondition = (status != null) ? group.status.eq(status) : null;
 
