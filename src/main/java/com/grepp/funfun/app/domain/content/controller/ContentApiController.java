@@ -1,5 +1,8 @@
 package com.grepp.funfun.app.domain.content.controller;
 
+import com.grepp.funfun.app.domain.content.dto.ContentDetailDTO;
+import com.grepp.funfun.app.domain.content.dto.ContentListDTO;
+import com.grepp.funfun.app.domain.content.dto.ContentSimpleDTO;
 import com.grepp.funfun.app.domain.content.dto.payload.ContentDetailResponse;
 import com.grepp.funfun.app.domain.content.dto.payload.ContentFilterRequest;
 import com.grepp.funfun.app.domain.content.dto.ContentDTO;
@@ -35,7 +38,7 @@ public class ContentApiController {
 
     @GetMapping
     @Operation(summary = "컨텐츠 목록 조회")
-    public ResponseEntity<ApiResponse<Page<ContentDTO>>> getAllContents(
+    public ResponseEntity<ApiResponse<Page<ContentListDTO>>> getAllContents(
             @Valid @ParameterObject ContentFilterRequest request,
             @ParameterObject Pageable pageable) {
         if (request.isBookmarkSort()) {
@@ -49,7 +52,7 @@ public class ContentApiController {
                     Sort.by(Sort.Direction.ASC, "distance"));
         }
 
-        Page<ContentDTO> contents = contentService.findByFiltersWithSort(request, pageable);
+        Page<ContentListDTO> contents = contentService.findByFiltersWithSort(request, pageable);
         return ResponseEntity.ok(ApiResponse.success(contents));
 
     }
@@ -59,9 +62,9 @@ public class ContentApiController {
     public ResponseEntity<ApiResponse<ContentDetailResponse>> getContent(
             @PathVariable Long id
     ) {
-        ContentDTO content = contentService.getContents(id);
-        List<ContentDTO> related = contentService.findRandomByCategory(id, 5, false);
-        List<ContentDTO> nearby = contentService.findNearbyContents(id, 10.0, 5, false);
+        ContentDetailDTO content = contentService.getContents(id);
+        List<ContentSimpleDTO> related = contentService.findRandomByCategory(id, 2, false);
+        List<ContentSimpleDTO> nearby = contentService.findNearbyContents(id, 10.0, 2, false);
 
         ContentDetailResponse response = ContentDetailResponse.builder()
                 .content(content)
