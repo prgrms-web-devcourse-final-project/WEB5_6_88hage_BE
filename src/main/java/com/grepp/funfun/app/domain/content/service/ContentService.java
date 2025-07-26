@@ -1,10 +1,7 @@
 package com.grepp.funfun.app.domain.content.service;
 
 import com.grepp.funfun.app.domain.calendar.repository.CalendarRepository;
-import com.grepp.funfun.app.domain.content.dto.ContentDTO;
-import com.grepp.funfun.app.domain.content.dto.ContentImageDTO;
-import com.grepp.funfun.app.domain.content.dto.ContentUrlDTO;
-import com.grepp.funfun.app.domain.content.dto.ContentWithReasonDTO;
+import com.grepp.funfun.app.domain.content.dto.*;
 import com.grepp.funfun.app.domain.content.dto.payload.ContentFilterRequest;
 import com.grepp.funfun.app.domain.content.entity.Content;
 import com.grepp.funfun.app.domain.content.repository.ContentRepository;
@@ -39,14 +36,14 @@ public class ContentService {
     private final ModelMapper modelMapper;
 
     // 컨텐츠 상세 조회
-    public ContentDTO getContents(final Long id) {
+    public ContentDetailDTO getContents(final Long id) {
         Content content = contentRepository.findByIdWithCategory(id)
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-        return toDTO(content);
+        return toDetailDTO(content);
     }
 
     // 컨텐츠 필터링(컨텐츠 조회)
-    public Page<ContentDTO> findByFiltersWithSort(ContentFilterRequest request, Pageable pageable) {
+    public Page<ContentListDTO> findByFiltersWithSort(ContentFilterRequest request, Pageable pageable) {
         try {
             Page<Content> contents;
             if (request.isBookmarkSort()) {
@@ -63,7 +60,7 @@ public class ContentService {
             }
 
             log.info("조회된 컨텐츠 수: {}", contents.getTotalElements());
-            return contents.map(this::toDTO);
+            return contents.map(this::toContentListDTO);
 
         } catch (CommonException e) {
             log.error("NOT_FOUND 예외 발생 - 필터링 조건: {}, 메시지: {}", request, e.getMessage());
@@ -171,7 +168,7 @@ public class ContentService {
     }
 
     // 거리순 컨텐츠 노출
-    public List<ContentDTO> findNearbyContents(Long id, double radiusInKm, int limit, boolean includeExpired) {
+    public List<ContentSimpleDTO> findNearbyContents(Long id, double radiusInKm, int limit, boolean includeExpired) {
         Content content = contentRepository.findById(id)
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
 
@@ -186,7 +183,7 @@ public class ContentService {
         try {
             List<Content> nearby = contentRepository.findNearby(latitude, longitude, radiusInKm, id, limit, includeExpired);
             return nearby.stream()
-                    .map(this::toDTO)
+                    .map(this::toSimpleDTO)
                     .toList();
         } catch (Exception e) {
             log.error("주변 컨텐츠 조회 실패: contentId={}, lat={}, lng={}", id, latitude, longitude, e);
@@ -196,7 +193,7 @@ public class ContentService {
 
     // 카테고리별 컨텐츠 노출
     @Transactional(readOnly = true)
-    public List<ContentDTO> findRandomByCategory(Long id, int limit, boolean includeExpired) {
+    public List<ContentSimpleDTO> findRandomByCategory(Long id, int limit, boolean includeExpired) {
         Content content = contentRepository.findById(id)
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
 
@@ -212,12 +209,16 @@ public class ContentService {
 
         return filtered.stream()
                 .limit(limit)
-                .map(this::toDTO)
+                .map(this::toSimpleDTO)
                 .toList();
     }
 
-    private ContentDTO toDTO(Content content) {
-        return modelMapper.map(content, ContentDTO.class);
+    private ContentSimpleDTO toSimpleDTO(Content content) { return modelMapper.map(content, ContentSimpleDTO.class); }
+
+    private ContentListDTO toContentListDTO(Content content) { return modelMapper.map(content, ContentListDTO.class); }
+
+    private ContentDetailDTO toDetailDTO(Content content) {
+        return modelMapper.map(content, ContentDetailDTO.class);
     }
 
     public List<ContentWithReasonDTO> findByIds(List<Long> recommendIds) {

@@ -19,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -52,41 +53,82 @@ class DataPipelineTest {
     @DisplayName("증분 수집 시 - updateContentCoordinates() 호출됨")
     void testImportIncrementalData_updatesOnlyUpdatedContents() {
         // given
-        Content dummyContent = Content.builder().id(1L).contentTitle("Dummy").build();
+        String contentId = "CONTENT123";
 
-        // ID 목록 반환
-        Mockito.doReturn(List.of("CONTENT123"))
-                .when(dataPipeline)
-                .getIdList(anyString(), anyString(), anyString(), anyString());
+        ContentDTO dto = ContentDTO.builder()
+                .externalId("EXT123")
+                .contentTitle("Dummy")
+                .category("POP_MUSIC")
+                .eventType(EventType.EVENT)
+                .urls(List.of())
+                .images(List.of())
+                .latitude(37.0)
+                .longitude(127.0)
+                .build();
 
-        // 상세 데이터 처리 결과 (추가 또는 수정된 콘텐츠 반환)
-        Mockito.doReturn(Optional.of(dummyContent))
-                .when(dataPipeline)
-                .processContent(anyString());
+        ContentCategory dummyCategory = ContentCategory.builder()
+                .category(ContentClassification.POP_MUSIC)
+                .build();
+
+        when(contentCategoryRepository.findByCategory(ContentClassification.POP_MUSIC))
+                .thenReturn(Optional.of(dummyCategory));
+
+        DataPipeline testPipeline = new TestableDataPipeline(
+                List.of(contentId),
+                dto,
+                contentRepository,
+                contentCategoryRepository,
+                kakaoGeoService
+        );
+
+        ReflectionTestUtils.setField(testPipeline, "kopisApiKey", "dummy-key");
 
         // when
-        dataPipeline.importIncrementalData();
+        testPipeline.importIncrementalData();
 
         // then
-        verify(kakaoGeoService, times(1)).updateContentCoordinates(argThat(list ->
-                list.size() == 1 && list.get(0).getContentTitle().equals("Dummy")));
-        verify(kakaoGeoService, never()).updateAllContentCoordinates();
+        verify(kakaoGeoService).updateContentCoordinates(argThat(list ->
+                list.size() == 1 && list.get(0).getContentTitle().equals("Dummy")
+        ));
     }
 
     @Test
     @DisplayName("전체 수집 시 - updateAllContentCoordinates() 호출됨")
     void testImportFullData_callsUpdateAllCoordinates() {
         // given
-        Mockito.doReturn(List.of("CONTENT123"))
-                .when(dataPipeline)
-                .getIdList(anyString(), anyString(), anyString(), isNull());
+        String contentId = "CONTENT123";
 
-        Mockito.doReturn(Optional.of(Content.builder().id(1L).contentTitle("FullContent").build()))
-                .when(dataPipeline)
-                .processContent(anyString());
+        ContentDTO dto = ContentDTO.builder()
+                .externalId("EXT999")
+                .contentTitle("FullContent")
+                .category("POP_MUSIC")
+                .eventType(EventType.EVENT)
+                .urls(List.of())
+                .images(List.of())
+                .latitude(37.5)
+                .longitude(126.9)
+                .build();
+
+        ContentCategory dummyCategory = ContentCategory.builder()
+                .category(ContentClassification.POP_MUSIC)
+                .build();
+
+        when(contentRepository.findByExternalId("EXT999")).thenReturn(Optional.empty());
+        when(contentCategoryRepository.findByCategory(ContentClassification.POP_MUSIC))
+                .thenReturn(Optional.of(dummyCategory));
+
+        DataPipeline testPipeline = new TestableDataPipeline(
+                List.of(contentId),
+                dto,
+                contentRepository,
+                contentCategoryRepository,
+                kakaoGeoService
+        );
+
+        ReflectionTestUtils.setField(testPipeline, "kopisApiKey", "dummy-key");
 
         // when
-        dataPipeline.importFullData();
+        testPipeline.importFullData();
 
         // then
         verify(kakaoGeoService, times(1)).updateAllContentCoordinates();
@@ -94,57 +136,63 @@ class DataPipelineTest {
     }
 
     @Test
-    @DisplayName("기존 콘텐츠가 있을 경우 updateContent 후 저장된다")
-    void testProcessContent_updatesExisting() {
-        ContentCategory dummyCategory = ContentCategory.builder()
+    @DisplayName("증분 수집 시 afterDate 기준으로 기존 콘텐츠가 업데이트됨")
+    void testImportIncrementalData_updatesExistingContent() {
+        // given
+        String contentId = "CID123";
+
+        ContentDTO dto = ContentDTO.builder()
+                .externalId("EXT123")
+                .contentTitle("New Title")
+                .address(null)
+                .age("15세 이상")
+                .latitude(37.1)
+                .longitude(127.1)
+                .urls(List.of(ContentUrlDTO.builder()
+                        .siteName("예스24").url("http://yes24.com").build()))
+                .images(List.of(ContentImageDTO.builder()
+                        .imageUrl("image.jpg").build()))
+                .category("POP_MUSIC")
+                .eventType(EventType.EVENT)
+                .build();
+
+        ContentCategory category = ContentCategory.builder()
                 .category(ContentClassification.POP_MUSIC)
                 .build();
 
-        String contentId = "CID001";
-
-        ContentDTO dto = ContentDTO.builder()
-                .externalId("EXT001")
-                .contentTitle("Updated Title")
-                .age("만 15세 이상")
-                .latitude(37.123)
-                .longitude(127.456)
-                .images(List.of(ContentImageDTO.builder().imageUrl("img.jpg").build()))
-                .urls(List.of(ContentUrlDTO.builder().siteName("예스24").url("http://yes24.com").build()))
-                .eventType(EventType.EVENT)
-                .build();
-
         Content existing = Content.builder()
-                .id(10L)
-                .externalId("EXT001")
+                .id(999L)
+                .externalId("EXT123")
                 .contentTitle("Old Title")
+                .address("서울특별시 예술의전당")
                 .images(new ArrayList<>())
                 .urls(new ArrayList<>())
-                .category(dummyCategory)
+                .category(category)
                 .eventType(EventType.EVENT)
                 .build();
 
-        when(contentRepository.findByExternalId("EXT001")).thenReturn(Optional.of(existing));
+        when(contentRepository.findByExternalId("EXT123")).thenReturn(Optional.of(existing));
 
-        DataPipeline spyPipeline = Mockito.spy(dataPipeline);
-        doReturn(dto).when(spyPipeline).getDetailInfo(contentId);
+        TestableDataPipeline pipeline = new TestableDataPipeline(
+                List.of(contentId), dto, contentRepository, contentCategoryRepository, kakaoGeoService
+        );
 
-        Optional<Content> result = ReflectionTestUtils.invokeMethod(spyPipeline, "processContent", contentId);
+        // when
+        pipeline.importIncrementalData();
 
-        assertTrue(result.isPresent());
-
+        // then
         ArgumentCaptor<Content> captor = ArgumentCaptor.forClass(Content.class);
         verify(contentRepository).save(captor.capture());
 
-        Content updated = result.get();
-        assertEquals("Updated Title", updated.getContentTitle());
-        assertEquals(1, updated.getImages().size());
-        assertEquals("img.jpg", updated.getImages().get(0).getImageUrl());
-        assertEquals("예스24", updated.getUrls().get(0).getSiteName());
+        Content saved = captor.getValue();
+        assertEquals("New Title", saved.getContentTitle());
+        assertEquals(1, saved.getImages().size());
+        assertEquals("image.jpg", saved.getImages().get(0).getImageUrl());
+        assertEquals("예스24", saved.getUrls().get(0).getSiteName());
 
-        log.info("엡데이트된 콘텐츠: {}", updated);
-
+        verify(kakaoGeoService).updateContentCoordinates(any());
+        verify(kakaoGeoService, never()).updateAllContentCoordinates();
     }
-
 
     @Test
     @DisplayName("신규 콘텐츠일 경우 저장되고, 리스트에 추가된다")
@@ -201,5 +249,33 @@ class DataPipelineTest {
 
     }
 
+
+
+    static class TestableDataPipeline extends DataPipeline {
+        private final List<String> idsToReturn;
+        private final ContentDTO dtoToReturn;
+
+        public TestableDataPipeline(
+                List<String> ids,
+                ContentDTO dtoToReturn,
+                ContentRepository contentRepo,
+                ContentCategoryRepository categoryRepo,
+                KakaoGeoService geoService
+        ) {
+            super(contentRepo, geoService, categoryRepo);
+            this.idsToReturn = ids;
+            this.dtoToReturn = dtoToReturn;
+        }
+
+        @Override
+        protected List<String> getIdList(String a, String b, String c, String d) {
+            return idsToReturn;
+        }
+
+        @Override
+        protected ContentDTO getDetailInfo(String id) {
+            return dtoToReturn;
+        }
+    }
 
 }

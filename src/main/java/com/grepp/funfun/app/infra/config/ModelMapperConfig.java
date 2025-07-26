@@ -1,6 +1,9 @@
 package com.grepp.funfun.app.infra.config;
 
 import com.grepp.funfun.app.domain.content.dto.ContentDTO;
+import com.grepp.funfun.app.domain.content.dto.ContentDetailDTO;
+import com.grepp.funfun.app.domain.content.dto.ContentListDTO;
+import com.grepp.funfun.app.domain.content.dto.ContentSimpleDTO;
 import com.grepp.funfun.app.domain.content.entity.Content;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
@@ -26,14 +29,23 @@ public class ModelMapperConfig {
             }
             return ctx.getSource().getCategory().getCategory().name();
         };
-        modelMapper.typeMap(Content.class, ContentDTO.class)
+        modelMapper.typeMap(Content.class, ContentDetailDTO.class)
                 .addMappings(mapper ->
                         mapper.using(categoryConverter)
-                                .map(src -> src, ContentDTO::setCategory)
+                                .map(src -> src, ContentDetailDTO::setCategory)
+                );
+        modelMapper.typeMap(Content.class, ContentSimpleDTO.class)
+                .addMappings(mapper ->
+                        mapper.using(categoryConverter)
+                                .map(src -> src, ContentSimpleDTO::setCategory)
+                );
+
+        modelMapper.typeMap(Content.class, ContentListDTO.class)
+                .addMappings(mapper ->
+                        mapper.using(categoryConverter)
+                                .map(src -> src, ContentListDTO::setCategory)
                 );
 
         return modelMapper;
-
     }
-    
 }
