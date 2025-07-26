@@ -1,6 +1,8 @@
 package com.grepp.funfun.app.domain.content.service;
 
-import com.grepp.funfun.app.domain.content.dto.ContentDTO;
+import com.grepp.funfun.app.domain.content.dto.ContentDetailDTO;
+import com.grepp.funfun.app.domain.content.dto.ContentListDTO;
+import com.grepp.funfun.app.domain.content.dto.ContentSimpleDTO;
 import com.grepp.funfun.app.domain.content.dto.payload.ContentFilterRequest;
 import com.grepp.funfun.app.domain.content.entity.Content;
 import com.grepp.funfun.app.domain.content.entity.ContentCategory;
@@ -16,6 +18,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.modelmapper.Converter;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.data.domain.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -24,6 +29,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -55,10 +61,37 @@ class ContentServiceTest {
     private List<Content> mockContents;
 
     @BeforeEach
-    void setUp() {
-        // 테스트용 컨텐츠 데이터 생성
+    void injectRealModelMapper() {
+        ModelMapper modelMapper = new ModelMapper();
+        modelMapper.getConfiguration().setSkipNullEnabled(true);
+        modelMapper.getConfiguration().setPreferNestedProperties(false);
+        modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.LOOSE);
+
+        Converter<Content, String> categoryConverter = ctx -> {
+            if (ctx.getSource() == null ||
+                    ctx.getSource().getCategory() == null ||
+                    ctx.getSource().getCategory().getCategory() == null) {
+                return null;
+            }
+            return ctx.getSource().getCategory().getCategory().name();
+        };
+
+        modelMapper.typeMap(Content.class, ContentListDTO.class)
+                .addMappings(mapper -> mapper.using(categoryConverter)
+                        .map(src -> src, ContentListDTO::setCategory));
+
+        modelMapper.typeMap(Content.class, ContentDetailDTO.class)
+                .addMappings(mapper -> mapper.using(categoryConverter)
+                        .map(src -> src, ContentDetailDTO::setCategory));
+
+        modelMapper.typeMap(Content.class, ContentSimpleDTO.class)
+                .addMappings(mapper -> mapper.using(categoryConverter)
+                        .map(src -> src, ContentSimpleDTO::setCategory));
+
+        contentService = new ContentService(contentRepository, userService, modelMapper);
         mockContents = createMockContents();
     }
+
 
     private void setupDistanceSortMocks() {
         // Security Context 모킹
@@ -88,7 +121,7 @@ class ContentServiceTest {
                 any(), any(), any(), any(), any(), eq(37.4981), eq(127.0276), eq(false), eq(pageable)))
                 .willReturn(mockPage);
 
-        Page<ContentDTO> result = contentService.findByFiltersWithSort(request, pageable);
+        Page<ContentListDTO> result = contentService.findByFiltersWithSort(request, pageable);
 
         assertThat(result).isNotNull();
         assertThat(result.getContent()).isNotEmpty();
@@ -110,8 +143,12 @@ class ContentServiceTest {
     @DisplayName("무용 카테고리 필터링 테스트")
     public void getFilterByCategory(){
         setupDistanceSortMocks();
+
         ContentFilterRequest request = new ContentFilterRequest();
         request.setCategory(ContentClassification.DANCE);
+        request.setKeyword(null);
+        request.setSortBy("distance");
+
         Pageable pageable = PageRequest.of(0, 10);
 
         List<Content> danceContents = mockContents.stream()
@@ -123,22 +160,14 @@ class ContentServiceTest {
                 eq(ContentClassification.DANCE), any(), any(), any(), any(), eq(37.4981), eq(127.0276), eq(false), eq(pageable)))
                 .willReturn(mockPage);
 
-        Page<ContentDTO> result = contentService.findByFiltersWithSort(request, pageable);
+        Page<ContentListDTO> result = contentService.findByFiltersWithSort(request, pageable);
 
         assertThat(result).isNotNull();
+        assertThat(result.getContent()).isNotEmpty();
 
-        log.info("============= 무용 카테고리 필터링 ============");
-        if (!result.getContent().isEmpty()) {
-            result.getContent().forEach(content ->
-                    log.info("{} - 카테고리: {}", content.getContentTitle(), content.getCategory())
-            );
-
-            result.getContent().forEach(content ->
-                    assertThat(content.getCategory()).isEqualTo("DANCE")
-            );
-        } else {
-            log.info("무용 카테고리 컨텐츠가 없습니다.");
-        }
+        result.getContent().forEach(dto ->
+                assertThat(dto.getCategory()).isEqualTo("DANCE")
+        );
     }
 
     @Test
@@ -157,7 +186,7 @@ class ContentServiceTest {
                 any(), eq("강남구"), any(), any(), any(), eq(37.4981), eq(127.0276), eq(false), eq(pageable)))
                 .willReturn(mockPage);
 
-        Page<ContentDTO> result = contentService.findByFiltersWithSort(request, pageable);
+        Page<ContentListDTO> result = contentService.findByFiltersWithSort(request, pageable);
 
         assertThat(result).isNotNull();
         if (!result.getContent().isEmpty()) {
@@ -187,7 +216,7 @@ class ContentServiceTest {
                 any(), any(), any(), any(), any(),eq(37.4981), eq(127.0276),  eq(false),eq(pageable)))
                 .willReturn(mockPage);
 
-        Page<ContentDTO> result = contentService.findByFiltersWithSort(request, pageable);
+        Page<ContentListDTO> result = contentService.findByFiltersWithSort(request, pageable);
 
         assertThat(result).isNotNull();
         assertThat(result.getContent()).isNotEmpty();
@@ -214,7 +243,7 @@ class ContentServiceTest {
         // given
         ContentFilterRequest request = new ContentFilterRequest();
         request.setSortBy("bookmarkCount");
-        Pageable pageable = PageRequest.of(0, 10);
+        Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "bookmarkCount"));
 
         Page<Content> mockPage = new PageImpl<>(mockContents, pageable, mockContents.size());
 
@@ -223,7 +252,7 @@ class ContentServiceTest {
                 argThat(p -> p.getSort().equals(Sort.by(Sort.Direction.DESC, "bookmarkCount")))))
                 .willReturn(mockPage);
 
-        Page<ContentDTO> result = contentService.findByFiltersWithSort(request, pageable);
+        Page<ContentListDTO> result = contentService.findByFiltersWithSort(request, pageable);
 
         assertThat(result).isNotNull();
         assertThat(result.getContent()).isNotEmpty();
@@ -253,18 +282,18 @@ class ContentServiceTest {
     void testEndDateAscSort() {
         ContentFilterRequest request = new ContentFilterRequest();
         request.setSortBy("endDate");
-        Pageable pageable = PageRequest.of(0, 10);
+
+        Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "endDate"));
 
         List<Content> sortedByEndDate = mockContents.stream()
-                .sorted((c1, c2) -> c1.getEndDate().compareTo(c2.getEndDate()))
+                .sorted(Comparator.comparing(Content::getEndDate))
                 .toList();
         Page<Content> mockPage = new PageImpl<>(sortedByEndDate, pageable, sortedByEndDate.size());
 
-        Pageable sortedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "endDate"));  // endDate 정렬
-        given(contentRepository.findFilteredContents(any(), any(), any(), any(), any(), eq(false), eq(sortedPageable)))
+        given(contentRepository.findFilteredContents(any(), any(), any(), any(), any(), eq(false), eq(pageable)))
                 .willReturn(mockPage);
 
-        Page<ContentDTO> result = contentService.findByFiltersWithSort(request, pageable);
+        Page<ContentListDTO> result = contentService.findByFiltersWithSort(request, pageable);
 
         assertThat(result).isNotNull();
         assertThat(result.getContent()).isNotEmpty();
@@ -276,13 +305,12 @@ class ContentServiceTest {
         }
 
         log.info("========== 마감 임박순 정렬 (가까운 날짜 순) ==========");
-        log.info("총 개수: {}",result.getTotalElements());
+        log.info("총 개수: {}", result.getTotalElements());
         result.getContent().forEach(content ->
                 log.info("{} - 마감일: {}", content.getContentTitle(), content.getEndDate())
-
         );
 
-        verify(contentRepository).findFilteredContents(any(), any(), any(), any(), any(), eq(false), any());
+        verify(contentRepository).findFilteredContents(any(), any(), any(), any(), any(), eq(false), eq(pageable));
     }
 
     @Test
@@ -297,7 +325,7 @@ class ContentServiceTest {
                 any(), any(), any(), any(), any(), eq(37.4981), eq(127.0276),  eq(false),eq(pageable)))
                 .willReturn(mockPage);
 
-        Page<ContentDTO> result = contentService.findByFiltersWithSort(request, pageable);
+        Page<ContentListDTO> result = contentService.findByFiltersWithSort(request, pageable);
 
         assertThat(result).isNotNull();
         assertThat(result.getContent()).isNotEmpty();
@@ -324,23 +352,31 @@ class ContentServiceTest {
         userWithoutLocation.setEmail("test@example.com");
         userWithoutLocation.setLatitude(null);
         userWithoutLocation.setLongitude(null);
+
+        SecurityContextHolder.setContext(securityContext);
+        given(securityContext.getAuthentication()).willReturn(authentication);
+        given(authentication.getName()).willReturn("test@example.com");
         given(userService.get("test@example.com")).willReturn(userWithoutLocation);
 
         ContentFilterRequest request = new ContentFilterRequest();
         request.setSortBy("distance");
-        Pageable pageable = PageRequest.of(0, 5);
+
+        Pageable fallbackPageable = PageRequest.of(0, 5, Sort.by(Sort.Direction.ASC, "endDate"));
 
         List<Content> sortedByStartDate = mockContents.stream()
-                .sorted((c1, c2) -> c1.getStartDate().compareTo(c2.getStartDate()))
+                .sorted(Comparator.comparing(Content::getStartDate))
                 .toList();
-        Page<Content> mockPage = new PageImpl<>(sortedByStartDate, pageable, sortedByStartDate.size());
 
-        Pageable fallbackPageable = PageRequest.of(0, 5, Sort.by(Sort.Direction.ASC, "startDate"));
-        given(contentRepository.findFilteredContents(any(), any(), any(), any(),  any(), eq(false),eq(fallbackPageable)))
-                .willReturn(mockPage);
+        Page<Content> mockPage = new PageImpl<>(sortedByStartDate, fallbackPageable, sortedByStartDate.size());
 
-        Page<ContentDTO> result = contentService.findByFiltersWithSort(request, pageable);
+        given(contentRepository.findFilteredContents(
+                any(), any(), any(), any(), any(), eq(false), eq(fallbackPageable)
+        )).willReturn(mockPage);
 
+        // when
+        Page<ContentListDTO> result = contentService.findByFiltersWithSort(request, fallbackPageable);
+
+        // then
         assertThat(result).isNotNull();
         assertThat(result.getContent()).isNotEmpty();
 
@@ -352,15 +388,17 @@ class ContentServiceTest {
 
         log.info("========== 위치 정보 없음 - fallback 테스트 ==========");
         log.info("요청 정렬: distance → 실제 정렬: startDate (fallback)");
-        log.info("총 개수: {}",result.getTotalElements());
+        log.info("총 개수: {}", result.getTotalElements());
         result.getContent().forEach(content ->
                 log.info("{} - 시작일: {}", content.getContentTitle(), content.getStartDate())
         );
 
-        verify(contentRepository).findFilteredContents(any(), any(), any(), any(), any(), eq(false), any());
+        verify(contentRepository).findFilteredContents(
+                any(), any(), any(), any(), any(), eq(false), eq(fallbackPageable));
         verify(contentRepository, never()).findFilteredContentsByDistance(
                 any(), any(), any(), any(), any(), anyDouble(), anyDouble(), anyBoolean(), any());
     }
+
 
     @Test
     @DisplayName("키워드 검색 테스트")
@@ -381,7 +419,7 @@ class ContentServiceTest {
                 eq(37.4981), eq(127.0276), eq(false), eq(pageable)))
                 .willReturn(mockPage);
 
-        Page<ContentDTO> result = contentService.findByFiltersWithSort(request, pageable);
+        Page<ContentListDTO> result = contentService.findByFiltersWithSort(request, pageable);
 
         assertThat(result).isNotNull();
 
@@ -414,7 +452,7 @@ class ContentServiceTest {
                 eq(37.4981), eq(127.0276), eq(false), eq(pageable)))
                 .willReturn(mockPage);
 
-        Page<ContentDTO> result = contentService.findByFiltersWithSort(request, pageable);
+        Page<ContentListDTO> result = contentService.findByFiltersWithSort(request, pageable);
 
         assertThat(result).isNotNull();
 
@@ -453,14 +491,14 @@ class ContentServiceTest {
                 eq(37.4981), eq(127.0276), eq(false), eq(pageable)))
                 .willReturn(mockPage);
 
-        Page<ContentDTO> result = contentService.findByFiltersWithSort(request, pageable);
+        Page<ContentListDTO> result = contentService.findByFiltersWithSort(request, pageable);
 
         assertThat(result).isNotNull();
 
         log.info("========== 키워드 검색 테스트 (주소) ==========");
         log.info("검색어: 예술의전당");
         result.getContent().forEach(content ->
-                log.info("{} - 주소: {}", content.getContentTitle(),content.getAddress()));
+                log.info("{} - 주소: {}", content.getContentTitle(),content.getGuname()));
 
         verify(contentRepository).findFilteredContentsByDistance(
                 any(), any(), any(), any(), eq("예술의전당"),

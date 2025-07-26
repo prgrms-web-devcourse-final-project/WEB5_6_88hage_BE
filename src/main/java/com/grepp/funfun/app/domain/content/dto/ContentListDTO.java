@@ -17,7 +17,7 @@ public class ContentListDTO {
 
     private String contentTitle;
 
-    private String fee;
+    private String address;
 
     private LocalDate startDate;
 
