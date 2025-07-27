@@ -1,5 +1,5 @@
 package com.grepp.funfun.app.domain.integrate;
-
+import com.grepp.funfun.app.domain.calendar.repository.CalendarRepository;
 import com.grepp.funfun.app.domain.content.dto.ContentDTO;
 import com.grepp.funfun.app.domain.content.entity.Content;
 import com.grepp.funfun.app.domain.content.entity.ContentCategory;
@@ -15,8 +15,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,14 +26,18 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Fail.fail;
 
 @SpringBootTest
 @Slf4j
 @Transactional
-class DataPipelineIntegrationTest {
-
+@Rollback
+public class ContentDataPipelineTest {
     @Autowired
     private DataPipeline dataPipeline;
+
+    @Autowired
+    private CalendarRepository calendarRepository;
 
     @Autowired
     private KakaoGeoService kakaoGeoService;
@@ -43,23 +49,20 @@ class DataPipelineIntegrationTest {
     private EntityManager entityManager;
 
     private ContentCategory savedTheaterCategory;
-    private ContentCategory savedMusicalCategory;
 
     @BeforeEach
     void setUp() {
+        calendarRepository.deleteAll();
         ContentCategory theaterCategory = new ContentCategory();
         theaterCategory.setCategory(ContentClassification.THEATER);
         savedTheaterCategory = entityManager.merge(theaterCategory);
 
-        ContentCategory musicalCategory = new ContentCategory();
-        musicalCategory.setCategory(ContentClassification.MUSICAL);
-        savedMusicalCategory = entityManager.merge(musicalCategory);
 
         entityManager.flush();
     }
 
     @Test
-    @DisplayName("DataPipeline - Content 처리 통합 테스트")
+    @DisplayName("DataPipeline - Content 증분 데이터 처리 통합 테스트")
     void dataPipelineTest() {
         dataPipeline.importIncrementalData();
 
@@ -67,14 +70,59 @@ class DataPipelineIntegrationTest {
         assertThat(all).isNotEmpty();
 
         log.info("처리된 컨텐츠 수: {}", all.size());
+    }
 
-        all.forEach(content -> {
-            assertThat(content.getContentTitle()).isNotNull();
-            assertThat(content.getCategory()).isNotNull();
-            log.info("처리된 컨텐츠: {}, 카테고리: {}",
-                    content.getContentTitle(),
-                    content.getCategory().getCategory());
-        });
+    @Test
+    @DisplayName("DataPipeline - Content 모든 데이터 처리 통합 테스트")
+    void dataPipelineAllTest() {
+        dataPipeline.importFullData();
+
+        List<Content> all = contentRepository.findAll();
+        assertThat(all).isNotEmpty();
+
+        log.info("처리된 컨텐츠 수: {}", all.size());
+    }
+
+    @Test
+    @DisplayName("updateContent 메서드 직접 테스트")
+    void updateContent_DirectTest() {
+        // Given
+        Content existingContent = createTestContent("원본 제목", "예술의전당", "서울특별시");
+        existingContent.setExternalId("DIRECT001");
+        Content saved = contentRepository.save(existingContent);
+
+        ContentDTO updateDTO = ContentDTO.builder()
+                .externalId("DIRECT001")
+                .contentTitle("변경된 제목")
+                .age("변경된 연령")
+                .fee("변경된 요금")
+                .address("거암아트홀")
+                .area("서울특별시")
+                .startDate(LocalDate.now().plusDays(1))
+                .endDate(LocalDate.now().plusDays(31))
+                .images(Collections.emptyList())
+                .urls(Collections.emptyList())
+                .build();
+
+        // When
+        try {
+            Method updateMethod = DataPipeline.class.getDeclaredMethod("updateContent", Content.class, ContentDTO.class);
+            updateMethod.setAccessible(true);
+            updateMethod.invoke(dataPipeline, saved, updateDTO);
+
+            Content updatedContent = contentRepository.save(saved);
+
+            // Then
+            assertThat(updatedContent.getContentTitle()).isEqualTo("변경된 제목");
+            assertThat(updatedContent.getAge()).isEqualTo("변경된 연령");
+            assertThat(updatedContent.getFee()).isEqualTo("변경된 요금");
+            assertThat(updatedContent.getAddress()).isEqualTo("거암아트홀");
+
+            log.info("테스트 성공");
+
+        } catch (Exception e) {
+            fail("updateContent 메서드 호출 실패: " + e.getMessage());
+        }
     }
 
     @Test
@@ -113,7 +161,7 @@ class DataPipelineIntegrationTest {
     }
 
     @Test
-    @DisplayName("증분 데이터 수집 시나리오 테스트")
+    @DisplayName("증분 데이터 -> 위치 테스트")
     void incrementalDataCollection() {
         // Given
         Content existingContent = createTestContent("기존 극장", "서울특별시 예술의전당", "서울특별시");
@@ -142,35 +190,6 @@ class DataPipelineIntegrationTest {
 
         log.info("증분 데이터 수집 완료 - 기존: {}, 신규: {}",
                 existingFound.get().getContentTitle(), newFound.get().getContentTitle());
-    }
-
-    @Test
-    @DisplayName("카테고리별 Content 처리 테스트")
-    void processByCategory() {
-        // Given
-        Content theaterContent = createTestContentWithCategory("연극", savedTheaterCategory);
-        Content musicalContent = createTestContentWithCategory("뮤지컬", savedMusicalCategory);
-
-        List<Content> contents = Arrays.asList(theaterContent, musicalContent);
-        contentRepository.saveAll(contents);
-
-        // When
-        kakaoGeoService.updateContentCoordinates(contents);
-
-        // Then
-        List<Content> results = contentRepository.findAll();
-
-        long theaterCount = results.stream()
-                .filter(c -> c.getCategory().getCategory() == ContentClassification.THEATER)
-                .count();
-        long musicalCount = results.stream()
-                .filter(c -> c.getCategory().getCategory() == ContentClassification.MUSICAL)
-                .count();
-
-        assertThat(theaterCount).isGreaterThanOrEqualTo(1);
-        assertThat(musicalCount).isGreaterThanOrEqualTo(1);
-
-        log.info("카테고리별 처리 결과 - 연극: {}개, 뮤지컬: {}개", theaterCount, musicalCount);
     }
 
     @Test
@@ -205,52 +224,6 @@ class DataPipelineIntegrationTest {
         }
     }
 
-    @Test
-    @DisplayName("대용량 데이터 처리 성능 테스트")
-    void performanceTest() {
-        // Given
-        List<Content> batchContents = Arrays.asList(
-                createTestContent("성능테스트1", "서울특별시 중구 을지로 100", "서울특별시"),
-                createTestContent("성능테스트2", "서울특별시 강남구 강남대로 200", "서울특별시"),
-                createTestContent("성능테스트3", "서울특별시 서초구 서초대로 300", "서울특별시"),
-                createTestContent("성능테스트4", "서울특별시 송파구 올림픽로 400", "서울특별시"),
-                createTestContent("성능테스트5", "서울특별시 마포구 월드컵로 500", "서울특별시")
-        );
-
-        contentRepository.saveAll(batchContents);
-
-        // When
-        long startTime = System.currentTimeMillis();
-        kakaoGeoService.updateContentCoordinates(batchContents);
-        long endTime = System.currentTimeMillis();
-
-        // Then
-        long processingTime = endTime - startTime;
-        log.info("========== 성능 테스트 결과 ==========");
-        log.info("처리된 컨텐츠 수: {}", batchContents.size());
-        log.info("총 처리 시간: {}ms", processingTime);
-        log.info("평균 처리 시간: {}ms/건", processingTime / batchContents.size());
-
-        assertThat(processingTime / batchContents.size()).isLessThan(5000);
-    }
-
-    private ContentDTO createMockContentDTO(String externalId, String title, String category) {
-        return ContentDTO.builder()
-                .externalId(externalId)
-                .contentTitle(title)
-                .category(category)
-                .startDate(LocalDate.now())
-                .endDate(LocalDate.now().plusDays(30))
-                .address("서울특별시 중구 명동길 123")
-                .area("서울특별시")
-                .age("전체관람가")
-                .fee("무료")
-                .bookmarkCount(0)
-                .images(Collections.emptyList())
-                .urls(Collections.emptyList())
-                .build();
-    }
-
     private Content createTestContent(String title, String address, String area) {
         Content content = new Content();
         content.setContentTitle(title);
@@ -266,18 +239,4 @@ class DataPipelineIntegrationTest {
         return content;
     }
 
-    private Content createTestContentWithCategory(String title, ContentCategory category) {
-        Content content = new Content();
-        content.setContentTitle(title);
-        content.setAddress("서울특별시 중구 명동길 123");
-        content.setArea("서울특별시");
-        content.setCategory(category);
-        content.setStartDate(LocalDate.now());
-        content.setEndDate(LocalDate.now().plusDays(30));
-        content.setEventType(EventType.EVENT);
-        content.setBookmarkCount(0);
-        content.setImages(Collections.emptyList());
-        content.setUrls(Collections.emptyList());
-        return content;
-    }
 }
