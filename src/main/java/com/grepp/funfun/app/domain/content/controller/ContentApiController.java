@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,10 +36,15 @@ public class ContentApiController {
     @GetMapping
     @Operation(summary = "컨텐츠 목록 조회")
     public ResponseEntity<ApiResponse<Page<ContentListDTO>>> getAllContents(
+            Authentication authentication,
             @Valid @ParameterObject ContentFilterRequest request,
             @ParameterObject Pageable pageable) {
 
-        Page<ContentListDTO> contents = contentService.findByFiltersWithSort(request, pageable);
+        String userEmail = (authentication != null && authentication.isAuthenticated()
+                && !"anonymousUser".equals(authentication.getName()))
+                ? authentication.getName()
+                : "anonymousUser";
+        Page<ContentListDTO> contents = contentService.findByFiltersWithSort(userEmail, request, pageable);
         return ResponseEntity.ok(ApiResponse.success(contents));
 
     }

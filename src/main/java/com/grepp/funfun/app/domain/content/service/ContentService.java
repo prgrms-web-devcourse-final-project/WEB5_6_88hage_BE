@@ -1,6 +1,5 @@
 package com.grepp.funfun.app.domain.content.service;
 
-import com.grepp.funfun.app.domain.calendar.repository.CalendarRepository;
 import com.grepp.funfun.app.domain.content.dto.*;
 import com.grepp.funfun.app.domain.content.dto.payload.ContentFilterRequest;
 import com.grepp.funfun.app.domain.content.entity.Content;
@@ -17,11 +16,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
 
@@ -43,7 +42,7 @@ public class ContentService {
     }
 
     // 컨텐츠 필터링(컨텐츠 조회)
-    public Page<ContentListDTO> findByFiltersWithSort(ContentFilterRequest request, Pageable pageable) {
+    public Page<ContentListDTO> findByFiltersWithSort(String userEmail, ContentFilterRequest request, Pageable pageable) {
         try {
             Page<Content> contents;
             if (request.isBookmarkSort()) {
@@ -52,7 +51,7 @@ public class ContentService {
             } else if (request.isEndDateSort()) {
                 contents = findByFiltersOrderByEndDate(request, pageable);
             } else {
-                contents = findByFiltersOrderByDistance(request, pageable);
+                contents = findByFiltersOrderByDistance(userEmail, request, pageable);
             }
 
             if (contents.isEmpty()) {
@@ -108,16 +107,13 @@ public class ContentService {
     }
 
     // 사용자 기본 위치 조회
-    private Double[] getUserDefaultLocation() {
+    private Double[] getUserDefaultLocation(String userEmail) {
         try {
-            String currentUserEmail = SecurityContextHolder.getContext()
-                    .getAuthentication().getName();
-
-            if (currentUserEmail.equals("anonymousUser")){
+            if ("anonymousUser".equals(userEmail)) {
                 return new Double[]{null, null};
             }
 
-            UserDTO user = userService.get(currentUserEmail);
+            UserDTO user = userService.get(userEmail);
             if (user != null && user.getLatitude() != null && user.getLongitude() != null) {
                 log.info("사용자 기본 위치 조회 : 위도={}, 경도={}",
                         user.getLatitude(), user.getLongitude());
@@ -133,8 +129,8 @@ public class ContentService {
     }
 
     // 가까운순 정렬
-    private Page<Content> findByFiltersOrderByDistance(ContentFilterRequest request, Pageable pageable) {
-        Double[] userLocation = getUserDefaultLocation();
+    private Page<Content> findByFiltersOrderByDistance(String userEmail, ContentFilterRequest request, Pageable pageable) {
+        Double[] userLocation = getUserDefaultLocation(userEmail);
         Double userLat = userLocation[0];
         Double userLng = userLocation[1];
 

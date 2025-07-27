@@ -22,9 +22,6 @@ import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.data.domain.*;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -50,12 +47,6 @@ class ContentServiceTest {
 
     @Mock
     private UserService userService;
-
-    @Mock
-    private SecurityContext securityContext;
-
-    @Mock
-    private Authentication authentication;
 
     private UserDTO mockUser;
     private List<Content> mockContents;
@@ -94,17 +85,19 @@ class ContentServiceTest {
 
 
     private void setupDistanceSortMocks() {
-        // Security Context 모킹
-        SecurityContextHolder.setContext(securityContext);
-        given(securityContext.getAuthentication()).willReturn(authentication);
-        given(authentication.getName()).willReturn("test@example.com");
-
-        // 테스트용 사용자 기본 위치 설정 (서울 강남역 기준)
         mockUser = new UserDTO();
         mockUser.setEmail("test@example.com");
         mockUser.setLatitude(37.4981);
         mockUser.setLongitude(127.0276);
 
+        given(userService.get("test@example.com")).willReturn(mockUser);
+    }
+
+    private void setupNoLocationMock() {
+        mockUser = new UserDTO();
+        mockUser.setEmail("test@example.com");
+        mockUser.setLatitude(null);
+        mockUser.setLongitude(null);
         given(userService.get("test@example.com")).willReturn(mockUser);
     }
 
@@ -121,7 +114,7 @@ class ContentServiceTest {
                 any(), any(), any(), any(), any(), eq(37.4981), eq(127.0276), eq(false), eq(pageable)))
                 .willReturn(mockPage);
 
-        Page<ContentListDTO> result = contentService.findByFiltersWithSort(request, pageable);
+        Page<ContentListDTO> result = contentService.findByFiltersWithSort(mockUser.getEmail(), request, pageable);
 
         assertThat(result).isNotNull();
         assertThat(result.getContent()).isNotEmpty();
@@ -160,7 +153,7 @@ class ContentServiceTest {
                 eq(ContentClassification.DANCE), any(), any(), any(), any(), eq(37.4981), eq(127.0276), eq(false), eq(pageable)))
                 .willReturn(mockPage);
 
-        Page<ContentListDTO> result = contentService.findByFiltersWithSort(request, pageable);
+        Page<ContentListDTO> result = contentService.findByFiltersWithSort(mockUser.getEmail(), request, pageable);
 
         assertThat(result).isNotNull();
         assertThat(result.getContent()).isNotEmpty();
@@ -186,7 +179,7 @@ class ContentServiceTest {
                 any(), eq("강남구"), any(), any(), any(), eq(37.4981), eq(127.0276), eq(false), eq(pageable)))
                 .willReturn(mockPage);
 
-        Page<ContentListDTO> result = contentService.findByFiltersWithSort(request, pageable);
+        Page<ContentListDTO> result = contentService.findByFiltersWithSort(mockUser.getEmail(), request, pageable);
 
         assertThat(result).isNotNull();
         if (!result.getContent().isEmpty()) {
@@ -216,7 +209,7 @@ class ContentServiceTest {
                 any(), any(), any(), any(), any(),eq(37.4981), eq(127.0276),  eq(false),eq(pageable)))
                 .willReturn(mockPage);
 
-        Page<ContentListDTO> result = contentService.findByFiltersWithSort(request, pageable);
+        Page<ContentListDTO> result = contentService.findByFiltersWithSort(mockUser.getEmail(), request, pageable);
 
         assertThat(result).isNotNull();
         assertThat(result.getContent()).isNotEmpty();
@@ -240,6 +233,7 @@ class ContentServiceTest {
     @Test
     @DisplayName("2. 북마크순 정렬 테스트")
     void testBookmarkCountDescSort() {
+        String testEmail = "anonymousUser";
         // given
         ContentFilterRequest request = new ContentFilterRequest();
         request.setSortBy("bookmarkCount");
@@ -252,7 +246,7 @@ class ContentServiceTest {
                 argThat(p -> p.getSort().equals(Sort.by(Sort.Direction.DESC, "bookmarkCount")))))
                 .willReturn(mockPage);
 
-        Page<ContentListDTO> result = contentService.findByFiltersWithSort(request, pageable);
+        Page<ContentListDTO> result = contentService.findByFiltersWithSort(testEmail, request, pageable);
 
         assertThat(result).isNotNull();
         assertThat(result.getContent()).isNotEmpty();
@@ -280,6 +274,7 @@ class ContentServiceTest {
     @Test
     @DisplayName("3. 마감 임박순 정렬 테스트 (가까운 날짜 순)")
     void testEndDateAscSort() {
+        String testEmail = "anonymousUser";
         ContentFilterRequest request = new ContentFilterRequest();
         request.setSortBy("endDate");
 
@@ -293,7 +288,7 @@ class ContentServiceTest {
         given(contentRepository.findFilteredContents(any(), any(), any(), any(), any(), eq(false), eq(pageable)))
                 .willReturn(mockPage);
 
-        Page<ContentListDTO> result = contentService.findByFiltersWithSort(request, pageable);
+        Page<ContentListDTO> result = contentService.findByFiltersWithSort(testEmail, request, pageable);
 
         assertThat(result).isNotNull();
         assertThat(result.getContent()).isNotEmpty();
@@ -325,7 +320,7 @@ class ContentServiceTest {
                 any(), any(), any(), any(), any(), eq(37.4981), eq(127.0276),  eq(false),eq(pageable)))
                 .willReturn(mockPage);
 
-        Page<ContentListDTO> result = contentService.findByFiltersWithSort(request, pageable);
+        Page<ContentListDTO> result = contentService.findByFiltersWithSort(mockUser.getEmail(), request, pageable);
 
         assertThat(result).isNotNull();
         assertThat(result.getContent()).isNotEmpty();
@@ -348,15 +343,7 @@ class ContentServiceTest {
     @Test
     @DisplayName("5. 사용자 위치 없음 시 fallback 테스트")
     void testDistanceSortFallback() {
-        UserDTO userWithoutLocation = new UserDTO();
-        userWithoutLocation.setEmail("test@example.com");
-        userWithoutLocation.setLatitude(null);
-        userWithoutLocation.setLongitude(null);
-
-        SecurityContextHolder.setContext(securityContext);
-        given(securityContext.getAuthentication()).willReturn(authentication);
-        given(authentication.getName()).willReturn("test@example.com");
-        given(userService.get("test@example.com")).willReturn(userWithoutLocation);
+        setupNoLocationMock();
 
         ContentFilterRequest request = new ContentFilterRequest();
         request.setSortBy("distance");
@@ -374,7 +361,7 @@ class ContentServiceTest {
         )).willReturn(mockPage);
 
         // when
-        Page<ContentListDTO> result = contentService.findByFiltersWithSort(request, fallbackPageable);
+        Page<ContentListDTO> result = contentService.findByFiltersWithSort(mockUser.getEmail(), request, fallbackPageable);
 
         // then
         assertThat(result).isNotNull();
@@ -419,7 +406,7 @@ class ContentServiceTest {
                 eq(37.4981), eq(127.0276), eq(false), eq(pageable)))
                 .willReturn(mockPage);
 
-        Page<ContentListDTO> result = contentService.findByFiltersWithSort(request, pageable);
+        Page<ContentListDTO> result = contentService.findByFiltersWithSort(mockUser.getEmail(), request, pageable);
 
         assertThat(result).isNotNull();
 
@@ -452,7 +439,7 @@ class ContentServiceTest {
                 eq(37.4981), eq(127.0276), eq(false), eq(pageable)))
                 .willReturn(mockPage);
 
-        Page<ContentListDTO> result = contentService.findByFiltersWithSort(request, pageable);
+        Page<ContentListDTO> result = contentService.findByFiltersWithSort(mockUser.getEmail(), request, pageable);
 
         assertThat(result).isNotNull();
 
@@ -491,20 +478,19 @@ class ContentServiceTest {
                 eq(37.4981), eq(127.0276), eq(false), eq(pageable)))
                 .willReturn(mockPage);
 
-        Page<ContentListDTO> result = contentService.findByFiltersWithSort(request, pageable);
+        Page<ContentListDTO> result = contentService.findByFiltersWithSort(mockUser.getEmail(), request, pageable);
 
         assertThat(result).isNotNull();
 
         log.info("========== 키워드 검색 테스트 (주소) ==========");
         log.info("검색어: 예술의전당");
         result.getContent().forEach(content ->
-                log.info("{} - 주소: {}", content.getContentTitle(),content.getGuname()));
+                log.info("{} - 주소: {}", content.getContentTitle(),content.getAddress()));
 
         verify(contentRepository).findFilteredContentsByDistance(
                 any(), any(), any(), any(), eq("예술의전당"),
                 eq(37.4981), eq(127.0276), eq(false), eq(pageable));
     }
-
 
     private List<Content> createMockContents() {
         ContentCategory category1 = new ContentCategory();
