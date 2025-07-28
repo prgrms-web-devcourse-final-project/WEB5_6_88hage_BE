@@ -24,4 +24,7 @@ public interface GroupRepositoryCustom {
 
     // 모임의 모든 연관관계 id들로 조회
     List<Group> findGroupsByIdsWithAllRelations(List<Long> recommendIds);
+
+    // 회원 탈퇴 시 삭제 가능한 리더인 모임 조회
+    List<Group> findDeletableLeaderGroups(String email);
 }
