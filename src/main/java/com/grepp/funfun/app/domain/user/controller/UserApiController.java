@@ -85,7 +85,7 @@ public class UserApiController {
     }
 
     @PatchMapping
-    @Operation(summary = "회원 탈퇴", description = "회원을 탈퇴(비활성화) 합니다.<br>자동으로 로그아웃됩니다.")
+    @Operation(summary = "회원 탈퇴", description = "회원을 탈퇴(비활성화) 합니다.<br>리더인 모임 삭제 및 참여/대기 중인 모임 나가기 처리됩니다.<br>자동으로 로그아웃됩니다.")
     public ResponseEntity<ApiResponse<String>> unActiveUser(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
         // 1. 액세스 토큰 꺼내기
         String accessToken = jwtTokenProvider.resolveToken(request, AuthToken.ACCESS_TOKEN);
