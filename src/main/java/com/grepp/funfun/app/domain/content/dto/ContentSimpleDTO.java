@@ -19,8 +19,4 @@ public class ContentSimpleDTO {
 
     @NotNull
     private String category;
-
-    private Double latitude;
-
-    private Double longitude;
 }

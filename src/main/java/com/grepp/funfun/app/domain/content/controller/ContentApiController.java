@@ -56,7 +56,7 @@ public class ContentApiController {
     ) {
         ContentDetailDTO content = contentService.getContents(id);
         List<ContentSimpleDTO> related = contentService.findRandomByCategory(id, 2, false);
-        List<ContentSimpleDTO> nearby = contentService.findNearbyContents(id, 10.0, 2, false);
+        List<ContentSimpleDTO> nearby = contentService.findNearbyContents(id, 3.0, 2, false);
 
         ContentDetailResponse response = ContentDetailResponse.builder()
                 .content(content)

@@ -124,10 +124,6 @@ class ContentServiceTest {
         log.info("총 개수: {}", result.getTotalElements());
         log.info("정렬 방식: distance (기본값)");
 
-        result.getContent().forEach(content ->
-                log.info("{} - {} (위치: {}, {})", content.getId(), content.getContentTitle(), content.getLatitude(), content.getLongitude())
-        );
-
         verify(contentRepository).findFilteredContentsByDistance(
                 any(), any(), any(), any(), any(), eq(37.4981), eq(127.0276), eq(false), eq(pageable));
     }
@@ -178,22 +174,15 @@ class ContentServiceTest {
         given(contentRepository.findFilteredContentsByDistance(
                 any(), eq("강남구"), any(), any(), any(), eq(37.4981), eq(127.0276), eq(false), eq(pageable)))
                 .willReturn(mockPage);
-
         Page<ContentListDTO> result = contentService.findByFiltersWithSort(mockUser.getEmail(), request, pageable);
 
         assertThat(result).isNotNull();
-        if (!result.getContent().isEmpty()) {
-            assertThat(result.getContent()).allMatch(content ->
-                    "강남구".equals(content.getGuname())
-            );
+        assertThat(result.getContent()).isNotEmpty();
 
-            log.info("======= 강남구 지역 필터링 =======");
-            result.getContent().forEach(content ->
-                    log.info("{} - 지역: {}", content.getContentTitle(), content.getGuname())
-            );
-        } else {
-            log.info("강남구 컨텐츠가 없습니다.");
-        }
+        log.info("총 컨텐츠 수: {}", result.getTotalElements());
+
+        result.getContent().forEach(content ->
+                log.info("콘텐츠 제목: {}", content.getContentTitle()));
     }
 
     @Test
@@ -217,14 +206,6 @@ class ContentServiceTest {
         log.info("========== 가까운순 정렬 (사용자 위치 기준) ==========");
         log.info("기준 위치: 강남역 (37.4981, 127.0276)");
         log.info("총 개수: {}", result.getTotalElements());
-
-        result.getContent().forEach(content -> {
-            Double lat = content.getLatitude();
-            Double lng = content.getLongitude();
-            String location = (lat != null && lng != null) ?
-                    String.format("(%.4f, %.4f)", lat, lng) : "위치정보없음";
-            log.info(content.getContentTitle() + " - " + location);
-        });
 
         verify(contentRepository).findFilteredContentsByDistance(
                 any(), any(), any(), any(), any(), eq(37.4981), eq(127.0276),  eq(false),eq(pageable));
@@ -254,9 +235,6 @@ class ContentServiceTest {
         log.info("========== 북마크순 정렬 테스트 (Service 로직 검증) ==========");
         log.info("Service가 Repository에 전달한 정렬 조건 확인");
         log.info("총 개수: {}", result.getTotalElements());
-        result.getContent().forEach(content ->
-                log.info("{} - 북마크 {}",content.getContentTitle(),  content.getBookmarkCount())
-        );
 
         verify(contentRepository).findFilteredContents(
                 any(), any(), any(), any(), any(), eq(false),
@@ -331,10 +309,6 @@ class ContentServiceTest {
         log.info("========== 기본값 테스트 (가까운순) ==========");
         log.info("정렬 방식: " + expectedSort + " (기본값)");
         log.info("총 개수: {}",result.getTotalElements());
-        result.getContent().forEach(content ->
-                log.info("{} - 시작일: {} (북마크: {})", content.getContentTitle(), content.getStartDate(), content.getBookmarkCount())
-
-        );
 
         verify(contentRepository).findFilteredContentsByDistance(
                 any(), any(), any(), any(), any(), eq(37.4981), eq(127.0276),  eq(false),eq(pageable));

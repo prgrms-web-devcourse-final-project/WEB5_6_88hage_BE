@@ -15,29 +15,21 @@ public class ContentListDTO {
 
     private Long id;
 
-    private String contentTitle; //
-
-    private String fee; //
+    private String contentTitle;
 
     private String address;
 
-    private LocalDate startDate; //
+    private LocalDate startDate;
 
-    private LocalDate endDate; //
+    private LocalDate endDate;
 
-    private String guname;
+//    private String guname;
 
-    private String poster; //
+    private String poster;
 
     @NotNull
     private String category;
 
     private EventType eventType;
-
-    private Integer bookmarkCount;
-
-    private Double latitude;
-
-    private Double longitude;
 
 }
