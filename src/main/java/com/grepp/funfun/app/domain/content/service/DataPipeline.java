@@ -74,7 +74,7 @@ public class DataPipeline {
             String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             String startDate = today;
             String endDate = LocalDate.now().plusMonths(6).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-            String afterDate = incremental ? "20250725" : null;
+            String afterDate = incremental ? today : null;
 
             List<String> dataTypes = List.of("performance");
             int totalSaved = 0;
