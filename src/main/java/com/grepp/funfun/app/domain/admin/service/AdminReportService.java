@@ -84,10 +84,11 @@ public class AdminReportService {
     }
 
     @Transactional
-    public void processReport(Long id, AdminReportProcessRequest request) {
-        Optional<Report> optionalReport = reportRepository.findById(id);
-        if (optionalReport.isPresent()) {
-            Report report = optionalReport.get();
+    public void processReport(Long id, ReportSourceType sourceType, AdminReportProcessRequest request) {
+        switch (sourceType) {
+
+            case BUTTON_REPORT -> {
+                Report report = reportRepository.findById(id).orElseThrow(()-> new CommonException(ResponseCode.NOT_FOUND, "버튼형 신고("+id+")를 찾을 수 없습니다."));
 
             if (report.isResolved()) {
                 throw new CommonException(ResponseCode.BAD_REQUEST, "이미 처리 완료된 신고입니다.");
@@ -102,9 +103,8 @@ public class AdminReportService {
             }
 
             report.resolve(request.getAdminComment());
-            return;
         }
-
+        case CONTACT_REPORT -> {
         Contact contact = contactRepository.findById(id)
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND, "신고(ID=" + id + ")를 찾을 수 없습니다."));
 
@@ -117,5 +117,8 @@ public class AdminReportService {
         }
 
         contact.registAnswer(request.getAdminComment());
+    }
+            default -> throw new CommonException(ResponseCode.BAD_REQUEST, "알 수 없는 신고 유형입니다.");
+        }
     }
 }
