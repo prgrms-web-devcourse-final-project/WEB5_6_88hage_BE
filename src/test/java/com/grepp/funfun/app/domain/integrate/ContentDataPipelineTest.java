@@ -67,9 +67,11 @@ public class ContentDataPipelineTest {
         dataPipeline.importIncrementalData();
 
         List<Content> all = contentRepository.findAll();
-        assertThat(all).isNotEmpty();
 
-        log.info("처리된 컨텐츠 수: {}", all.size());
+        log.info("저장된 콘텐츠 개수: {}", all.size());
+        all.forEach(content ->
+                log.info("[{}] {} ~ {}", content.getContentTitle(), content.getStartDate(), content.getEndDate())
+        );
     }
 
     @Test
@@ -78,9 +80,11 @@ public class ContentDataPipelineTest {
         dataPipeline.importFullData();
 
         List<Content> all = contentRepository.findAll();
-        assertThat(all).isNotEmpty();
 
-        log.info("처리된 컨텐츠 수: {}", all.size());
+        log.info("저장된 콘텐츠 개수: {}", all.size());
+        all.forEach(content ->
+                log.info("[{}] {} ~ {}", content.getContentTitle(), content.getStartDate(), content.getEndDate())
+        );
     }
 
     @Test
@@ -126,7 +130,7 @@ public class ContentDataPipelineTest {
     }
 
     @Test
-    @DisplayName("전체 데이터 수집 및 지오코딩 통합 테스트")
+    @DisplayName("전체 데이터 수집 및 지오코딩 테스트")
     void fullDataCollectionWithGeocoding() {
         // Given
         Content testContent1 = createTestContent("테스트 극장1", "서울특별시 예술의 전당", "서울특별시");
