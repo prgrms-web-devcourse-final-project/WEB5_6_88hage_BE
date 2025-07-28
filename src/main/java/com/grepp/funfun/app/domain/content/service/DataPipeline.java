@@ -20,6 +20,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -148,6 +149,7 @@ public class DataPipeline {
         apiCallCount++;
     }
 
+    @Transactional
     protected Optional<Content> processContent(String contentId) {
         try {
             ContentDTO contentDTO = getDetailInfo(contentId);

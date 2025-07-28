@@ -125,7 +125,7 @@ class ContentServiceTest {
         log.info("정렬 방식: distance (기본값)");
 
         result.getContent().forEach(content ->
-                log.info("{} - {} (북마크: {})", content.getId(), content.getContentTitle(), content.getBookmarkCount())
+                log.info("{} - {} (위치: {}, {})", content.getId(), content.getContentTitle(), content.getLatitude(), content.getLongitude())
         );
 
         verify(contentRepository).findFilteredContentsByDistance(
@@ -368,16 +368,15 @@ class ContentServiceTest {
         assertThat(result.getContent()).isNotEmpty();
 
         for (int i = 0; i < result.getContent().size() - 1; i++) {
-            LocalDate current = result.getContent().get(i).getStartDate();
-            LocalDate next = result.getContent().get(i + 1).getStartDate();
+            LocalDate current = result.getContent().get(i).getEndDate();
+            LocalDate next = result.getContent().get(i + 1).getEndDate();
             assertThat(current).isBeforeOrEqualTo(next);
         }
 
         log.info("========== 위치 정보 없음 - fallback 테스트 ==========");
         log.info("요청 정렬: distance → 실제 정렬: startDate (fallback)");
-        log.info("총 개수: {}", result.getTotalElements());
         result.getContent().forEach(content ->
-                log.info("{} - 시작일: {}", content.getContentTitle(), content.getStartDate())
+                log.info("{} - 종료일: {}", content.getContentTitle(), content.getEndDate())
         );
 
         verify(contentRepository).findFilteredContents(
@@ -402,7 +401,7 @@ class ContentServiceTest {
         Page<Content> mockPage = new PageImpl<>(keywordResults, pageable, keywordResults.size());
 
         given(contentRepository.findFilteredContentsByDistance(
-                any(), any(), any(), any(), eq("음악"), // keyword 파라미터
+                any(), any(), any(), any(), eq("음악"),
                 eq(37.4981), eq(127.0276), eq(false), eq(pageable)))
                 .willReturn(mockPage);
 
@@ -541,6 +540,6 @@ class ContentServiceTest {
         content3.setImages(Collections.emptyList());
         content3.setUrls(Collections.emptyList());
 
-        return Arrays.asList(content1, content2, content3);
+        return Arrays.asList(content1, content3, content2);
     }
 }
