@@ -15,17 +15,19 @@ public class ContentListDTO {
 
     private Long id;
 
-    private String contentTitle;
+    private String contentTitle; //
 
-    private String fee;
+    private String fee; //
 
-    private LocalDate startDate;
+    private String address;
 
-    private LocalDate endDate;
+    private LocalDate startDate; //
+
+    private LocalDate endDate; //
 
     private String guname;
 
-    private String poster;
+    private String poster; //
 
     @NotNull
     private String category;

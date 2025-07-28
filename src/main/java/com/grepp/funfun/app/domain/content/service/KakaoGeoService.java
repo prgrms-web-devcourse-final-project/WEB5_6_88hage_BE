@@ -117,12 +117,23 @@ public class KakaoGeoService {
             content.setLongitude(coordinates[1]);
 
             Optional<String> addressOpt = getAddressFromCoordinates(coordinates[0], coordinates[1]);
-            addressOpt.ifPresent(full -> {
-                content.setAddress(full + " " + cleanedPlaceName);
-                String guname = extractGunameFromAddress(full);
-                if (guname != null) content.setGuname(guname);
-            });
+            if (addressOpt.isEmpty()) {
+                contentRepository.delete(content);
+                continue;
+            }
 
+            String fullAddress = addressOpt.get();
+
+            if (area != null && !fullAddress.startsWith(area)) {
+                log.warn("개별 업데이트 - 시/도 불일치: area={}, fullAddress={} → 삭제: {}",
+                        area, fullAddress, content.getId());
+                contentRepository.delete(content);
+                continue;
+            }
+
+            content.setAddress(fullAddress + " " + cleanedPlaceName);
+            String guname = extractGunameFromAddress(fullAddress);
+            if (guname != null) content.setGuname(guname);
             contentRepository.save(content);
         }
     }
