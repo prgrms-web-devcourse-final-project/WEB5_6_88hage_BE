@@ -23,8 +23,6 @@ public class ContentListDTO {
 
     private LocalDate endDate;
 
-//    private String guname;
-
     private String poster;
 
     @NotNull

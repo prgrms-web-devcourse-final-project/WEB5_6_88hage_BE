@@ -34,11 +34,11 @@ public class ContentDetailDTO {
 
     private String runTime;
 
-    private String startTime;
+//    private String startTime;
 
     private String poster;
 
-    private String description;
+//    private String description;
 
     @NotNull
     private String category;
@@ -49,7 +49,7 @@ public class ContentDetailDTO {
 
     private EventType eventType;
 
-    private Integer bookmarkCount;
+//    private Integer bookmarkCount;
 
     private Double latitude;
 
