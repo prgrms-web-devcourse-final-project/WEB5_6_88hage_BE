@@ -32,7 +32,7 @@ public class AdminGroupService {
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
 
         User admin = userRepository.findByEmail(adminEmail);
-        if (admin == null || !admin.getRole().name().equals("ADMIN")) {
+        if (admin == null || !admin.getRole().name().equals("ROLE_ADMIN")) {
             throw new CommonException(ResponseCode.UNAUTHORIZED);
         }
 
