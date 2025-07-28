@@ -379,15 +379,15 @@ VALUES
 INSERT INTO user_info (email, image_url, introduction, activated, created_at, modified_at)
 VALUES
     ('t1@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/c47297e9-fa17-4d7e-985e-26956b45fede.jpg', '안녕하세요, 김철수입니다.', true, NOW(), NOW()),
-    ('t2@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/c47297e9-fa17-4d7e-985e-26956b45fede.jpg', '문화 활동을 좋아합니다.', true, NOW(), NOW()),
-    ('t3@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/c47297e9-fa17-4d7e-985e-26956b45fede.jpg', '서울 서초구에 거주 중인 박민수입니다.', true, NOW(), NOW()),
-    ('t4@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/c47297e9-fa17-4d7e-985e-26956b45fede.jpg', '정수빈입니다. 반갑습니다!', true, NOW(), NOW()),
-    ('t5@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/c47297e9-fa17-4d7e-985e-26956b45fede.jpg', '최동욱입니다. 잠시 활동 정지 상태입니다.', true, NOW(), NOW()),
-    ('t6@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/c47297e9-fa17-4d7e-985e-26956b45fede.jpg', '장미라입니다.', true, NOW(), NOW()),
-    ('t7@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/c47297e9-fa17-4d7e-985e-26956b45fede.jpg', '안녕하세요, 안준호입니다.', true, NOW(), NOW()),
-    ('t8@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/c47297e9-fa17-4d7e-985e-26956b45fede.jpg', '오세영입니다. 서울에 살고 있어요.', true, NOW(), NOW()),
-    ('t9@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/c47297e9-fa17-4d7e-985e-26956b45fede.jpg', '관리자 유하늘입니다.', true, NOW(), NOW()),
-    ('t10@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/c47297e9-fa17-4d7e-985e-26956b45fede.jpg', '임소라입니다. 잘 부탁드립니다.', true, NOW(), NOW());
+    ('t2@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/48cefdb7-e093-4e75-b636-7e8bece7a36f.jpeg', '문화 활동을 좋아합니다.', true, NOW(), NOW()),
+    ('t3@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/69e33126-0a3b-441c-9aff-0789e1dab806.jpeg', '서울 서초구에 거주 중인 박민수입니다.', true, NOW(), NOW()),
+    ('t4@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/3b7cb25d-9018-4144-bf8a-b5db257d7762.jpeg', '정수빈입니다. 반갑습니다!', true, NOW(), NOW()),
+    ('t5@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/7d4a8443-059a-4773-b74a-f1ec4e569bd5.jpeg', '최동욱입니다. 잠시 활동 정지 상태입니다.', true, NOW(), NOW()),
+    ('t6@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/2cb5c4d1-d296-4336-8c06-482a3f5e02c6.jpeg', '장미라입니다.', true, NOW(), NOW()),
+    ('t7@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/d9fdd6e9-567a-45bc-b78e-177f83ee56f4.jpeg', '안녕하세요, 안준호입니다.', true, NOW(), NOW()),
+    ('t8@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/cfc34db7-4875-433f-bfc7-6919e0ac2510.jpeg', '오세영입니다. 서울에 살고 있어요.', true, NOW(), NOW()),
+    ('t9@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/467942da-b50e-4dac-b277-f9da4b8cef2e.jpeg', '관리자 유하늘입니다.', true, NOW(), NOW()),
+    ('t10@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/0aa09664-c7e1-416a-a5f1-16617e124166.png', '임소라입니다. 잘 부탁드립니다.', true, NOW(), NOW());
 
 -- User 테이블 데이터 삽입
 INSERT INTO "user" (email, password, nickname, birth_date, gender, address, latitude, longitude,
