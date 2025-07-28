@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -52,11 +53,64 @@ public class SecurityConfig {
             .authorizeHttpRequests(
                 (requests) -> requests
                     .requestMatchers("/favicon.ico", "/img/**", "/js/**", "/css/**").permitAll()
-                    .requestMatchers("/", "/error", "/auth/login", "/auth/signup").permitAll()
-                    .requestMatchers("/api/**").permitAll()
+                    // 스웨거
+                    .requestMatchers("/", "/error", "/.well-known/**", "/swagger-ui/**", "/swagger-ui.html/**", "/v3/**").permitAll()
+
+                    // 로그인/로그아웃
+                    .requestMatchers("/api/auth/login", "/api/auth/logout").permitAll()
+
+                    // 모임
+                    .requestMatchers(HttpMethod.GET, "/api/groups/search", "/api/groups/{groupId:[0-9]+}", "/api/groupHashtags/complete").permitAll()
+                    .requestMatchers("/api/groups/**").hasRole("USER")
+
+                    // 참가자
+                    .requestMatchers("/api/participants/**").hasRole("USER")
+
+                    // 채팅
+                    .requestMatchers("/api/chatRooms/**", "/api/chats/**").hasRole("USER")
+
+                    // 모임 해시태그
+                    .requestMatchers(HttpMethod.GET, "/api/groupHashtags/complete").permitAll()
+                    .requestMatchers("/api/groupHashtags/save").hasRole("ADMIN")
+
+                    // 관리자
+                    .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
+                    // 컨텐츠
+                    .requestMatchers(HttpMethod.GET, "/api/contents/**").permitAll()
+
+                    // 추천
+                    .requestMatchers("/api/recommend/**", "/api/chatBot/**").hasRole("USER")
+
+                    // 캘린더
+                    .requestMatchers("/api/calendars/**").hasRole("USER")
+
+                    // 문의
+                    .requestMatchers("/api/contacts/**").hasRole("USER")
+
+                    // 취향
+                    .requestMatchers("/api/preferences/**").hasAnyRole("GUEST", "USER")
+
+                    // 신고
+                    .requestMatchers("/api/reports/**").hasRole("USER")
+
+                    // 팔로우
+                    .requestMatchers("/api/follows/**").hasRole("USER")
+
+                    // 유저
+                    .requestMatchers("/api/users/signup", "/api/users/verify/**", "/api/users/send/**", "/api/users/change/password/**").permitAll()
                     // ROLE_GUEST 만 OAuth2 회원가입 페이지 허용
                     .requestMatchers("/api/users/oauth2").hasRole("GUEST")
-                    .anyRequest().permitAll()
+                    .requestMatchers("/api/users/info", "/api/users/change/nickname").hasRole("USER")
+                    .requestMatchers(HttpMethod.PATCH, "/api/users").hasAnyRole("GUEST", "USER")
+                    .requestMatchers("/api/users/coordinate").hasAnyRole("ADMIN", "USER")
+
+                    // 유저 인포
+                    .requestMatchers(HttpMethod.GET, "/api/userInfos/**").permitAll()
+                    .requestMatchers(HttpMethod.PUT,"/api/userInfos").hasRole("USER")
+
+//                    .requestMatchers("/api/**").permitAll()
+                    .anyRequest().authenticated()
             )
             .exceptionHandling(ex -> ex
                 .defaultAuthenticationEntryPointFor(jwtAuthenticationEntryPoint,
