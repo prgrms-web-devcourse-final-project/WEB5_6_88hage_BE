@@ -4,6 +4,7 @@ import com.grepp.funfun.app.domain.group.entity.Group;
 import com.grepp.funfun.app.domain.group.entity.QGroup;
 import com.grepp.funfun.app.domain.group.vo.GroupStatus;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,26 +17,26 @@ import java.util.List;
 public class AdminGroupRepositoryImpl implements AdminGroupRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
+    private final  QGroup group = QGroup.group;
 
     @Override
     public Page<Group> findByStatus(GroupStatus status, Pageable pageable) {
-        QGroup group = QGroup.group;
-
         // enum 이라서
         BooleanExpression statusCondition = (status != null) ? group.status.eq(status) : null;
 
-        List<Group> content = queryFactory
-                .selectFrom(group)
-                .where(statusCondition)
+        JPAQuery<Group> query = queryFactory.selectFrom(group);
+        if (statusCondition != null) {
+            query = query.where(statusCondition);
+        }
+
+        List<Group> content = query
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        Long total = queryFactory
-                .select(group.count())
-                .from(group)
-                .where(statusCondition)
-                .fetchOne();
+        Long total = (statusCondition != null)
+                ? queryFactory.select(group.count()).from(group).where(statusCondition).fetchOne()
+                : queryFactory.select(group.count()).from(group).fetchOne();
 
         return new PageImpl<>(content, pageable, total != null ? total : 0);
     }

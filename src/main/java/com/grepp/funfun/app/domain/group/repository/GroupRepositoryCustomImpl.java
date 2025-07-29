@@ -182,4 +182,16 @@ public class GroupRepositoryCustomImpl implements GroupRepositoryCustom {
             .fetch();
     }
 
+    @Override
+    public List<Group> findDeletableLeaderGroups(String email) {
+        return queryFactory
+            .selectFrom(group)
+            .where(
+                group.leader.email.eq(email),
+                group.activated.isTrue(),
+                group.status.in(GroupStatus.RECRUITING, GroupStatus.FULL)
+            )
+            .fetch();
+    }
+
 }

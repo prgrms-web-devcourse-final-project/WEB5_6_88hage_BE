@@ -3,6 +3,7 @@ package com.grepp.funfun.app.domain.group.dto.payload;
 import com.grepp.funfun.app.domain.group.entity.Group;
 import com.grepp.funfun.app.domain.group.vo.GroupClassification;
 import com.grepp.funfun.app.domain.group.vo.GroupStatus;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,6 +25,8 @@ public class GroupSimpleResponse {
 
     private String groupImageUrl;
 
+    private LocalDateTime groupDate;
+
     private GroupStatus groupStatus;
 
     private GroupClassification category;
@@ -34,6 +37,7 @@ public class GroupSimpleResponse {
             .groupTitle(group.getTitle())
             .explain(group.getExplain())
             .simpleExplain(group.getSimpleExplain())
+            .groupDate(group.getGroupDate())
             .groupImageUrl(group.getImageUrl())
             .groupStatus(group.getStatus())
             .category(group.getCategory())

@@ -22,7 +22,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(readOnly = true)
 public class ParticipantService {
 
     private final ParticipantRepository participantRepository;
@@ -42,7 +42,7 @@ public class ParticipantService {
     public void apply(Long groupId, String userEmail){
         // 모임[모집중, True]
         Group group = groupRepository.findActiveRecruitingGroup(groupId)
-            .orElseThrow(()-> new CommonException(ResponseCode.NOT_FOUND, "모임을 찾을 수 없습니다."));
+            .orElseThrow(()-> new CommonException(ResponseCode.BAD_REQUEST, "모임 신청할 수 없습니다.[모집중 아님]"));
 
         // 사용자 검증
         User user = userRepository.findByEmail(userEmail);
@@ -71,7 +71,7 @@ public class ParticipantService {
                 case GROUP_KICKOUT ->
                     throw new CommonException(ResponseCode.BAD_REQUEST, "강제퇴장으로 인해 참여할 수 없습니다.");
                 case LEAVE -> {
-                    existingParticipant.get().setStatus(ParticipantStatus.PENDING);
+                    existingParticipant.get().changeLeaveStatusAndActivated(ParticipantStatus.PENDING);
                     participantRepository.save(existingParticipant.get());
                     return;
                 }
@@ -178,10 +178,10 @@ public class ParticipantService {
 
         // 검증(그룹에 속해있는 사용자가 맞는지)
         Participant participant = participantRepository.findTrueMember(groupId,userEmail)
-            .orElseThrow(()-> new CommonException(ResponseCode.NOT_FOUND));
+            .orElseThrow(()-> new CommonException(ResponseCode.NOT_FOUND,"모임에 속한 사용자가 아닙니다."));
 
         // 모임 나가기 : LEAVE 처리
-        participant.setStatus(ParticipantStatus.LEAVE);
+        participant.changeStatusAndActivated(ParticipantStatus.LEAVE);
 
         group.minusGroupCount();
 
@@ -196,7 +196,6 @@ public class ParticipantService {
     }
 
     // 모임 신청한 사용자 조회
-    @Transactional(readOnly = true)
     public List<ParticipantResponse> getPendingParticipants(Long groupId) {
         validateActiveGroup(groupId);
 
@@ -208,7 +207,6 @@ public class ParticipantService {
     }
 
     // 모임 신청한 승인 사용자 조회
-    @Transactional(readOnly = true)
     public List<ParticipantResponse> getApproveParticipants(Long groupId) {
         validateActiveGroup(groupId);
 
@@ -264,18 +262,20 @@ public class ParticipantService {
             throw new CommonException(ResponseCode.UNAUTHORIZED, "정지된 사용자입니다.");
         }
     }
-    // ------------------------------여기 까지 ------------------------------------
 
-    public List<ParticipantResponse> findAll() {
-        final List<Participant> participants = participantRepository.findAll(Sort.by("id"));
-        return participants.stream()
-            .map(ParticipantResponse::from)
-            .toList();
-    }
+    @Transactional
+    public void leaveAllMyGroups(String userEmail) {
+        // 회원 탈퇴 시 삭제 가능한 참여 중인 모임 조회
+        List<Participant> deletableParticipants = participantRepository.findDeletableParticipants(userEmail);
 
-    public ParticipantResponse get(final Long id) {
-        return participantRepository.findById(id)
-            .map(ParticipantResponse::from)
-            .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+        // 참여 중인 모임 전체 나가기
+        for (Participant participant : deletableParticipants) {
+            if (participant.getStatus().equals(ParticipantStatus.PENDING)) {
+                participant.changeStatusAndActivated(ParticipantStatus.LEAVE);
+                participantRepository.save(participant);
+                continue;
+            }
+            leave(participant.getGroup().getId(), userEmail);
+        }
     }
 }

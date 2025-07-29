@@ -12,7 +12,6 @@ public class AdminGroupResponse {
     private Long id;
     private String title;
     private String leaderEmail;
-    private String leaderNickname;
     private GroupStatus status;
     private int participantCount;
     private LocalDateTime groupDate;

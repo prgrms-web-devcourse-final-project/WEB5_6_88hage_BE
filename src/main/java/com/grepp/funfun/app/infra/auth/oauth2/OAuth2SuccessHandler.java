@@ -66,7 +66,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
             // NOTE : 프론트 경로로 변경 필요
             //  OAuth2 추가 회원 가입 페이지로
-            getRedirectStrategy().sendRedirect(request, response, front+ "/user/oauth2/signup");
+            getRedirectStrategy().sendRedirect(request, response, front+ "/api/auth/oauth2");
         } else {
             User user = userRepository.findById(email).orElse(null);
 
@@ -78,7 +78,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 if (user.getRole().equals(Role.ROLE_GUEST)) {
                     // NOTE : 프론트 경로로 변경 필요
                     //  OAuth2 추가 회원 가입 페이지로
-                    getRedirectStrategy().sendRedirect(request, response, front+ "/user/oauth2/signup");
+                    getRedirectStrategy().sendRedirect(request, response, front+ "/api/auth/oauth2");
                     return;
                 }
 

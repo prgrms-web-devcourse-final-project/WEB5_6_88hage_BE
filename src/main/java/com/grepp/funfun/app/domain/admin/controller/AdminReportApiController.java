@@ -3,6 +3,7 @@ package com.grepp.funfun.app.domain.admin.controller;
 import com.grepp.funfun.app.domain.admin.dto.AdminReportViewDTO;
 import com.grepp.funfun.app.domain.admin.dto.payload.AdminReportProcessRequest;
 import com.grepp.funfun.app.domain.admin.service.AdminReportService;
+import com.grepp.funfun.app.domain.admin.vo.ReportSourceType;
 import com.grepp.funfun.app.infra.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -27,12 +28,13 @@ public class AdminReportApiController {
     }
 
     @PatchMapping("/{id}")
-    @Operation(summary = "신고 처리", description = "신고에 대한 유저 제재 or 답변 등록 처리")
+    @Operation(summary = "신고 처리", description = "신고에 대한 유저 제재 or 답변 등록 처리 -> sourceType: BUTTON_REPORT , CONTACT_REPORT")
     public ResponseEntity<ApiResponse<String>> processReport(
             @PathVariable Long id,
+            @RequestParam ReportSourceType sourceType,
             @RequestBody AdminReportProcessRequest request
             ){
-            adminReportService.processReport(id, request);
+            adminReportService.processReport(id, sourceType, request);
             return ResponseEntity.ok(ApiResponse.success("신고가 정상적으로 처리되었습니다."));
     }
 }

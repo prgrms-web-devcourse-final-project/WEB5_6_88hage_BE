@@ -5,8 +5,6 @@ import com.grepp.funfun.app.domain.group.entity.GroupHashtag;
 import com.grepp.funfun.app.domain.group.vo.GroupClassification;
 import com.grepp.funfun.app.domain.group.vo.GroupStatus;
 import com.grepp.funfun.app.domain.preference.entity.GroupPreference;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -57,6 +55,8 @@ public class GroupDetailResponse {
 
     private String leaderExplain;
 
+    private String leaderImgUrl;
+
     private List<GroupClassification> leaderHashTags;
 
     private List<String> hashTags;
@@ -88,6 +88,7 @@ public class GroupDetailResponse {
             .leaderNickname(group.getLeader().getNickname())
             .leaderEmail(group.getLeader().getEmail())
             .leaderExplain(group.getLeader().getInfo().getIntroduction())
+            .leaderImgUrl(group.getLeader().getInfo().getImageUrl())
             .leaderHashTags(group.getLeader().getGroupPreferences().stream()
                 .map(GroupPreference::getCategory)
                 .collect(Collectors.toList()))

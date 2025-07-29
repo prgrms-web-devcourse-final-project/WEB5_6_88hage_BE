@@ -16,6 +16,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.support.PageableExecutionUtils;
 
+import static com.grepp.funfun.app.domain.user.entity.QUser.user;
+
 @RequiredArgsConstructor
 public class ContactRepositoryCustomImpl implements ContactRepositoryCustom {
 
@@ -42,9 +44,11 @@ public class ContactRepositoryCustomImpl implements ContactRepositoryCustom {
                 contact.category,
                 contact.status,
                 contact.title,
-                contact.createdAt
+                contact.createdAt,
+                user.email
             ))
             .from(contact)
+            .join(contact.user, user)
             .where(builder)
             .orderBy(getOrderSpecifiers(pageable.getSort()))
             .offset(pageable.getOffset())

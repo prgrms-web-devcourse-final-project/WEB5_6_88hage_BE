@@ -1,5 +1,11 @@
 package com.grepp.funfun.app.infra.config;
 
+import com.grepp.funfun.app.domain.content.dto.ContentDTO;
+import com.grepp.funfun.app.domain.content.dto.ContentDetailDTO;
+import com.grepp.funfun.app.domain.content.dto.ContentListDTO;
+import com.grepp.funfun.app.domain.content.dto.ContentSimpleDTO;
+import com.grepp.funfun.app.domain.content.entity.Content;
+import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.context.annotation.Bean;
@@ -14,7 +20,32 @@ public class ModelMapperConfig {
         modelMapper.getConfiguration().setSkipNullEnabled(true);
         modelMapper.getConfiguration().setPreferNestedProperties(false);
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.LOOSE);
+
+        Converter<Content, String> categoryConverter = ctx -> {
+            if (ctx.getSource() == null ||
+                    ctx.getSource().getCategory() == null ||
+                    ctx.getSource().getCategory().getCategory() == null) {
+                return null;
+            }
+            return ctx.getSource().getCategory().getCategory().name();
+        };
+        modelMapper.typeMap(Content.class, ContentDetailDTO.class)
+                .addMappings(mapper ->
+                        mapper.using(categoryConverter)
+                                .map(src -> src, ContentDetailDTO::setCategory)
+                );
+        modelMapper.typeMap(Content.class, ContentSimpleDTO.class)
+                .addMappings(mapper ->
+                        mapper.using(categoryConverter)
+                                .map(src -> src, ContentSimpleDTO::setCategory)
+                );
+
+        modelMapper.typeMap(Content.class, ContentListDTO.class)
+                .addMappings(mapper ->
+                        mapper.using(categoryConverter)
+                                .map(src -> src, ContentListDTO::setCategory)
+                );
+
         return modelMapper;
     }
-    
 }

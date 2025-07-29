@@ -4,12 +4,13 @@ import com.grepp.funfun.app.domain.auth.dto.TokenDto;
 import com.grepp.funfun.app.domain.auth.service.AuthService;
 import com.grepp.funfun.app.domain.auth.token.RefreshTokenService;
 import com.grepp.funfun.app.domain.auth.vo.Role;
+import com.grepp.funfun.app.domain.group.service.GroupService;
+import com.grepp.funfun.app.domain.participant.service.ParticipantService;
 import com.grepp.funfun.app.domain.user.dto.UserDTO;
 import com.grepp.funfun.app.domain.user.dto.payload.CoordinateResponse;
 import com.grepp.funfun.app.domain.user.dto.payload.OAuth2SignupRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.UserInfoRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.SignupRequest;
-import com.grepp.funfun.app.domain.user.dto.payload.UserInfoRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.UserInfoResponse;
 import com.grepp.funfun.app.domain.user.entity.User;
 import com.grepp.funfun.app.domain.user.entity.UserInfo;
@@ -37,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserService {
 
     private final UserRepository userRepository;
@@ -46,6 +48,8 @@ public class UserService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final AuthService authService;
     private final RefreshTokenService refreshTokenService;
+    private final GroupService groupService;
+    private final ParticipantService participantService;
 
     @Value("${front-server.domain}")
     private String domain;
@@ -273,10 +277,24 @@ public class UserService {
     @Transactional
     public void unActive(String email, String accessTokenId) {
         User user = userRepository.findById(email).orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+
+        // 1. 리더인 모임 전체 삭제
+        groupService.deleteAllMyLeadGroups(email);
+
+        // 2. 참여 중인 모임 전체 나가기
+        participantService.leaveAllMyGroups(email);
+
         user.unActivated();
         userRepository.save(user);
 
         refreshTokenService.deleteByAccessTokenId(accessTokenId);
+    }
+
+    // 탈퇴, 제재시 전처리용
+    @Transactional
+    public void processUserDeactivation(String email) {
+        groupService.deleteAllMyLeadGroups(email);
+        participantService.leaveAllMyGroups(email);
     }
 
     public CoordinateResponse getCoordinate(String email) {
@@ -288,6 +306,7 @@ public class UserService {
             .build();
     }
 
+    @Transactional
     public void update(final String email, final UserDTO userDTO) {
         final User user = userRepository.findById(email)
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
@@ -295,6 +314,7 @@ public class UserService {
         userRepository.save(user);
     }
 
+    @Transactional
     public void delete(final String email) {
         userRepository.deleteById(email);
     }

@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.domain.admin.service;
 
+import com.grepp.funfun.app.domain.admin.dto.payload.AdminGroupResponse;
 import com.grepp.funfun.app.domain.admin.repository.AdminGroupRepository;
 import com.grepp.funfun.app.domain.group.entity.Group;
 import com.grepp.funfun.app.domain.group.vo.GroupStatus;
@@ -31,7 +32,7 @@ public class AdminGroupService {
                 .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
 
         User admin = userRepository.findByEmail(adminEmail);
-        if (admin == null || !admin.getRole().name().equals("ADMIN")) {
+        if (admin == null || !admin.getRole().name().equals("ROLE_ADMIN")) {
             throw new CommonException(ResponseCode.UNAUTHORIZED);
         }
 

@@ -42,10 +42,10 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(readOnly = true)
 public class GroupService {
 
     private final GroupRepository groupRepository;
@@ -68,21 +68,19 @@ public class GroupService {
     }
 
     // 모임 상세 조회
-    @Transactional(readOnly = true)
     public GroupDetailResponse get(final Long groupId, String userEmail) {
         increaseViewCountIfNotCounted(groupId, userEmail);
 
         Group group = groupRepository.findByIdWithFullInfo(groupId)
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND, "모임을 찾을 수 없습니다.(빈 값이 있을 경우 존재)"));
 
-        // 관련 모임 2개 조회 (동일 카테고리, 거리순)
+        // 관련 모임 2개 조회 (동일 카테고리, 최신순)
         List<GroupDetailResponse> relatedGroups = getRelatedGroups(group, userEmail);
 
         return GroupDetailResponse.fromWithRelated(group, relatedGroups);
     }
 
     // 관련 모임 조회 메소드 (기존 findGroups 활용)
-    @Transactional(readOnly = true)
     public List<GroupDetailResponse> getRelatedGroups(Group currentGroup, String userEmail) {
         Pageable pageable = PageRequest.of(0, 3);
         Page<Group> relatedGroupsPage = groupRepository.findGroups(
@@ -122,7 +120,6 @@ public class GroupService {
     }
 
     // 모임 조회
-    @Transactional(readOnly = true)
     public Page<GroupListResponse> getGroups(
         String category,
         String keyword,
@@ -137,7 +134,6 @@ public class GroupService {
     }
 
     // 내가 속한 모임 조회
-    @Transactional(readOnly = true)
     public List<GroupMyResponse> findMyGroups(String userEmail) {
         return groupRepository.findMyGroups(userEmail).stream()
             .map(group -> convertToGroupMyResponse(group, userEmail))
@@ -145,7 +141,6 @@ public class GroupService {
     }
 
     // 내가 리더인 모임 조회
-    @Transactional(readOnly = true)
     public List<GroupSimpleResponse> findMyLeaderGroups(String userEmail) {
         return groupRepository.findByLeaderEmailAndActivatedTrue(userEmail).stream()
             .map(GroupSimpleResponse::toSimpleResponse)
@@ -264,12 +259,10 @@ public class GroupService {
 
         group.changeStatusAndActivated(GroupStatus.COMPLETED);
 
-        // 관련 멤버들 active - false / status - GROUP_CANCELED
+        // 관련 멤버들 active - false / status - GROUP_COMPLETE
         for (Participant participant : group.getParticipants()) {
-            participant.unActivated();
-            participant.setStatus(ParticipantStatus.GROUP_COMPLETE);
+            participant.changeStatusAndActivated(ParticipantStatus.GROUP_COMPLETE);
         }
-
     }
 
     // 그룹 확인 및 사용자 검증
@@ -312,7 +305,7 @@ public class GroupService {
             .groupLeaderEmail(group.getLeader().getEmail())
             .groupImageUrl(group.getImageUrl())
             .currentUserEmail(userEmail)
-            .currenUserImageUrl(currentUser.getInfo().getImageUrl())
+            .currentUserImageUrl(currentUser.getInfo().getImageUrl())
             .currentUserNickname(currentUser.getNickname())
             .participantCount(group.getNowPeople())
             .status(ParticipantStatus.APPROVED)
@@ -335,6 +328,17 @@ public class GroupService {
                     .build())
                 .collect(Collectors.toList());
             groupHashtagRepository.saveAll(hashtags);
+        }
+    }
+
+    @Transactional
+    public void deleteAllMyLeadGroups(String leaderEmail) {
+        // 회원 탈퇴 시 삭제 가능한 리더인 모임 조회
+        List<Group> deletableGroups = groupRepository.findDeletableLeaderGroups(leaderEmail);
+
+        // 리더인 모임 전체 삭제
+        for (Group group : deletableGroups) {
+            delete(group.getId(), leaderEmail);
         }
     }
 

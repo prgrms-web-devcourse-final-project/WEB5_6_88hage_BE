@@ -5,6 +5,7 @@ import com.grepp.funfun.app.domain.group.vo.GroupStatus;
 import com.grepp.funfun.app.domain.participant.dto.payload.GroupCompletedStatsResponse;
 import com.grepp.funfun.app.domain.participant.entity.Participant;
 import com.grepp.funfun.app.domain.participant.entity.QParticipant;
+import com.grepp.funfun.app.domain.participant.vo.ParticipantRole;
 import com.grepp.funfun.app.domain.participant.vo.ParticipantStatus;
 import com.grepp.funfun.app.domain.user.entity.QUser;
 import com.grepp.funfun.app.domain.user.entity.QUserInfo;
@@ -107,6 +108,19 @@ public class ParticipantRepositoryCustomImpl implements ParticipantRepositoryCus
                 group.status.eq(GroupStatus.COMPLETED)
             )
             .groupBy(group.category)
+            .fetch();
+    }
+
+    @Override
+    public List<Participant> findDeletableParticipants(String email) {
+        return queryFactory
+            .selectFrom(qParticipant)
+            .where(
+                qParticipant.user.email.eq(email),
+                qParticipant.role.eq(ParticipantRole.MEMBER),
+                qParticipant.status.in(ParticipantStatus.PENDING, ParticipantStatus.APPROVED),
+                qParticipant.activated.isTrue()
+            )
             .fetch();
     }
 
