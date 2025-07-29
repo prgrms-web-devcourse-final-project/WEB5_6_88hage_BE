@@ -1,5 +1,7 @@
 package com.grepp.funfun.app.domain.admin.service;
 
+import com.grepp.funfun.app.domain.group.service.GroupService;
+import com.grepp.funfun.app.domain.participant.service.ParticipantService;
 import com.grepp.funfun.app.domain.user.vo.UserStatus;
 import com.grepp.funfun.app.domain.user.dto.UserDTO;
 import com.grepp.funfun.app.domain.user.entity.User;
@@ -43,6 +45,8 @@ public class AdminUserService {
     // @param email , @param days, @param reason
     public void suspendUser(String email, int days, String reason) {
         UserDTO user = userService.get(email);
+
+        userService.processUserDeactivation(email);
 
         if(days == -1) {
             user.setStatus(UserStatus.BANNED);

@@ -11,7 +11,6 @@ import com.grepp.funfun.app.domain.user.dto.payload.CoordinateResponse;
 import com.grepp.funfun.app.domain.user.dto.payload.OAuth2SignupRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.UserInfoRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.SignupRequest;
-import com.grepp.funfun.app.domain.user.dto.payload.UserInfoRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.UserInfoResponse;
 import com.grepp.funfun.app.domain.user.entity.User;
 import com.grepp.funfun.app.domain.user.entity.UserInfo;
@@ -289,6 +288,13 @@ public class UserService {
         userRepository.save(user);
 
         refreshTokenService.deleteByAccessTokenId(accessTokenId);
+    }
+
+    // 탈퇴, 제재시 전처리용
+    @Transactional
+    public void processUserDeactivation(String email) {
+        groupService.deleteAllMyLeadGroups(email);
+        participantService.leaveAllMyGroups(email);
     }
 
     public CoordinateResponse getCoordinate(String email) {
