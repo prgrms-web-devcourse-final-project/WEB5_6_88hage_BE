@@ -1,8 +1,10 @@
 package com.grepp.funfun.app.domain.integrate;
+
 import com.grepp.funfun.app.domain.calendar.repository.CalendarRepository;
 import com.grepp.funfun.app.domain.content.dto.ContentDTO;
 import com.grepp.funfun.app.domain.content.entity.Content;
 import com.grepp.funfun.app.domain.content.entity.ContentCategory;
+import com.grepp.funfun.app.domain.content.mapper.ContentMapper;
 import com.grepp.funfun.app.domain.content.repository.ContentRepository;
 import com.grepp.funfun.app.domain.content.service.DataPipeline;
 import com.grepp.funfun.app.domain.content.service.KakaoGeoService;
@@ -15,10 +17,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
@@ -26,13 +26,12 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Fail.fail;
 
 @SpringBootTest
-@Slf4j
 @Transactional
-@Rollback
-public class ContentDataPipelineTest {
+@Slf4j
+class DataPipelineIntegrateTest {
+
     @Autowired
     private DataPipeline dataPipeline;
 
@@ -41,6 +40,9 @@ public class ContentDataPipelineTest {
 
     @Autowired
     private KakaoGeoService kakaoGeoService;
+
+    @Autowired
+    private ContentMapper contentMapper;
 
     @Autowired
     private ContentRepository contentRepository;
@@ -109,24 +111,16 @@ public class ContentDataPipelineTest {
                 .build();
 
         // When
-        try {
-            Method updateMethod = DataPipeline.class.getDeclaredMethod("updateContent", Content.class, ContentDTO.class);
-            updateMethod.setAccessible(true);
-            updateMethod.invoke(dataPipeline, saved, updateDTO);
+        contentMapper.updateEntity(saved, updateDTO);
+        Content updatedContent = contentRepository.save(saved);
 
-            Content updatedContent = contentRepository.save(saved);
+        // Then
+        assertThat(updatedContent.getContentTitle()).isEqualTo("변경된 제목");
+        assertThat(updatedContent.getAge()).isEqualTo("변경된 연령");
+        assertThat(updatedContent.getFee()).isEqualTo("변경된 요금");
+        assertThat(updatedContent.getAddress()).isEqualTo("거암아트홀");
 
-            // Then
-            assertThat(updatedContent.getContentTitle()).isEqualTo("변경된 제목");
-            assertThat(updatedContent.getAge()).isEqualTo("변경된 연령");
-            assertThat(updatedContent.getFee()).isEqualTo("변경된 요금");
-            assertThat(updatedContent.getAddress()).isEqualTo("거암아트홀");
-
-            log.info("테스트 성공");
-
-        } catch (Exception e) {
-            fail("updateContent 메서드 호출 실패: " + e.getMessage());
-        }
+        log.info("ContentMapper updateContentFromDTO 테스트 성공");
     }
 
     @Test
@@ -242,5 +236,4 @@ public class ContentDataPipelineTest {
         content.setUrls(Collections.emptyList());
         return content;
     }
-
 }
