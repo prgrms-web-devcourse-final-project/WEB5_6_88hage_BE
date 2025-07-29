@@ -80,7 +80,7 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/api/contents/**").permitAll()
 
                     // 추천
-                    .requestMatchers("/api/recommend/**", "/api/chatBot/**").hasRole("USER")
+                    .requestMatchers("/api/recommend/**", "/api/chatBot/**").permitAll()
 
                     // 캘린더
                     .requestMatchers("/api/calendars/**").hasRole("USER")
