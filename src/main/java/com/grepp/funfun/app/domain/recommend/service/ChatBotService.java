@@ -1,11 +1,26 @@
 package com.grepp.funfun.app.domain.recommend.service;
 
+import com.grepp.funfun.app.domain.content.document.ContentEmbedding;
+import com.grepp.funfun.app.domain.content.vo.ContentClassification;
+import com.grepp.funfun.app.domain.group.document.GroupEmbedding;
+import com.grepp.funfun.app.domain.group.vo.GroupClassification;
 import com.grepp.funfun.app.domain.recommend.dto.ChatBotDTO;
+import com.grepp.funfun.app.domain.recommend.dto.StartAndDuringDTO;
 import com.grepp.funfun.app.domain.recommend.entity.ChatBot;
 import com.grepp.funfun.app.domain.recommend.repository.ChatBotRepository;
+import com.grepp.funfun.app.domain.recommend.repository.ContentEmbeddingRepository;
+import com.grepp.funfun.app.domain.recommend.repository.GroupEmbeddingRepository;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
+import dev.langchain4j.data.embedding.Embedding;
+
+import dev.langchain4j.data.segment.TextSegment;
+import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
+import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +34,10 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ChatBotService {
 
+    private final EmbeddingModel embeddingModel;
     private final ChatBotRepository chatBotRepository;
+    private final GroupEmbeddingRepository groupEmbeddingRepository;
+    private final ContentEmbeddingRepository contentEmbeddingRepository;
 
     public static String getDate(LocalDateTime startTime, LocalDateTime endTime) {
 
@@ -67,6 +85,88 @@ public class ChatBotService {
     @Transactional
     public void registSummary(ChatBot chatBot) {
         chatBotRepository.save(chatBot);
+    }
+
+    public StartAndDuringDTO getTime(LocalDateTime startTime, LocalDateTime endTime) {
+
+        LocalDateTime userStart = startTime.plusHours(1);
+        LocalDateTime userEnd = endTime.minusHours(1);
+        long userAvailableHours = Duration.between(userStart, endTime).toHours();
+
+        log.info("사용자 이동시간 고려: {} ~ {}, 소요시간: {}", userStart, userEnd, userAvailableHours );
+
+        Long startDate = userStart
+                                 .toInstant(ZoneOffset.UTC)
+                                 .toEpochMilli();
+        Long endDate = userEnd
+                               .toInstant(ZoneOffset.UTC)
+                               .toEpochMilli();
+
+
+        return new StartAndDuringDTO(startDate, endDate);
+
+    }
+    @Transactional(readOnly = true)
+    public EmbeddingStoreContentRetriever getContentDocument(Long startTime, Long endTime){
+        List<ContentEmbedding> contentEmbeddings = contentEmbeddingRepository.findByStartTimeEpochGreaterThanEqualAndEndTimeEpochLessThanEqual(startTime, endTime);
+
+        InMemoryEmbeddingStore<TextSegment> embeddingStore = new InMemoryEmbeddingStore<>();
+
+        for (ContentEmbedding content : contentEmbeddings) {
+            log.info("필터링된 id: {}", content.getId());
+            TextSegment segment = TextSegment.from(content.getText());
+            Embedding embedding = new Embedding(content.getEmbedding());
+            embeddingStore.add(embedding, segment);
+        }
+
+        return EmbeddingStoreContentRetriever.builder()
+                                             .embeddingStore(embeddingStore)
+                                             .embeddingModel(embeddingModel) // 반드시 기존에 주입된 모델과 동일해야 함
+                                             .maxResults(10)
+                                             .minScore(0.65)
+                                             .build();
+    }
+
+
+    @Transactional(readOnly = true)
+    public EmbeddingStoreContentRetriever getGroupDocument(Long startTime, Long endTime){
+        List<GroupEmbedding> groupEmbeddings = groupEmbeddingRepository.findByStartTimeEpochGreaterThanEqualAndEndTimeEpochLessThanEqual(startTime, endTime);
+
+        InMemoryEmbeddingStore<TextSegment> embeddingStore = new InMemoryEmbeddingStore<>();
+
+        for (GroupEmbedding group : groupEmbeddings) {
+            log.info("필터링된 id: {}", group.getId());
+            TextSegment segment = TextSegment.from(group.getText());
+            Embedding embedding = new Embedding(group.getEmbedding());
+            embeddingStore.add(embedding, segment);
+        }
+
+        return EmbeddingStoreContentRetriever.builder()
+                                             .embeddingStore(embeddingStore)
+                                             .embeddingModel(embeddingModel) // 반드시 기존에 주입된 모델과 동일해야 함
+                                             .maxResults(10)
+                                             .minScore(0.65)
+                                             .build();
+    }
+
+    public EmbeddingStoreContentRetriever getContentPlaceDocument(String address) {
+        List<ContentEmbedding> contentEmbeddings = contentEmbeddingRepository.findByGunameContainingAndEventType(address, "PLACE");
+
+        InMemoryEmbeddingStore<TextSegment> embeddingStore = new InMemoryEmbeddingStore<>();
+
+        for (ContentEmbedding content : contentEmbeddings) {
+            log.info("필터링된 id: {}, 구: {}, 유형: {}", content.getId(), content.getGuname(), content.getEventType());
+            TextSegment segment = TextSegment.from(content.getText());
+            Embedding embedding = new Embedding(content.getEmbedding());
+            embeddingStore.add(embedding, segment);
+        }
+
+        return EmbeddingStoreContentRetriever.builder()
+                                             .embeddingStore(embeddingStore)
+                                             .embeddingModel(embeddingModel) // 반드시 기존에 주입된 모델과 동일해야 함
+                                             .maxResults(10)
+                                             .minScore(0.6)
+                                             .build();
     }
 
     public List<ChatBotDTO> findAll() {
@@ -118,5 +218,45 @@ public class ChatBotService {
                .type(chatBotDTO.getType())
                .build();
         return chatBot;
+    }
+
+
+    public String getPrompt(String summary, String agePrompt, String address) {
+        String prompt = agePrompt + "나는 지금 " + address + "에 있어 ";
+        if (summary != null) {
+            prompt += summary;
+            prompt += " 이건 나의 취향을 분석한 후 요약한 내용인데 이걸 고려해서 ";
+        }
+        prompt += " 장소에 맞게 실제로 실행할 수 있는 활동들을 추천해줘";
+        
+        return prompt;
+    }
+
+    public String recommendCategoryPrompt(String prompt, String eventType) {
+
+        String categoryPrompt = prompt;
+        categoryPrompt += "\n\n 대화 내용을 분석해서 3줄이내로 요약한 후 결과적으로";
+
+        if(eventType.equals("CONTENT")) {
+            for (ContentClassification classification : ContentClassification.values()) {
+                categoryPrompt += classification.getKoreanName();
+                categoryPrompt += ", ";
+            }
+
+            String newString = categoryPrompt.substring(0, categoryPrompt.length() - 2);
+            newString += " 이중에서 나에게 어울릴만한 활동들은 뭐가 있을지 한 줄로 작성해줘.";
+
+            return newString;
+        } else {
+            for (GroupClassification classification : GroupClassification.values()) {
+                categoryPrompt += classification.getKoreanName();
+                categoryPrompt += ", ";
+            }
+
+            String newString = categoryPrompt.substring(0, categoryPrompt.length() - 2);
+            newString += " 이중에서 나에게 어울릴만한 활동들은 뭐가 있을지 한 줄로 작성해줘.";
+
+            return newString;
+        }
     }
 }
