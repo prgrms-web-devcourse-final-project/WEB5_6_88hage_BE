@@ -512,12 +512,13 @@ VALUES
     ('t2@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/48cefdb7-e093-4e75-b636-7e8bece7a36f.jpeg', '문화 활동을 좋아합니다.', true, NOW(), NOW()),
     ('t3@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/69e33126-0a3b-441c-9aff-0789e1dab806.jpeg', '서울 서초구에 거주 중인 박민수입니다.', true, NOW(), NOW()),
     ('t4@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/3b7cb25d-9018-4144-bf8a-b5db257d7762.jpeg', '정수빈입니다. 반갑습니다!', true, NOW(), NOW()),
-    ('t5@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/7d4a8443-059a-4773-b74a-f1ec4e569bd5.jpeg', '최동욱입니다. 잠시 활동 정지 상태입니다.', true, NOW(), NOW()),
+    ('t5@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/7d4a8443-059a-4773-b74a-f1ec4e569bd5.jpeg', '최동욱입니다.', true, NOW(), NOW()),
     ('t6@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/2cb5c4d1-d296-4336-8c06-482a3f5e02c6.jpeg', '장미라입니다.', true, NOW(), NOW()),
     ('t7@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/d9fdd6e9-567a-45bc-b78e-177f83ee56f4.jpeg', '안녕하세요, 안준호입니다.', true, NOW(), NOW()),
     ('t8@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/cfc34db7-4875-433f-bfc7-6919e0ac2510.jpeg', '오세영입니다. 서울에 살고 있어요.', true, NOW(), NOW()),
     ('t9@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/467942da-b50e-4dac-b277-f9da4b8cef2e.jpeg', '관리자 유하늘입니다.', true, NOW(), NOW()),
-    ('t10@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/0aa09664-c7e1-416a-a5f1-16617e124166.png', '임소라입니다. 잘 부탁드립니다.', true, NOW(), NOW());
+    ('t10@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/0aa09664-c7e1-416a-a5f1-16617e124166.png', '임소라입니다. 잘 부탁드립니다.', true, NOW(), NOW()),
+    ('admin@aaa.aaa', 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/user/9af3ac04-5d62-4123-a425-d1b87ea47bfe.png', '관리자 계정입니다.', true, NOW(), NOW());
 
 -- User 테이블 데이터 삽입
 INSERT INTO "user" (email, password, nickname, birth_date, gender, address, latitude, longitude,
@@ -541,8 +542,7 @@ VALUES ('t1@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhI
 
        ('t5@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '최동욱',
         '19930930', 'MALE', '서울특별시 용산구 한남동 한남대로 654', 37.5347, 126.9990,
-        'ROLE_USER', 'SUSPENDED', '2025-08-15', 30, '부적절한 게시물', true, false, 't5@aaa.aaa', true,
-        NOW(), NOW()),
+        'ROLE_USER', 'ACTIVE', NULL, NULL, NULL, true, false, 't5@aaa.aaa', true,NOW(), NOW()),
 
        ('t6@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '장미라',
         '19870503', 'FEMALE', '서울특별시 성동구 성수동 아차산로 147', 37.5447, 127.0557,
@@ -558,11 +558,15 @@ VALUES ('t1@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhI
 
        ('t9@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa', '유하늘',
         '19940412', 'MALE', '서울특별시 중구 을지로 을지로3가 852', 37.5661, 126.9917,
-        'ROLE_ADMIN', 'ACTIVE', NULL, NULL, NULL, true, true, 't9@aaa.aaa', true, NOW(), NOW()),
+        'ROLE_USER', 'ACTIVE', NULL, NULL, NULL, true, true, 't9@aaa.aaa', true, NOW(), NOW()),
 
        ('t10@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa',
         '임소라', '19860128', 'FEMALE', '서울특별시 동작구 상도동 상도로 741', 37.5013, 126.9486,
-        'ROLE_USER', 'ACTIVE', NULL, NULL, NULL, true, true, 't10@aaa.aaa', true, NOW(), NOW());
+        'ROLE_USER', 'ACTIVE', NULL, NULL, NULL, true, true, 't10@aaa.aaa', true, NOW(), NOW()),
+
+       ('admin@aaa.aaa', '{bcrypt}$2a$10$ART8g5agLHIE7F4cZ.SEreokni2CuMBm6mgwg6xXhIk4eCD75P9Oa',
+        '관리자', '19860128', 'FEMALE', '서울특별시 동작구 상도동 상도로 741', 37.5013, 126.9486,
+        'ROLE_ADMIN', 'ACTIVE', NULL, NULL, NULL, true, true, 'admin@aaa.aaa', true, NOW(), NOW());
 
 
 -- GroupPreference 테이블 데이터 삽입
