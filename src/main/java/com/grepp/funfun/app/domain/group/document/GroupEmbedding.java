@@ -5,6 +5,8 @@ import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import jakarta.persistence.Id;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,28 +24,44 @@ public class GroupEmbedding {
     private String text;
     private float[] embedding;
 
-    private String groupTitle;
-    private String address;
+    private String title;
+    private Long startTimeEpoch;
+    private Long endTimeEpoch;
 
     public GroupEmbedding(Group entity, TextSegment segment, Embedding embedding) {
-        this.id = entity.getId().toString();
+        this.id = entity.getId()
+                        .toString();
         this.text = segment.text();
+        this.title = entity.getTitle();
         this.embedding = embedding.vector();
-        this.groupTitle = entity.getTitle();
-        this.address = entity.getAddress();
+
+        Long startEpochMillis = null;
+        if (entity.getGroupDate() != null) {
+            startEpochMillis = entity.getGroupDate()
+                                     .toInstant(ZoneOffset.UTC)
+                                     .toEpochMilli();
+        }
+        LocalDateTime endDate = entity.getGroupDate()
+                                      .plusHours(entity.getDuring() != null ? entity.getDuring() : 3);
+
+        Long endEpochMillis = endDate.toInstant(ZoneOffset.UTC)
+                                     .toEpochMilli();
+        this.startTimeEpoch = startEpochMillis;
+        this.endTimeEpoch = endEpochMillis;
     }
 
-    public static GroupEmbedding fromEntity(Group entity, EmbeddingModel model){
+    public static GroupEmbedding fromEntity(Group entity, EmbeddingModel model) {
         TextSegment segment = TextSegment.from(entity.toString());
         Embedding embedding = model.embed(segment).content();
         return new GroupEmbedding(entity, segment, embedding);
     }
 
     // 데이터 업데이트 되었을 때 임베딩 ( 코드 수정 필요 )
-    public void embed(EmbeddingModel model){
+    public void embed(EmbeddingModel model) {
         TextSegment segment = TextSegment.from(this.toString());
         this.text = segment.text();
-        Embedding embedding = model.embed(segment).content();
+        Embedding embedding = model.embed(segment)
+                                   .content();
         this.embedding = embedding.vector();
     }
 
@@ -53,8 +71,6 @@ public class GroupEmbedding {
             "id='" + id + '\'' +
             ", text='" + text + '\'' +
             ", embedding=" + Arrays.toString(embedding) +
-            ", groupTitle='" + groupTitle + '\'' +
-            ", address='" + address + '\'' +
             '}';
     }
 }
