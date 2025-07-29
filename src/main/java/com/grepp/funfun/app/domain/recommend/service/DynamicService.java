@@ -23,17 +23,17 @@ import org.springframework.stereotype.Service;
 public class DynamicService {
 
     private final ChatLanguageModel chatModel;
-    private final ChatBotService chatBotService;
+//    private final ChatBotService chatBotService;
     private final GroupEmbeddingRepository groupEmbeddingRepository;
     private final ContentEmbeddingRepository contentEmbeddingRepository;
 
     public DynamicService(
         @Qualifier("googleAiGeminiChatModel") ChatLanguageModel chatModel,
-        ChatBotService chatBotService,
+//        ChatBotService chatBotService,
         GroupEmbeddingRepository groupEmbeddingRepository,
         ContentEmbeddingRepository contentEmbeddingRepository) {
         this.chatModel = chatModel;
-        this.chatBotService = chatBotService;
+//        this.chatBotService = chatBotService;
         this.groupEmbeddingRepository = groupEmbeddingRepository;
         this.contentEmbeddingRepository = contentEmbeddingRepository;
     }
@@ -43,14 +43,13 @@ public class DynamicService {
      * ContentRetriever가 자동으로 DB 연결 3. 프롬프트 토큰 제한 자동 처리
      */
     public RecommendContentDTO chatBotRecommendContent(String userPrompt, Long userStart,
-        Long userEnd) {
+        Long userEnd, EmbeddingStoreContentRetriever filteredRetriever) {
         try {
             log.info("=================== 동적 AiService 생성 시작 ===================");
             log.info("사용자 프롬프트: {}", userPrompt);
             log.info("사용자 여가 시간: {} ~ {}", userStart, userEnd);
 
-            EmbeddingStoreContentRetriever filteredRetriever =
-                chatBotService.getContentDocument(userStart, userEnd);
+
 
             // 동적으로 AiService 생성
             // AiService가 자동으로 RAG 수행하고 추천 실행
@@ -95,13 +94,13 @@ public class DynamicService {
     }
 
     // inmemoryEmbeddingStore 사용
-    public RecommendGroupDTO chatBotRecommendGroup(String prompt, Long userStart, Long userEnd) {
+    public RecommendGroupDTO chatBotRecommendGroup(String prompt, Long userStart, Long userEnd,
+        EmbeddingStoreContentRetriever filteredRetriever) {
         try {
             log.info("=================== 동적 AiService 생성 시작 ===================");
             log.info("사용자 프롬프트: {}", prompt);
 
-            EmbeddingStoreContentRetriever filteredRetriever =
-                chatBotService.getGroupDocument(userStart, userEnd);
+
 
             GroupAiService dynamicAiService = AiServices.builder(GroupAiService.class)
                                                         .chatLanguageModel(chatModel)
@@ -141,14 +140,13 @@ public class DynamicService {
     }
 
     public RecommendContentDTO quickRecommendEvent(String userPrompt, Long userStart,
-        Long userEnd) {
+        Long userEnd, EmbeddingStoreContentRetriever filteredRetriever) {
         try {
             log.info("=================== 동적 AiService 생성 시작 ===================");
             log.info("사용자 프롬프트: {}", userPrompt);
             log.info("사용자 여가 시간: {} ~ {}", userStart, userEnd);
 
-            EmbeddingStoreContentRetriever filteredRetriever =
-                chatBotService.getContentDocument(userStart, userEnd);
+
 
             ContentAiService dynamicAiService = AiServices.builder(ContentAiService.class)
                                                           .chatLanguageModel(chatModel)
@@ -188,13 +186,11 @@ public class DynamicService {
         }
     }
 
-    public RecommendGroupDTO quickRecommendGroup(String prompt, Long userStart, Long userEnd) {
+    public RecommendGroupDTO quickRecommendGroup(String prompt, Long userStart, Long userEnd,
+        EmbeddingStoreContentRetriever filteredRetriever) {
         try {
             log.info("=================== 동적 AiService 생성 시작 ===================");
             log.info("사용자 프롬프트: {}", prompt);
-
-            EmbeddingStoreContentRetriever filteredRetriever =
-                chatBotService.getGroupDocument(userStart, userEnd);
 
             GroupAiService dynamicAiService = AiServices.builder(GroupAiService.class)
                                                         .chatLanguageModel(chatModel)
@@ -233,13 +229,13 @@ public class DynamicService {
         }
     }
 
-    public RecommendContentDTO quickRecommendPlace(String prompt, String userAddress) {
+    public RecommendContentDTO quickRecommendPlace(String prompt, String userAddress,
+        EmbeddingStoreContentRetriever filteredRetriever) {
         try {
             log.info("=================== 동적 AiService 생성 시작 ===================");
             log.info("사용자 프롬프트: {}", prompt);
 
-            EmbeddingStoreContentRetriever filteredRetriever =
-                chatBotService.getContentPlaceDocument(extractSecondToken(userAddress));
+
 
             ContentAiService dynamicAiService = AiServices.builder(ContentAiService.class)
                                                           .chatLanguageModel(chatModel)
@@ -278,18 +274,5 @@ public class DynamicService {
         }
     }
 
-    public static String extractSecondToken(String address) {
-        if (address == null || address.trim()
-                                      .isEmpty()) {
-            return null;
-        }
-        String[] tokens = address.split(" ");
 
-        // 토큰이 2개 이상일 경우에만 두 번째 토큰(인덱스 1)이 존재
-        if (tokens.length >= 2) {
-            return tokens[1];
-        } else {
-            return null; // 두 번째 토큰이 없는 경우
-        }
-    }
 }
