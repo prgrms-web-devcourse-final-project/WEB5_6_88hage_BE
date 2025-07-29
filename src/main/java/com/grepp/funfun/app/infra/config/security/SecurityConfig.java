@@ -109,6 +109,9 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/api/userInfos/**").permitAll()
                     .requestMatchers(HttpMethod.PUT,"/api/userInfos").hasRole("USER")
 
+                    // 알림
+                    .requestMatchers("/api/notifications/**").hasAnyRole("USER", "GUEST", "ADMIN")
+
 //                    .requestMatchers("/api/**").permitAll()
                     .anyRequest().authenticated()
             )
