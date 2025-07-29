@@ -74,7 +74,7 @@ public class GroupService {
         Group group = groupRepository.findByIdWithFullInfo(groupId)
             .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND, "모임을 찾을 수 없습니다.(빈 값이 있을 경우 존재)"));
 
-        // 관련 모임 2개 조회 (동일 카테고리, 거리순)
+        // 관련 모임 2개 조회 (동일 카테고리, 최신순)
         List<GroupDetailResponse> relatedGroups = getRelatedGroups(group, userEmail);
 
         return GroupDetailResponse.fromWithRelated(group, relatedGroups);
@@ -259,12 +259,10 @@ public class GroupService {
 
         group.changeStatusAndActivated(GroupStatus.COMPLETED);
 
-        // 관련 멤버들 active - false / status - GROUP_CANCELED
+        // 관련 멤버들 active - false / status - GROUP_COMPLETE
         for (Participant participant : group.getParticipants()) {
-            participant.unActivated();
-            participant.setStatus(ParticipantStatus.GROUP_COMPLETE);
+            participant.changeStatusAndActivated(ParticipantStatus.GROUP_COMPLETE);
         }
-
     }
 
     // 그룹 확인 및 사용자 검증
