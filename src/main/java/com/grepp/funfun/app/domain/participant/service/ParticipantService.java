@@ -262,4 +262,20 @@ public class ParticipantService {
             throw new CommonException(ResponseCode.UNAUTHORIZED, "정지된 사용자입니다.");
         }
     }
+
+    @Transactional
+    public void leaveAllMyGroups(String userEmail) {
+        // 회원 탈퇴 시 삭제 가능한 참여 중인 모임 조회
+        List<Participant> deletableParticipants = participantRepository.findDeletableParticipants(userEmail);
+
+        // 참여 중인 모임 전체 나가기
+        for (Participant participant : deletableParticipants) {
+            if (participant.getStatus().equals(ParticipantStatus.PENDING)) {
+                participant.changeStatusAndActivated(ParticipantStatus.LEAVE);
+                participantRepository.save(participant);
+                continue;
+            }
+            leave(participant.getGroup().getId(), userEmail);
+        }
+    }
 }

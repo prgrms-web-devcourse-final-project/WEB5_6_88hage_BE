@@ -1129,6 +1129,10 @@ VALUES
 -- ('한정식 맛집 탐방', '서울 시내 유명 한정식 맛집들을 탐방하는 모임입니다.', '한정식 맛집', '강남 한정식', '서울특별시 강남구 테헤란로 132', '2025-08-13 18:00:00', 5, 2, 'https://example.com/photo1192.jpg', 'RECRUITING', 37.5029, 127.0317, 90, 'FOOD', 't1@aaa.aaa', true, NOW(), NOW()),
 -- ('영어 토론 스터디', '시사 이슈에 대해 영어로 토론하며 회화 실력을 향상시키는 스터디 그룹입니다.', '영어 토론', '강남역 스터디룸', '서울특별시 강남구 테헤란로 1길 1', '2025-08-15 10:30:00', 7, 3, 'https://example.com/photo1194.jpg', 'RECRUITING', 37.4980, 127.0276, 120, 'STUDY', 't3@aaa.aaa', true, NOW(), NOW());
 
+ALTER TABLE group_hashtag ALTER COLUMN activated SET DEFAULT true;
+ALTER TABLE group_chat_room ALTER COLUMN activated SET DEFAULT true;
+ALTER TABLE participant ALTER COLUMN activated SET DEFAULT true;
+
 -- Group Hashtag 테이블 데이터 삽입 (서울 지역 모임 50개용)
 INSERT INTO group_hashtag (tag, group_id, created_at, modified_at)
 VALUES

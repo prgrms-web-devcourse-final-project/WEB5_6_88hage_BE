@@ -333,6 +333,17 @@ public class GroupService {
         }
     }
 
+    @Transactional
+    public void deleteAllMyLeadGroups(String leaderEmail) {
+        // 회원 탈퇴 시 삭제 가능한 리더인 모임 조회
+        List<Group> deletableGroups = groupRepository.findDeletableLeaderGroups(leaderEmail);
+
+        // 리더인 모임 전체 삭제
+        for (Group group : deletableGroups) {
+            delete(group.getId(), leaderEmail);
+        }
+    }
+
     private GroupDetailResponse convertToGroupResponse(Group group) {
         return GroupDetailResponse.builder()
             .id(group.getId())
