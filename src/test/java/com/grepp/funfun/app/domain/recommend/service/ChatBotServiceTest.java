@@ -6,8 +6,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 @Slf4j
 @SpringBootTest
 class ChatBotServiceTest {
@@ -28,7 +26,8 @@ class ChatBotServiceTest {
         int day = dateTime.getDayOfMonth();
         int hour = dateTime.getHour();
         int minute = dateTime.getMinute();
-        int dayOfWeekValue = dateTime.getDayOfWeek().getValue(); // 월요일=1, 화요일=2, ..., 일요일=7
+        int dayOfWeekValue = dateTime.getDayOfWeek()
+                                     .getValue(); // 월요일=1, 화요일=2, ..., 일요일=7
 
         // 요일 인덱스 조정 (ISO 8601 기준: 월요일=1 -> 배열 인덱스: 월요일=2)
         String dayName = dayOfWeek[dayOfWeekValue];
@@ -37,7 +36,7 @@ class ChatBotServiceTest {
         String result = String.format("나는 %d-%02d-%02d %s %d시 %02d분 부터 여가 시간이야",
                                       year, month, day, dayName, hour, minute);
 
-        System.out.println(result);
+        log.info(result);
     }
 
 }
