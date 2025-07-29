@@ -18,6 +18,8 @@ import com.grepp.funfun.app.domain.group.entity.GroupHashtag;
 import com.grepp.funfun.app.domain.group.repository.GroupHashtagRepository;
 import com.grepp.funfun.app.domain.group.repository.GroupRepository;
 import com.grepp.funfun.app.domain.group.vo.GroupStatus;
+import com.grepp.funfun.app.domain.notification.dto.NotificationDTO;
+import com.grepp.funfun.app.domain.notification.service.NotificationService;
 import com.grepp.funfun.app.domain.participant.entity.Participant;
 import com.grepp.funfun.app.domain.participant.repository.ParticipantRepository;
 import com.grepp.funfun.app.domain.participant.vo.ParticipantRole;
@@ -30,6 +32,7 @@ import com.grepp.funfun.app.domain.user.vo.UserStatus;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -57,7 +60,7 @@ public class GroupService {
     private final CalendarService calendarService;
     private final RedisTemplate<String, String> redisTemplate;
     private final S3FileService s3FileService;
-
+    private final NotificationService notificationService;
 
     // 모든 모임 조회
     public List<GroupDetailResponse> findAll() {
@@ -258,6 +261,21 @@ public class GroupService {
         }
 
         group.changeStatusAndActivated(GroupStatus.COMPLETED);
+
+        //완료 알림
+       for (Participant participant : group.getParticipants()) {
+           if(participant.getActivated()) {
+               notificationService.create(NotificationDTO.builder()
+                       .email(participant.getUser().getEmail())
+                       .message("모임 '" + group.getTitle() + "' 완료되었습니다.")
+                       .link("/groups/" + group.getId())
+                       .type("NOTICE")
+                       .isRead(false)
+                       .sentAt(LocalDateTime.now())
+                       .build());
+           }
+       }
+
 
         // 관련 멤버들 active - false / status - GROUP_COMPLETE
         for (Participant participant : group.getParticipants()) {

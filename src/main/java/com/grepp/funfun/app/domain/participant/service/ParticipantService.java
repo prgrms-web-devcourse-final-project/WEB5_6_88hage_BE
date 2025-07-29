@@ -5,6 +5,8 @@ import com.grepp.funfun.app.domain.group.entity.Group;
 import com.grepp.funfun.app.domain.group.repository.GroupRepository;
 import com.grepp.funfun.app.domain.group.vo.GroupClassification;
 import com.grepp.funfun.app.domain.group.vo.GroupStatus;
+import com.grepp.funfun.app.domain.notification.dto.NotificationDTO;
+import com.grepp.funfun.app.domain.notification.service.NotificationService;
 import com.grepp.funfun.app.domain.participant.dto.payload.GroupCompletedStatsResponse;
 import com.grepp.funfun.app.domain.participant.dto.payload.ParticipantResponse;
 import com.grepp.funfun.app.domain.participant.entity.Participant;
@@ -16,6 +18,8 @@ import com.grepp.funfun.app.domain.user.repository.UserRepository;
 import com.grepp.funfun.app.domain.user.vo.UserStatus;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ResponseCode;
+
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +40,7 @@ public class ParticipantService {
     private final UserRepository userRepository;
     private final GroupRepository groupRepository;
     private final CalendarService calendarService;
+    private final NotificationService notificationService;
 
     //모임 참여 신청
     @Transactional
@@ -94,6 +99,16 @@ public class ParticipantService {
 
         participantRepository.save(participant);
 
+        // 모임 신청오면 주최자에게 알림전송
+        notificationService.create(NotificationDTO.builder()
+                .email(group.getLeader().getEmail())
+                .message(user.getNickname() + "님이 '" + group.getTitle() + "' 모임에 가입을 신청했습니다.")
+                .link("/groups/" + group.getId())
+                .type("NOTICE")
+                .isRead(false)
+                .sentAt(LocalDateTime.now())
+                .build());
+
     }
 
     //참여 승인
@@ -115,6 +130,16 @@ public class ParticipantService {
             Participant participant = participantRepository.findByGroupIdAndUserEmail(groupId,userEmail).orElseThrow(()-> new CommonException(ResponseCode.NOT_FOUND));
             participant.setStatus(ParticipantStatus.APPROVED);
             // 모임 생성 시 참여자의 캘린더에 자동으로 일정 추가하기
+
+            // 모임 승인되면 참여자에게 알림전송
+            notificationService.create(NotificationDTO.builder()
+                        .email(userEmail).message("모임'" + group.getTitle() +"' 참여가 승인되었습니다.")
+                        .link("/groups/" + group.getId())
+                        .type("NOTICE")
+                        .isRead(false)
+                        .sentAt(LocalDateTime.now())
+                        .build());
+
             calendarService.addGroupCalendar(userEmail, group);
         }
         // 인원 수 변경
@@ -141,6 +166,16 @@ public class ParticipantService {
                 .orElseThrow(()-> new CommonException(ResponseCode.NOT_FOUND, "참가자를 찾을 수 없습니다."));
 
             participant.changeStatusAndActivated(ParticipantStatus.REJECTED);
+
+            //거절 알림
+            notificationService.create(NotificationDTO.builder()
+                    .email(userEmail).message("모임'" + group.getTitle() +"' 참여가 거절되었습니다.")
+                    .link("/groups/" + group.getId())
+                    .type("NOTICE")
+                    .isRead(false)
+                    .sentAt(LocalDateTime.now())
+                    .build());
+
             participantRepository.save(participant);
         }
     }
@@ -158,6 +193,17 @@ public class ParticipantService {
 
         // 강제 퇴장 : status -GROUP_KICKOUT + 비활성화 처리
         participant.changeStatusAndActivated(ParticipantStatus.GROUP_KICKOUT);
+
+        //강퇴 알림
+        notificationService.create(NotificationDTO.builder()
+                .email(targetEmail)
+                .message("모임'" + group.getTitle() +"' 에서 강제 퇴장되었습니다.")
+                .link("/groups/" + group.getId())
+                .type("NOTICE")
+                .isRead(false)
+                .sentAt(LocalDateTime.now())
+                .build());
+
 
         group.minusGroupCount();
 
