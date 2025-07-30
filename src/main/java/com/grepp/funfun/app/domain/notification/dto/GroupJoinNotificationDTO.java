@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.domain.notification.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -8,6 +9,7 @@ import java.time.LocalDateTime;
 @Getter
 public class GroupJoinNotificationDTO extends NotificationDTO {
 
+    @JsonProperty("applicantEmail")
     private final String applicantEmail;
 
     @Builder(builderMethodName = "groupJoinBuilder")
