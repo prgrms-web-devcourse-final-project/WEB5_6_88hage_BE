@@ -12,7 +12,7 @@ public class TokenCookieFactory {
         return ResponseCookie.from(name, value)
             .maxAge(expires + 300) // Refresh 토큰 만료기간 보다 5분 길게
             .path("/")
-            .httpOnly(true) // HttpOnly
+            .httpOnly(false)
             .secure(true)
             .sameSite("None") // Secure
             .build();
@@ -22,7 +22,7 @@ public class TokenCookieFactory {
         return ResponseCookie.from(name, "")
             .maxAge(0)
             .path("/")
-            .httpOnly(true) // HttpOnly
+            .httpOnly(false)
             .secure(true)
             .sameSite("None") // Secure
             .build();
