@@ -43,7 +43,6 @@ public class ContentWithReasonDTO {
 
     private String description;
 
-    @NotNull
     private String category;
 
     private List<ContentImageDTO> images;

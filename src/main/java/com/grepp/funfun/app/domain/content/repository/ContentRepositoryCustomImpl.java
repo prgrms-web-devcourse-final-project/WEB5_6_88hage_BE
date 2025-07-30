@@ -219,6 +219,14 @@ public class ContentRepositoryCustomImpl extends QuerydslRepositorySupport imple
             .fetch();
     }
 
+    @Override
+    public List<Content> findAllWithCategory() {
+        return queryFactory
+            .selectFrom(content)
+            .join(content.category, category).fetchJoin()
+            .fetch();
+    }
+
 
     private BooleanExpression categoryEq(ContentClassification categoryParam) {
         return categoryParam != null ? content.category.category.eq(categoryParam) : null;

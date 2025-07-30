@@ -42,4 +42,6 @@ public interface ContentRepositoryCustom {
     List<Content> findByCategoryCategory(ContentClassification category, boolean includeExpired);
 
     List<Content> findContentsByIdsWithAllRelations(List<Long> recommendIds);
+
+    List<Content> findAllWithCategory();
 }

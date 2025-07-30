@@ -113,16 +113,11 @@ public class Group extends BaseEntity {
 
     @Override
     public String toString() {
-        return "Group{" +
-            "id=" + id +
-            ", 모임 주제는 '" + title + '\'' +
-            "이고 '" + explain + '\'' +
-            ", 모임 장소는 '" + placeName + '\'' +
+        return "id: " + id + "  title: " + title + "  모임 설명: " + explain +
+            " 모임 장소는 '" + placeName + '\'' +
             "이고 정확한 주소는 '" + address + '\'' +
-            "입니다. 모임 진행 날짜와 시간은 " + groupDate +
-            "이며 모임은 " + during +
-            "분동안 활동을 진행하고 category는 " + category.getKoreanName() + "입니다." +
-            '}';
+            "입니다." +
+            " 카테고리는 " + category.getKoreanName() + "입니다.";
     }
 
     // 수정용 메서드
