@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 
 @Getter
 @Builder
-@AllArgsConstructor
 public class NotificationDTO {
 
     private final Long id;
