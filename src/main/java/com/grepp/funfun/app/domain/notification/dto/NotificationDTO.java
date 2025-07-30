@@ -36,4 +36,7 @@ public class NotificationDTO {
 
     @Schema(description = "일정 ID(해당 알림이 어떤 캘린더 일정과 연관되는지 확인용)")
     private final Long calendarId;
+
+    @Schema(description = "모임 신첟자의 이메일 (필요시에만 사용할 예정)")
+    private final String applicantEmail;
 }
