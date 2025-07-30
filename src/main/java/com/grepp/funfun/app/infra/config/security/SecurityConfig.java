@@ -76,7 +76,12 @@ public class SecurityConfig {
                     .requestMatchers("/api/groupHashtags/save").hasRole("ADMIN")
 
                     // 관리자
+                    .requestMatchers(HttpMethod.GET, "/api/admin/notices/**").permitAll()
                     .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
+                    // FAQ
+                    .requestMatchers(HttpMethod.GET, "/api/faqs/**").permitAll()
+                    .requestMatchers("/api/faqs/**").hasRole("ADMIN")
 
                     // 컨텐츠
                     .requestMatchers(HttpMethod.GET, "/api/contents/**").permitAll()
@@ -109,7 +114,7 @@ public class SecurityConfig {
 
                     // 유저 인포
                     .requestMatchers(HttpMethod.GET, "/api/userInfos/**").permitAll()
-                    .requestMatchers(HttpMethod.PUT,"/api/userInfos").hasRole("USER")
+                    .requestMatchers(HttpMethod.PUT,"/api/userInfos").hasAnyRole("USER", "ADMIN")
 
                     // 알림
                     .requestMatchers(HttpMethod.POST, "/api/notifications").hasRole("ADMIN")
