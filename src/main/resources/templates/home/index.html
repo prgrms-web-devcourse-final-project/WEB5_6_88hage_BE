@@ -1,43 +1,14 @@
 <!DOCTYPE HTML>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-        layout:decorate="~{layout}">
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
     <head>
-        <title>[[#{home.index.headline}]]</title>
+        <title>FunFun</title>
     </head>
     <body>
-        <div layout:fragment="content">
-            <h1 class="mb-4">[[#{home.index.headline}]]</h1>
-            <p>[(#{home.index.text})]</p>
+        <div>
+            <h1 class="mb-4">FunFun</h1>
             <p class="mb-5">
-                <span>[[#{home.index.swagger.text}]]</span>
-                <a th:href="@{/swagger-ui.html}" target="_blank">[[#{home.index.swagger.link}]]</a>.
+                <a th:href="@{/swagger-ui.html}" target="_blank">스웨거 이동</a>
             </p>
-            <div class="col-md-4 mb-5">
-                <h4 class="mb-3">[[#{home.index.exploreEntities}]]</h4>
-                <div class="list-group">
-                    <a th:href="@{/users}" class="list-group-item list-group-item-action">[[#{user.list.headline}]]</a>
-                    <a th:href="@{/userInfos}" class="list-group-item list-group-item-action">[[#{userInfo.list.headline}]]</a>
-                    <a th:href="@{/follows}" class="list-group-item list-group-item-action">[[#{follow.list.headline}]]</a>
-                    <a th:href="@{/calendars}" class="list-group-item list-group-item-action">[[#{calendar.list.headline}]]</a>
-                    <a th:href="@{/messages}" class="list-group-item list-group-item-action">[[#{message.list.headline}]]</a>
-                    <a th:href="@{/contacts}" class="list-group-item list-group-item-action">[[#{contact.list.headline}]]</a>
-                    <a th:href="@{/reports}" class="list-group-item list-group-item-action">[[#{report.list.headline}]]</a>
-                    <a th:href="@{/contents}" class="list-group-item list-group-item-action">[[#{content.list.headline}]]</a>
-                    <a th:href="@{/contentCategories}" class="list-group-item list-group-item-action">[[#{contentCategory.list.headline}]]</a>
-                    <a th:href="@{/groupBookmarks}" class="list-group-item list-group-item-action">[[#{groupBookmark.list.headline}]]</a>
-                    <a th:href="@{/groups}" class="list-group-item list-group-item-action">[[#{group.list.headline}]]</a>
-                    <a th:href="@{/participants}" class="list-group-item list-group-item-action">[[#{participant.list.headline}]]</a>
-                    <a th:href="@{/groupChatRooms}" class="list-group-item list-group-item-action">[[#{groupChatRoom.list.headline}]]</a>
-                    <a th:href="@{/chats}" class="list-group-item list-group-item-action">[[#{chat.list.headline}]]</a>
-                    <a th:href="@{/notices}" class="list-group-item list-group-item-action">[[#{notice.list.headline}]]</a>
-                    <a th:href="@{/notifications}" class="list-group-item list-group-item-action">[[#{notification.list.headline}]]</a>
-                    <a th:href="@{/chatBots}" class="list-group-item list-group-item-action">[[#{chatBot.list.headline}]]</a>
-                    <a th:href="@{/contentBookmarks}" class="list-group-item list-group-item-action">[[#{contentBookmark.list.headline}]]</a>
-                    <a th:href="@{/groupPreferences}" class="list-group-item list-group-item-action">[[#{groupPreference.list.headline}]]</a>
-                    <a th:href="@{/contentPreferences}" class="list-group-item list-group-item-action">[[#{contentPreference.list.headline}]]</a>
-                    <a th:href="@{/groupHashtags}" class="list-group-item list-group-item-action">[[#{groupHashtag.list.headline}]]</a>
-                </div>
-            </div>
         </div>
     </body>
 </html>
