@@ -107,6 +107,7 @@ public class ParticipantService {
                 .type("NOTICE")
                 .isRead(false)
                 .sentAt(LocalDateTime.now())
+                        .applicantEmail(user.getEmail())
                 .build());
 
     }
