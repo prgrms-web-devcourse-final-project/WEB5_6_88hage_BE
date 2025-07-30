@@ -19,6 +19,7 @@ public class Notification extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String email;
 
     private String message;
@@ -39,4 +40,8 @@ public class Notification extends BaseEntity {
     private LocalDateTime sentAt;
 
     private Long calendarId;
+
+    @Column(name = "applicant_email")
+    private String applicantEmail;
+
 }

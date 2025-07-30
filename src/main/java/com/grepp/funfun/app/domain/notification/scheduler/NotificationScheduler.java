@@ -42,7 +42,7 @@ public class NotificationScheduler {
             NotificationDTO dto = NotificationDTO.builder()
                     .email(calendar.getEmail())
                     .message(message)
-                    .link("/calendar") //fe에서의 라우터에 따라 변경
+                    .link("/user/calendar") //fe에서의 라우터에 따라 변경
                     .isRead(false)
                     .type(NotificationType.SCHEDULE.name())
                     .scheduledAt(LocalDateTime.now())

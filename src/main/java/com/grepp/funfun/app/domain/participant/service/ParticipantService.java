@@ -5,6 +5,7 @@ import com.grepp.funfun.app.domain.group.entity.Group;
 import com.grepp.funfun.app.domain.group.repository.GroupRepository;
 import com.grepp.funfun.app.domain.group.vo.GroupClassification;
 import com.grepp.funfun.app.domain.group.vo.GroupStatus;
+import com.grepp.funfun.app.domain.notification.dto.GroupJoinNotificationDTO;
 import com.grepp.funfun.app.domain.notification.dto.NotificationDTO;
 import com.grepp.funfun.app.domain.notification.service.NotificationService;
 import com.grepp.funfun.app.domain.participant.dto.payload.GroupCompletedStatsResponse;
@@ -100,14 +101,14 @@ public class ParticipantService {
         participantRepository.save(participant);
 
         // 모임 신청오면 주최자에게 알림전송
-        notificationService.create(NotificationDTO.builder()
+        notificationService.create(GroupJoinNotificationDTO.groupJoinBuilder()
                 .email(group.getLeader().getEmail())
                 .message(user.getNickname() + "님이 '" + group.getTitle() + "' 모임에 가입을 신청했습니다.")
                 .link("/groups/" + group.getId())
                 .type("NOTICE")
                 .isRead(false)
                 .sentAt(LocalDateTime.now())
-                        .applicantEmail(user.getEmail())
+                .applicantEmail(user.getEmail())
                 .build());
 
     }
