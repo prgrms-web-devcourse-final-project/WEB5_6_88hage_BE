@@ -41,96 +41,89 @@ import org.springframework.web.bind.annotation.RestController;
 public class RecommendApiController {
 
     private final ChatBotService chatBotService;
-    private final ContentService contentService;
-    private final GroupService groupService;
-    private final UserService userService;
-    private final AiRequestQueue aiRequestQueue;
-    private final ChatBotAiService chatBotAiService;
-    private final DynamicService dynamicService;
-
-//    @Qualifier("securityContextExecutor")
-//    private final Executor securityContextExecutor;
-
 
     @PostMapping("chatBot/chat")
     @Operation(summary = "챗봇 대화 기능", description = "챗봇과 대화하여 사용자의 취향을 분석함")
-    public CompletableFuture<ResponseEntity<ApiResponse<String>>> chat(
+    public ResponseEntity<ApiResponse<String>> chat(
         @RequestBody ChatBotRequest request) {
 
-        return chatBotService.chatBotConversation(request)
-            .thenApply(ResponseEntity::ok);
+        CompletableFuture<ApiResponse<String>> future = chatBotService.chatBotConversation(request);
+        ResponseEntity<ApiResponse<String>> result = future.thenApply(ResponseEntity::ok).join();
+        return result;
     }
 
     @PostMapping("chatBot/end")
     @Operation(summary = "챗봇 대화내용 요약 기능", description = "챗봇과의 대화내용을 바탕으로 사용자의 취향을 분석하여 저장")
-    public CompletableFuture<ResponseEntity<ApiResponse<String>>> chatBotCloseAndSummary(
+    public ResponseEntity<ApiResponse<String>> chatBotCloseAndSummary(
         @RequestBody ChatBotRequest request, Authentication authentication
     ) {
-        return chatBotService.chatBotCloseAndSummary(request, authentication)
-                             .thenApply(ResponseEntity::ok)
-                             .exceptionally(e -> {
-                                 log.error("요약 처리 중 오류 발생", e);
-                                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                                      .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR,
-                                                                              "챗봇 요약 중 오류 발생"));
-                             });
+        CompletableFuture<ApiResponse<String>> future = chatBotService.chatBotCloseAndSummary(request, authentication);
+        ResponseEntity<ApiResponse<String>> result = future.thenApply(ResponseEntity::ok)
+            .exceptionally(e -> {
+                log.error("요약 처리 중 오류 발생", e);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                     .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR,
+                                                             "챗봇 요약 중 오류 발생"));
+            }).join();
+
+        return result;
     }
 
     @PostMapping("chatBot/recommend/content")
     @Operation(summary = "챗봇 추천 기능 (컨텐츠)", description = "시간, 장소를 입력하여 추천을 받습니다.")
-    public CompletableFuture<ResponseEntity<ApiResponse<RecommendContentResponse>>> chatBotRecommendContent(
+    public ResponseEntity<ApiResponse<RecommendContentResponse>> chatBotRecommendContent(
         @Valid @RequestBody RecommendRequest request, Authentication authentication
     ) {
-        return chatBotService.chatBotRecommendContent(request, authentication)
-                             .thenApply(ResponseEntity::ok)
-                             .exceptionally(e -> {
-                                 log.error("API 호출 중 오류 발생", e);
-                                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                                      .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR,
-                                                                              "추천 처리 중 오류가 발생했습니다."));
-                             });
+        CompletableFuture<RecommendContentResponse> future = chatBotService.chatBotRecommendContent(request, authentication);
+        ResponseEntity<ApiResponse<RecommendContentResponse>> result = future.thenApply(response ->
+                                                                                       ResponseEntity.ok(ApiResponse.success(response))).exceptionally(e -> {
+            log.error("API 호출 중 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                 .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR,
+                                                         "추천 처리 중 오류가 발생했습니다."));
+        }).join();
+
+        return result;
     }
 
     @PostMapping("chatBot/recommend/group")
     @Operation(summary = "챗봇 추천 기능 (모임)", description = "시간, 장소를 입력하여 추천을 받습니다.")
-    public CompletableFuture<ResponseEntity<ApiResponse<RecommendGroupResponse>>> chatBotRecommendGroup(
+    public ResponseEntity<ApiResponse<RecommendGroupResponse>> chatBotRecommendGroup(
         @Valid @RequestBody RecommendRequest request,
         Authentication authentication
     ) {
-        return chatBotService.chatBotRecommendGroup(request, authentication)
-                             .thenApplyAsync(
-                                 response -> ResponseEntity.ok(ApiResponse.success(response))
-                             )
-                             .exceptionally(e -> {
-                                 log.error("API 호출 중 오류 발생: {}", e.getMessage(), e);
-                                 Throwable cause = e.getCause();
-                                 if (cause instanceof OutputParsingException) {
-                                     return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
-                                                          .body(ApiResponse.error(ResponseCode.INVALID_API_RESPONSE,
-                                                                                  "AI 응답이 길어서 Json 파싱에서 문제 발생"));
-                                 } else if (cause instanceof SocketTimeoutException) {
-                                     return ResponseEntity.status(HttpStatus.GATEWAY_TIMEOUT)
-                                                          .body(ApiResponse.error(ResponseCode.API_UNAVAILABLE,
-                                                                                  "AI 서버 응답이 지연되고 있습니다."));
-                                 } else {
-                                     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                                          .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR,
-                                                                                  "요청 처리 중 알 수 없는 오류가 발생했습니다."));
-                                 }
-                             });
+        CompletableFuture<RecommendGroupResponse> future = chatBotService.chatBotRecommendGroup(request, authentication);
+        ResponseEntity<ApiResponse<RecommendGroupResponse>> result = future.thenApply(response ->
+                                                                                     ResponseEntity.ok(ApiResponse.success(response))).exceptionally(e -> {
+            log.error("API 호출 중 오류 발생: {}", e.getMessage(), e);
+            Throwable cause = e.getCause();
+            if (cause instanceof OutputParsingException) {
+                return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                                     .body(ApiResponse.error(ResponseCode.INVALID_API_RESPONSE,
+                                                             "AI 응답이 길어서 Json 파싱에서 문제 발생"));
+            } else if (cause instanceof SocketTimeoutException) {
+                return ResponseEntity.status(HttpStatus.GATEWAY_TIMEOUT)
+                                     .body(ApiResponse.error(ResponseCode.API_UNAVAILABLE,
+                                                             "AI 서버 응답이 지연되고 있습니다."));
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                     .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR,
+                                                             "요청 처리 중 알 수 없는 오류가 발생했습니다."));
+            }
+        }).join();
+
+        return result;
     }
 
     @PostMapping("recommend/content")
     @Operation(summary = "AI 빠른추천 기능 (컨텐츠)", description = "시간, 장소를 입력하여 추천을 받습니다.")
-    public CompletableFuture<ResponseEntity<ApiResponse<RecommendTwoListResponse>>> quickRecommendContent(
+    public ResponseEntity<ApiResponse<RecommendTwoListResponse>> quickRecommendContent(
         @Valid @RequestBody RecommendRequest request,
         Authentication authentication
     ) {
-        return chatBotService.quickRecommendContent(request, authentication)
-                             .thenApplyAsync(
-                                 response -> ResponseEntity.ok(ApiResponse.success(response))
-                             )
-                             .exceptionally(e -> {
+        CompletableFuture<RecommendTwoListResponse> future = chatBotService.quickRecommendContent(request, authentication);
+        ResponseEntity<ApiResponse<RecommendTwoListResponse>> result = future.thenApply(response ->
+                                                                                     ResponseEntity.ok(ApiResponse.success(response))).exceptionally(e -> {
                                  log.error("API 호출 중 오류 발생: " + e.getMessage(), e);
                                  Throwable cause = e.getCause();
                                  if (cause instanceof OutputParsingException) {
@@ -146,35 +139,39 @@ public class RecommendApiController {
                                                           .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR,
                                                                                   "요청 처리 중 알 수 없는 오류가 발생했습니다."));
                                  }
-                             });
+                             }).join();
+
+        return result;
     }
 
     @PostMapping("recommend/group")
     @Operation(summary = "AI 빠른추천 기능 (모임)", description = "시간, 장소를 입력하여 추천을 받습니다.")
-    public CompletableFuture<ResponseEntity<ApiResponse<RecommendGroupResponse>>> quickRecommendGroup(
+    public ResponseEntity<ApiResponse<RecommendGroupResponse>> quickRecommendGroup(
         @Valid @RequestBody RecommendRequest request,
         Authentication authentication) {
 
-        return chatBotService.quickRecommendGroup(request, authentication)
-                             .thenApplyAsync(response ->
-                                                                                             ResponseEntity.ok(ApiResponse.success(response))
-                             )
-                             .exceptionally(e -> {
-                                 log.error("API 호출 중 오류 발생: {}", e.getMessage(), e);
-                                 Throwable cause = e.getCause();
-                                 if (cause instanceof OutputParsingException) {
-                                     return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
-                                                          .body(ApiResponse.error(ResponseCode.INVALID_API_RESPONSE,
-                                                                                  "AI 응답이 길어서 Json 파싱에서 문제 발생"));
-                                 } else if (cause instanceof SocketTimeoutException) {
-                                     return ResponseEntity.status(HttpStatus.GATEWAY_TIMEOUT)
-                                                          .body(ApiResponse.error(ResponseCode.API_UNAVAILABLE,
-                                                                                  "AI 서버 응답이 지연되고 있습니다."));
-                                 } else {
-                                     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                                          .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR,
-                                                                                  "요청 처리 중 알 수 없는 오류가 발생했습니다."));
-                                 }
-                             });
+        CompletableFuture<RecommendGroupResponse> future = chatBotService.quickRecommendGroup(request, authentication);
+        ResponseEntity<ApiResponse<RecommendGroupResponse>> result = future.thenApply(response ->
+                                                        ResponseEntity.ok(ApiResponse.success(response))
+
+        ).exceptionally(e -> {
+            log.error("API 호출 중 오류 발생: {}", e.getMessage(), e);
+            Throwable cause = e.getCause();
+            if (cause instanceof OutputParsingException) {
+                return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                                     .body(ApiResponse.error(ResponseCode.INVALID_API_RESPONSE,
+                                                             "AI 응답이 길어서 Json 파싱에서 문제 발생"));
+            } else if (cause instanceof SocketTimeoutException) {
+                return ResponseEntity.status(HttpStatus.GATEWAY_TIMEOUT)
+                                     .body(ApiResponse.error(ResponseCode.API_UNAVAILABLE,
+                                                             "AI 서버 응답이 지연되고 있습니다."));
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                     .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR,
+                                                             "요청 처리 중 알 수 없는 오류가 발생했습니다."));
+            }
+        }).join();
+
+        return result;
     }
 }

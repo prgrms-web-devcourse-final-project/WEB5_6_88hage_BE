@@ -82,8 +82,7 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/api/contents/**").permitAll()
 
                     // 추천
-//                    .requestMatchers("/api/recommend/**", "/api/chatBot/**").hasRole("USER")
-                    .requestMatchers("/api/recommend/**", "/api/chatBot/**").permitAll()
+                    .requestMatchers("/api/recommend/**", "/api/chatBot/**").hasRole("USER")
 
                     // 캘린더
                     .requestMatchers("/api/calendars/**").hasRole("USER")

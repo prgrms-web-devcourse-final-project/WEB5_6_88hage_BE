@@ -9,10 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
@@ -56,23 +53,4 @@ public class ChatController {
         }
     }
 
-    @GetMapping("/groupChat")
-    public String groupChat(Authentication authentication, Model model) {
-        String userEmail = authentication.getName();
-        model.addAttribute("userEmail", userEmail);
-        return "chat/groupChat";
-    }
-
-    @GetMapping("/autoSearch")
-    public String autoSearch(Model model,String keyword) {
-        model.addAttribute("keyword", keyword);
-        return "chat/autoSearch";
-    }
-
-    @GetMapping("/personalChat")
-    public String PersonalChat(Authentication authentication, Model model) {
-        String userEmail = authentication.getName();
-        model.addAttribute("userEmail", userEmail);
-        return "chat/personalChat";
-    }
 }

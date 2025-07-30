@@ -313,8 +313,8 @@ public class ChatBotService {
         );
 
         return groupFuture.thenApply(groups -> {
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            log.info("🔴 CompletableFuture 실행 시 인증 정보: {}", auth);
+            //Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            //log.info("🔴 CompletableFuture 실행 시 인증 정보: {}", auth);
 
             if (groups == null || groups.group() == null) {
                 return RecommendGroupResponse.builder().groups(List.of()).build();
@@ -573,7 +573,7 @@ public class ChatBotService {
         return future.thenApply(ApiResponse::success);
     }
 
-    public CompletableFuture<ApiResponse<RecommendContentResponse>> chatBotRecommendContent(
+    public CompletableFuture<RecommendContentResponse> chatBotRecommendContent(
         RecommendRequest request, Authentication authentication
     ) {
         String email = authentication.getName();
@@ -600,7 +600,7 @@ public class ChatBotService {
 
         return contentFuture.thenApply(contentDto -> {
             if (contentDto == null || contentDto.event() == null) {
-                return ApiResponse.success(RecommendContentResponse.builder().contents(List.of()).build());
+                return RecommendContentResponse.builder().contents(List.of()).build();
             }
 
             List<RecommendDTO> recommendList = contentDto.event();
@@ -617,7 +617,9 @@ public class ChatBotService {
             List<ContentWithReasonDTO> recommendContents = contentService.findByIds(recommendIds);
             recommendContents.forEach(content -> content.setReason(reasonMap.get(content.getId())));
 
-            return ApiResponse.success(RecommendContentResponse.builder().contents(recommendContents).build());
+
+
+            return RecommendContentResponse.builder().contents(recommendContents).build();
         });
     }
 }
