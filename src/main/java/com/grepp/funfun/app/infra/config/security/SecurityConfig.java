@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.infra.config.security;
 
+import com.grepp.funfun.app.infra.auth.jwt.CustomAccessDeniedHandler;
 import com.grepp.funfun.app.infra.auth.oauth2.CustomOauth2UserService;
 import com.grepp.funfun.app.infra.auth.jwt.JwtAuthenticationEntryPoint;
 import com.grepp.funfun.app.infra.auth.jwt.filter.JwtAuthenticationFilter;
@@ -34,6 +35,7 @@ public class SecurityConfig {
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
     private final OAuth2FailureHandler oAuth2FailureHandler;
     private final CustomOauth2UserService customOauth2UserService;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -80,7 +82,8 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/api/contents/**").permitAll()
 
                     // 추천
-                    .requestMatchers("/api/recommend/**", "/api/chatBot/**").hasRole("USER")
+//                    .requestMatchers("/api/recommend/**", "/api/chatBot/**").hasRole("USER")
+                    .requestMatchers("/api/recommend/**", "/api/chatBot/**").permitAll()
 
                     // 캘린더
                     .requestMatchers("/api/calendars/**").hasRole("USER")
@@ -109,12 +112,18 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/api/userInfos/**").permitAll()
                     .requestMatchers(HttpMethod.PUT,"/api/userInfos").hasRole("USER")
 
+                    // 알림
+                    .requestMatchers(HttpMethod.POST, "/api/notifications").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.PUT, "/api/notifications/**").hasRole("ADMIN")
+                    .requestMatchers("/api/notifications/**").hasAnyRole("USER", "GUEST", "ADMIN")
+
 //                    .requestMatchers("/api/**").permitAll()
                     .anyRequest().authenticated()
             )
             .exceptionHandling(ex -> ex
                 .defaultAuthenticationEntryPointFor(jwtAuthenticationEntryPoint,
                     new AntPathRequestMatcher("/api/**"))
+                .accessDeniedHandler(customAccessDeniedHandler)
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(jwtExceptionFilter, JwtAuthenticationFilter.class);
