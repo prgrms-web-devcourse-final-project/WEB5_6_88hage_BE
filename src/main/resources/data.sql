@@ -532,7 +532,10 @@ VALUES
 
 -- t10
 ('FOOD', 't10@aaa.aaa', true, NOW(), NOW()),
-('CULTURE', 't10@aaa.aaa', true, NOW(), NOW());
+('CULTURE', 't10@aaa.aaa', true, NOW(), NOW()),
+
+-- admin
+('CULTURE', 'admin0@aaa.aaa', true, NOW(), NOW());
 
 -- ContentPreference 테이블 데이터 삽입
 INSERT INTO content_preference (category, user_id, activated, created_at, modified_at)
@@ -579,7 +582,10 @@ VALUES
 
 -- t10
 ('THEATER', 't10@aaa.aaa', true, NOW(), NOW()),
-('DANCE', 't10@aaa.aaa', true, NOW(), NOW());
+('DANCE', 't10@aaa.aaa', true, NOW(), NOW()),
+
+-- admin
+('DANCE', 'admin@aaa.aaa', true, NOW(), NOW());
 
 -- Follow 테이블 데이터 삽입
 INSERT INTO follow (follower_id, followee_id, activated, created_at, modified_at)

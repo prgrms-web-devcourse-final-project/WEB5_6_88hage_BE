@@ -37,10 +37,10 @@ public class AuthApiController {
         TokenDto tokenDto = authService.login(loginRequest);
         TokenCookieFactory.setAllAuthCookies(response, tokenDto);
 
-        // 취향 설정을 하지 않은 사용자
-        if (!preferenceService.hasPreferences(loginRequest.getEmail())) {
-            return ResponseEntity.ok(ApiResponse.error(ResponseCode.USER_PREFERENCE_NOT_SET));
-        }
+//        // 취향 설정을 하지 않은 사용자
+//        if (!preferenceService.hasPreferences(loginRequest.getEmail())) {
+//            return ResponseEntity.ok(ApiResponse.error(ResponseCode.USER_PREFERENCE_NOT_SET));
+//        }
 
         return ResponseEntity.ok(ApiResponse.success(TokenResponse.builder().
                                                          accessToken(tokenDto.getAccessToken())
