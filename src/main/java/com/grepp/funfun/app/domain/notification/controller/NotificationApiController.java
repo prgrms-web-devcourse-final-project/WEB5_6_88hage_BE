@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,28 +21,25 @@ public class NotificationApiController {
     private final NotificationService notificationService;
 
     @GetMapping
-    @Operation(summary = "알림 전체 목록 조회", description = "관리자용 - 전체 사용자의 모든 알림 또는 특정 사용자의 알림을 조회합니다.")
-    public ResponseEntity<ApiResponse<List<NotificationDTO>>> getNotifications(
-            @RequestParam(required = false) String email) {
-
-        List<NotificationDTO> result = (email != null)
-                ? notificationService.findByEmail(email)
-                : notificationService.findAll();
-
+    @Operation(summary = "내 알림 목록 조회", description = "로그인한 사용자의 알림을 모두 조회합니다.")
+    public ResponseEntity<ApiResponse<List<NotificationDTO>>> getMyNotifications(Authentication authentication) {
+        String email = authentication.getName();
+        List<NotificationDTO> result = notificationService.findByEmail(email);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 
     @GetMapping("/recent")
-    @Operation(summary = "최근 알림 조회", description = "사용자의 최근 알림 10개를 조회합니다.")
-    public ResponseEntity<ApiResponse<List<NotificationDTO>>> getRecentNotifications(
-            @RequestParam String email) {
+    @Operation(summary = "최근 알림 조회", description = "로그인한 사용자의 최근 알림 10개를 조회합니다.")
+    public ResponseEntity<ApiResponse<List<NotificationDTO>>> getRecentNotifications(Authentication authentication) {
+        String email = authentication.getName();
         List<NotificationDTO> result = notificationService.findRecentByEmail(email);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 
     @GetMapping("/unread")
-    @Operation(summary = "안읽은 알림 조회", description = "사용자가 읽지 않은 (클릭하지 않은) 알림을 조회합니다.")
-    public ResponseEntity<ApiResponse<List<NotificationDTO>>> getUnreadNotifications(@RequestParam String email) {
+    @Operation(summary = "안읽은 알림 조회", description = "로그인한 사용자의 읽지 않은 알림을 조회합니다.")
+    public ResponseEntity<ApiResponse<List<NotificationDTO>>> getUnreadNotifications(Authentication authentication) {
+        String email = authentication.getName();
         List<NotificationDTO> result = notificationService.findUnreadByEmail(email);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
@@ -63,32 +61,34 @@ public class NotificationApiController {
     }
 
     // 안읽은 알림 수 조회
-    @Operation(summary = "안읽은 알림 수 조회", description = "해당 사용자의 읽지 않은 알림 수를 반환합니다.")
     @GetMapping("/unread-count")
-    public ResponseEntity<ApiResponse<Integer>> getUnreadCount(@RequestParam String email) {
+    @Operation(summary = "안읽은 알림 수 조회", description = "로그인한 사용자의 읽지 않은 알림 수를 조회합니다.")
+    public ResponseEntity<ApiResponse<Integer>> getUnreadCount(Authentication authentication) {
+        String email = authentication.getName();
         int count = notificationService.countUnread(email);
         return ResponseEntity.ok(ApiResponse.success(count));
     }
 
     // 개별 알림 읽음 처리
-    @Operation(summary = "개별 알림 읽음 처리", description = "클릭하여 조회한 알림을 읽음 처리합니다.")
     @PatchMapping("/{id}/read")
+    @Operation(summary = "개별 알림 읽음 처리", description = "클릭하여 조회한 알림을 읽음 처리합니다.")
     public ResponseEntity<ApiResponse<Void>> markAsRead(@PathVariable Long id) {
         notificationService.markAsRead(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
-    // 전체 알림 읽음 처리
-    @Operation(summary = "전체 알림 읽음 처리", description = "사용자의 모든 알림을 읽음 처리합니다.")
     @PatchMapping("/read-all")
-    public ResponseEntity<ApiResponse<Void>> markAllAsRead(@RequestParam String email) {
+    @Operation(summary = "전체 알림 읽음 처리", description = "로그인한 사용자의 모든 알림을 읽음 처리합니다.")
+    public ResponseEntity<ApiResponse<Void>> markAllAsRead(Authentication authentication) {
+        String email = authentication.getName();
         notificationService.markAllAsRead(email);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @GetMapping("/read")
-    @Operation(summary = "읽은 알림 조회", description = "사용자가 이미 읽은 알림을 조회합니다.")
-    public ResponseEntity<ApiResponse<List<NotificationDTO>>> getReadNotifications(@RequestParam String email) {
+    @Operation(summary = "읽은 알림 조회", description = "로그인한 사용자의 읽은 알림을 조회합니다.")
+    public ResponseEntity<ApiResponse<List<NotificationDTO>>> getReadNotifications(Authentication authentication) {
+        String email = authentication.getName();
         List<NotificationDTO> result = notificationService.findReadByEmail(email);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
