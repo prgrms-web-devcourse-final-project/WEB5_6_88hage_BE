@@ -1,5 +1,6 @@
 package com.grepp.funfun.app.domain.notification.mapper;
 
+import com.grepp.funfun.app.domain.notification.dto.GroupJoinNotificationDTO;
 import com.grepp.funfun.app.domain.notification.dto.NotificationDTO;
 import com.grepp.funfun.app.domain.notification.entity.Notification;
 import com.grepp.funfun.app.domain.notification.vo.NotificationType;
@@ -32,7 +33,9 @@ public class NotificationDTOMapper {
                 .scheduledAt(dto.getScheduledAt())
                 .sentAt(dto.getSentAt())
                 .calendarId(dto.getCalendarId())
+                .applicantEmail(dto instanceof GroupJoinNotificationDTO
+                        ? ((GroupJoinNotificationDTO) dto).getApplicantEmail()
+                        : null)
                 .build();
     }
-
 }
