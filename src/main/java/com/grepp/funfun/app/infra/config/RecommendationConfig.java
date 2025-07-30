@@ -2,15 +2,12 @@ package com.grepp.funfun.app.infra.config;
 
 import com.mongodb.client.MongoClient;
 import dev.langchain4j.data.segment.TextSegment;
-import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.embedding.onnx.allminilml6v2.AllMiniLmL6V2EmbeddingModel;
-import dev.langchain4j.model.googleai.GoogleAiGeminiChatModel;
 import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.mongodb.IndexMapping;
 import dev.langchain4j.store.embedding.mongodb.MongoDbEmbeddingStore;
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -34,14 +31,9 @@ public class RecommendationConfig {
 
         Boolean createIndex = true;
 
-        // 메타데이터 필드 이름 설정
-        Set<String> metadataFields = Set.of(
-            "contentTitle", "address", "category", "startDate", "endDate"
-        );
-
         IndexMapping indexMapping = IndexMapping.builder()
                                                 .dimension(embeddingModel.dimension())
-                                                .metadataFieldNames(metadataFields)
+                                                .metadataFieldNames(new HashSet<>())
                                                 .build();
 
         // 벡터 기반 RAG/추천 시스템이 동작할 수 있게 builder 패턴으로 생성
@@ -64,7 +56,7 @@ public class RecommendationConfig {
         return EmbeddingStoreContentRetriever.builder()
                                              .embeddingStore(embeddingStore)
                                              .embeddingModel(embeddingModel)
-                                             .maxResults(100)
+                                             .maxResults(12)
                                              .minScore(0.7)
                                              .build();
     }
@@ -74,6 +66,7 @@ public class RecommendationConfig {
         MongoClient mongoClient) {
 
         Boolean createIndex = true;
+
         IndexMapping indexMapping = IndexMapping.builder()
                                                 .dimension(embeddingModel.dimension())
                                                 .metadataFieldNames(new HashSet<>())

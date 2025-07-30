@@ -392,4 +392,10 @@ public class UserService {
     public List<String> getAllUserEmails() {
         return userRepository.findAllEmails();
     }
+
+    public String getUserAddress(String email) {
+        User user = userRepository.findByEmail(email);
+        String address = user.getAddress();
+        return address;
+    }
 }

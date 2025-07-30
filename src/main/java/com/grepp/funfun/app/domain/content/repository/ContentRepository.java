@@ -11,7 +11,4 @@ import java.util.Optional;
 public interface ContentRepository extends JpaRepository<Content, Long>, ContentRepositoryCustom {
 
     Optional<Content> findByExternalId(String externalId);
-
-    @Query("SELECT c from Content c JOIN fetch c.category")
-    List<Content> findAllWithCategory();
 }
