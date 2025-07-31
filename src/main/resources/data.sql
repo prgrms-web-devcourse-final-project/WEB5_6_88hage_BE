@@ -638,49 +638,49 @@ VALUES
 
 -- t1@aaa.aaa 리더 모임들 (5개)
 ('반려견과 함께하는 산책', '우리 강아지들과 함께 한강공원을 산책하는 모임', '강아지 산책 모임', '뚝섬한강공원', '서울특별시 광진구 자양동 704-1',
- '2025-08-01 10:00:00', 8, 3, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/b601dc0c-f5ff-4a67-9449-83e8037c0d44.jpg', 'RECRUITING', 37.5313, 127.0691, 156,
+ '2025-08-01 10:00:00', 8, 3, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/testgroup/%EB%AA%A8%EC%9E%84%EC%82%AC%EC%A7%84/%EB%AA%A8%EC%9E%841+%EB%B0%98%EB%A0%A4%EA%B2%AC+%ED%95%A8%EA%BB%98+%EC%82%B0%EC%B1%85.jpg', 'RECRUITING', 37.5313, 127.0691, 156,
  2, 'SPORT', 't1@aaa.aaa', true, NOW(), NOW()),
 
 ('토익 스터디 모임', '토익 900점을 목표로 하는 집중 스터디', '토익 고득점 스터디', '강남 스터디카페', '서울특별시 강남구 테헤란로 152',
- '2025-08-01 19:00:00', 6, 4, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/403c9792-44e7-4ace-bec8-d013d259e1e8.jpg', 'RECRUITING', 37.5009, 127.0364, 234,
+ '2025-08-01 19:00:00', 6, 4, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/testgroup/%EB%AA%A8%EC%9E%84%EC%82%AC%EC%A7%84/%EB%AA%A8%EC%9E%842+%ED%86%A0%EC%9D%B5+%EC%8A%A4%ED%84%B0%EB%94%94.png', 'RECRUITING', 37.5009, 127.0364, 234,
  4, 'STUDY', 't1@aaa.aaa', true, NOW(), NOW()),
 
 ('한강 야경 사진 촬영', '한강에서 아름다운 야경을 촬영하는 사진 모임', '한강 야경 촬영', '반포한강공원', '서울특별시 서초구 신반포로 11',
- '2025-08-02 20:00:00', 7, 4, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/545a059d-52cc-406b-b73e-e20258fe9ae8.jpg', 'RECRUITING', 37.5184, 126.9961, 189,
+ '2025-08-02 20:00:00', 7, 4, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/testgroup/%EB%AA%A8%EC%9E%84%EC%82%AC%EC%A7%84/%EB%AA%A8%EC%9E%843+%ED%95%9C%EA%B0%95+%EC%95%BC%EA%B2%BD+%EC%82%AC%EC%A7%84.jpg', 'RECRUITING', 37.5184, 126.9961, 189,
  3, 'ART', 't1@aaa.aaa', true, NOW(), NOW()),
 
 ('K-POP 댄스 커버', 'IU 노래에 맞춰 댄스를 배우는 모임', 'IU 댄스 커버', '홍대 댄스학원', '서울특별시 마포구 홍익로 39',
- '2025-08-03 14:00:00', 10, 6, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/15865a19-28a2-42df-ad5e-d8e0d7a8c989.jpg', 'RECRUITING', 37.5518, 126.9219, 342,
+ '2025-08-03 14:00:00', 10, 6, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/testgroup/%EB%AA%A8%EC%9E%84%EC%82%AC%EC%A7%84/%EB%AA%A8%EC%9E%844+K-pop+%EB%8C%84%EC%8A%A4.jpg', 'RECRUITING', 37.5518, 126.9219, 342,
  2, 'CULTURE', 't1@aaa.aaa', true, NOW(), NOW()),
 
 ('애니메이션 OST 감상', '지브리 애니메이션 OST를 감상하며 힐링하는 모임', '지브리 OST 감상', '강남 카페', '서울특별시 강남구 강남대로 396',
- '2025-08-04 16:00:00', 6, 3, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/13ea3ae3-32ba-4979-b47c-085704a5ca99.jpg', 'RECRUITING', 37.4979, 127.0276, 125,
+ '2025-08-04 16:00:00', 6, 3, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/testgroup/%EB%AA%A8%EC%9E%84%EC%82%AC%EC%A7%84/%EB%AA%A8%EC%9E%845+%EC%95%A0%EB%8B%88%EB%A9%94%EC%9D%B4%EC%85%98.jpg', 'RECRUITING', 37.4979, 127.0276, 125,
  2, 'CULTURE', 't1@aaa.aaa', true, NOW(), NOW()),
 
 -- t2@aaa.aaa 리더 모임들 (5개)
 ('제주도 여행 계획', '제주도 여행을 함께 계획하고 준비하는 모임', '제주도 여행 기획', '홍대 카페', '서울특별시 마포구 와우산로 21',
- '2025-08-01 13:00:00', 8, 5, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/2ee6f2f4-58c1-4997-95f2-1d35050fffa0.jpg', 'RECRUITING', 37.5563, 126.9223, 287,
+ '2025-08-01 13:00:00', 8, 5, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/testgroup/%EB%AA%A8%EC%9E%84%EC%82%AC%EC%A7%84/%EB%AA%A8%EC%9E%846.jpg', 'RECRUITING', 37.5563, 126.9223, 287,
  3, 'TRAVEL', 't2@aaa.aaa', true, NOW(), NOW()),
 
 ('이탈리안 요리 클래스', '파스타와 피자를 직접 만들어보는 요리 모임', '이탈리안 요리 배우기', '이태원 요리학원', '서울특별시 용산구 이태원로 200',
- '2025-08-02 15:00:00', 8, 6, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/5922189d-80d8-4464-8df8-02d738a95068.jpg', 'RECRUITING', 37.5347, 126.9947, 198,
+ '2025-08-02 15:00:00', 8, 6, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/testgroup/%EB%AA%A8%EC%9E%84%EC%82%AC%EC%A7%84/%EB%AA%A8%EC%9E%847.jpg', 'RECRUITING', 37.5347, 126.9947, 198,
  3, 'FOOD', 't2@aaa.aaa', true, NOW(), NOW()),
 
 ('스타트업 네트워킹', '스타트업 창업자들의 네트워킹 모임', '창업자 모임', '강남 코워킹스페이스', '서울특별시 강남구 테헤란로 427',
- '2025-08-03 18:00:00', 10, 8, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/eb2aa600-fb65-44e0-a24c-3c00ef1933bf.png', 'RECRUITING', 37.5058, 127.0583, 156,
+ '2025-08-03 18:00:00', 10, 8, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/testgroup/%EB%AA%A8%EC%9E%84%EC%82%AC%EC%A7%84/%EB%AA%A8%EC%9E%848+%EB%84%A4%ED%8A%B8%EC%9B%8C%ED%82%B9.jpg', 'RECRUITING', 37.5058, 127.0583, 156,
  2, 'STUDY', 't2@aaa.aaa', true, NOW(), NOW()),
 
 ('무한도전 패러디', '무한도전을 패러디한 재미있는 게임 모임', '무한도전 게임', '홍대 파티룸', '서울특별시 마포구 어울마당로 35',
- '2025-08-04 21:00:00', 10, 7, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/86f573ae-c2e8-4d23-a9d1-e61475260bc9.jpg', 'RECRUITING', 37.5540, 126.9226, 234,
+ '2025-08-04 21:00:00', 10, 7, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/testgroup/%EB%AA%A8%EC%9E%84%EC%82%AC%EC%A7%84/%EB%AA%A8%EC%9E%849+%EB%AC%B4%ED%95%9C%EB%8F%84%EC%A0%84.jpg', 'RECRUITING', 37.5540, 126.9226, 234,
  4, 'GAME', 't2@aaa.aaa', true, NOW(), NOW()),
 
 ('힐링 요가 클래스', '스트레스 해소를 위한 요가 모임', '요가로 힐링하기', '강남 요가원', '서울특별시 강남구 논현로 132',
- '2025-08-05 11:00:00', 8, 4, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/1e635404-c9e6-4ddb-a369-a1184f41aefc.jpg', 'RECRUITING', 37.5106, 127.0277, 89,
+ '2025-08-05 11:00:00', 8, 4, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/testgroup/%EB%AA%A8%EC%9E%84%EC%82%AC%EC%A7%84/%EC%8A%A4%ED%8A%B8%EB%A0%88%EC%8A%A4.jpg', 'RECRUITING', 37.5106, 127.0277, 89,
  2, 'SPORT', 't2@aaa.aaa', true, NOW(), NOW()),
 
 -- t3@aaa.aaa 리더 모임들 (5개)
 ('강아지 카페 투어', '강아지와 함께 갈 수 있는 카페 투어', '강아지 카페 탐방', '성수동 강아지카페', '서울특별시 성동구 성수일로 77',
- '2025-08-01 14:00:00', 6, 3, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/groups/b601dc0c-f5ff-4a67-9449-83e8037c0d44.jpg', 'RECRUITING', 37.5446, 127.0557, 167,
+ '2025-08-01 14:00:00', 6, 3, 'https://team08-funfun.s3.ap-northeast-2.amazonaws.com/testgroup/%EB%AA%A8%EC%9E%84%EC%82%AC%EC%A7%84/%ED%8E%AB+%EC%B9%B4%ED%8E%98.jpg', 'RECRUITING', 37.5446, 127.0557, 167,
  3, 'TRAVEL', 't3@aaa.aaa', true, NOW(), NOW()),
 
 ('코딩 테스트 스터디', '알고리즘 문제를 함께 풀어보는 스터디', '코딩테스트 준비', '역삼 스터디카페', '서울특별시 강남구 테헤란로 142',

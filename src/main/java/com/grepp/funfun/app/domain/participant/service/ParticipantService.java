@@ -30,7 +30,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -83,12 +82,6 @@ public class ParticipantService {
                 }
             }
         }
-
-        // todo : 프론트 확인 필요
-//        // 모임 시간 체크
-//        if(group.getGroupDate().isBefore(LocalDateTime.now())){
-//            throw new CommonException(ResponseCode.BAD_REQUEST);
-//        }
 
         // 참여자 생성
         Participant participant = Participant.builder()

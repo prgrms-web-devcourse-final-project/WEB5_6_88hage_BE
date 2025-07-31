@@ -1,4 +1,4 @@
-package com.grepp.funfun.app.delete.controller.web;
+package com.grepp.funfun.app.domain;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
