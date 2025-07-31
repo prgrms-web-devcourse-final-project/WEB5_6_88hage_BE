@@ -1,8 +1,8 @@
 package com.grepp.funfun.app.domain.user.service;
 
+import com.grepp.funfun.app.domain.gcs.service.GCSFileService;
 import com.grepp.funfun.app.domain.preference.dto.payload.PreferenceResponse;
 import com.grepp.funfun.app.domain.preference.service.PreferenceService;
-import com.grepp.funfun.app.domain.s3.service.S3FileService;
 import com.grepp.funfun.app.domain.social.service.FollowService;
 import com.grepp.funfun.app.domain.user.dto.payload.ProfileRequest;
 import com.grepp.funfun.app.domain.user.dto.payload.UserDetailResponse;
@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserInfoService {
 
     private final UserRepository userRepository;
-    private final S3FileService s3FileService;
+    private final GCSFileService gcsFileService;
     private final FollowService followService;
     private final PreferenceService preferenceService;
 
@@ -44,7 +44,7 @@ public class UserInfoService {
         if (request.isImageChanged()) {
             if (request.getImage() != null && !request.getImage().isEmpty()) {
                 // 새 이미지 업로드
-                String newImageUrl = s3FileService.upload(request.getImage(), "user");
+                String newImageUrl = gcsFileService.upload(request.getImage(), "user");
                 userInfo.updateImage(newImageUrl);
             } else {
                 userInfo.removeImage();

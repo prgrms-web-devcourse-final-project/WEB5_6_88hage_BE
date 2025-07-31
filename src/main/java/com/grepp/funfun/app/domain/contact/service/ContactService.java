@@ -7,7 +7,7 @@ import com.grepp.funfun.app.domain.contact.entity.Contact;
 import com.grepp.funfun.app.domain.contact.entity.ContactImage;
 import com.grepp.funfun.app.domain.contact.repository.ContactRepository;
 import com.grepp.funfun.app.domain.contact.vo.ContactStatus;
-import com.grepp.funfun.app.domain.s3.service.S3FileService;
+import com.grepp.funfun.app.domain.gcs.service.GCSFileService;
 import com.grepp.funfun.app.domain.user.entity.User;
 import com.grepp.funfun.app.domain.user.repository.UserRepository;
 import com.grepp.funfun.app.infra.error.exceptions.CommonException;
@@ -27,7 +27,7 @@ public class ContactService {
 
     private final ContactRepository contactRepository;
     private final UserRepository userRepository;
-    private final S3FileService s3FileService;
+    private final GCSFileService gcsFileService;
 
     private User getUser(String email) {
         return userRepository.findById(email)
@@ -52,7 +52,7 @@ public class ContactService {
             .build();
 
         // 이미지 저장
-        List<String> imageUrls = s3FileService.upload(request.getImages(), "contact");
+        List<String> imageUrls = gcsFileService.upload(request.getImages(), "contact");
         for (String url : imageUrls) {
             contact.getImages().add(ContactImage.builder()
                 .imageUrl(url)
@@ -82,7 +82,7 @@ public class ContactService {
             contact.getImages().clear();
 
             // 새 이미지 등록
-            List<String> imageUrls = s3FileService.upload(request.getImages(), "contact");
+            List<String> imageUrls = gcsFileService.upload(request.getImages(), "contact");
             for (String url : imageUrls) {
                 contact.getImages().add(ContactImage.builder()
                     .imageUrl(url)

@@ -5,6 +5,7 @@ import com.grepp.funfun.app.domain.calendar.service.CalendarService;
 import com.grepp.funfun.app.domain.chat.entity.GroupChatRoom;
 import com.grepp.funfun.app.domain.chat.repository.GroupChatRoomRepository;
 import com.grepp.funfun.app.domain.chat.vo.ChatRoomType;
+import com.grepp.funfun.app.domain.gcs.service.GCSFileService;
 import com.grepp.funfun.app.domain.group.dto.GroupHashtagDTO;
 import com.grepp.funfun.app.domain.group.dto.GroupParticipantDTO;
 import com.grepp.funfun.app.domain.group.dto.GroupWithReasonDTO;
@@ -25,7 +26,6 @@ import com.grepp.funfun.app.domain.participant.repository.ParticipantRepository;
 import com.grepp.funfun.app.domain.participant.vo.ParticipantRole;
 import com.grepp.funfun.app.domain.participant.vo.ParticipantStatus;
 import com.grepp.funfun.app.domain.preference.entity.GroupPreference;
-import com.grepp.funfun.app.domain.s3.service.S3FileService;
 import com.grepp.funfun.app.domain.user.entity.User;
 import com.grepp.funfun.app.domain.user.repository.UserRepository;
 import com.grepp.funfun.app.domain.user.vo.UserStatus;
@@ -59,7 +59,7 @@ public class GroupService {
     private final GroupHashtagRepository groupHashtagRepository;
     private final CalendarService calendarService;
     private final RedisTemplate<String, String> redisTemplate;
-    private final S3FileService s3FileService;
+    private final GCSFileService gcsFileService;
     private final NotificationService notificationService;
 
     // 모든 모임 조회
@@ -158,7 +158,7 @@ public class GroupService {
         // S3에 이미지 업로드
         String imageUrl = null;
         if (request.getImage() != null && !request.getImage().isEmpty()) {
-            imageUrl = s3FileService.upload(request.getImage(), "groups");
+            imageUrl = gcsFileService.upload(request.getImage(), "groups");
         }
 
         Group savedGroup = groupRepository.save(request.mapToCreate(leader, imageUrl));
@@ -205,9 +205,9 @@ public class GroupService {
         if (updateRequest.getImage() != null && !updateRequest.getImage().isEmpty()) {
 
             if (group.getImageUrl() != null) {
-                s3FileService.delete(group.getImageUrl());
+                gcsFileService.delete(group.getImageUrl());
             }
-            newImageUrl = s3FileService.upload(updateRequest.getImage(), "groups");
+            newImageUrl = gcsFileService.upload(updateRequest.getImage(), "groups");
         }
 
         // 모임 변경 사항 저장
