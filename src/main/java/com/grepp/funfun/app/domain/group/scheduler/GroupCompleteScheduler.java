@@ -21,9 +21,7 @@ public class GroupCompleteScheduler {
 
     private final GroupRepository groupRepository;
 
-    //todo 스케줄러 시간을 어찌할까
     @Scheduled(cron = "0 0 0 * * *")
-//    @Scheduled(fixedRate = 60000)
     @Transactional
     public void groupComplete(){
         List<Group> groups = groupRepository.findByStatusIn(
