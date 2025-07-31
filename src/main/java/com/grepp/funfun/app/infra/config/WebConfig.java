@@ -16,7 +16,7 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addMapping("/**")
             .allowedOrigins("http://localhost:3000","https://funfun.cloud","https://localhost:3000"
             ,"http://localhost:3001","https://localhost:3001", "https://web-4-5-88hage-fe.vercel.app"
-            , "https://funfunhage.vercel.app")
+            , "https://funfunhage.vercel.app", frontServer)
             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS","PATCH")
             .allowedHeaders("*")
             .allowCredentials(true)
