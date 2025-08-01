@@ -13,8 +13,10 @@ public class TokenCookieFactory {
             .maxAge(expires + 300) // Refresh 토큰 만료기간 보다 5분 길게
             .path("/")
             .httpOnly(false)
-            .secure(true)
-            .sameSite("None") // Secure
+//            .secure(true) // https
+//            .sameSite("None")
+            .secure(false)  // http
+            .sameSite("Lax")
             .build();
     }
 
@@ -23,8 +25,10 @@ public class TokenCookieFactory {
             .maxAge(0)
             .path("/")
             .httpOnly(false)
-            .secure(true)
-            .sameSite("None") // Secure
+//            .secure(true) // https
+//            .sameSite("None")
+            .secure(false)  // http
+            .sameSite("Lax")
             .build();
     }
 
