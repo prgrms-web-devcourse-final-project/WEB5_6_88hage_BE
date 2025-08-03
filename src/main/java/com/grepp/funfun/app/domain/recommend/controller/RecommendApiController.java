@@ -1,17 +1,11 @@
 package com.grepp.funfun.app.domain.recommend.controller;
 
-import com.grepp.funfun.app.domain.content.service.ContentService;
-import com.grepp.funfun.app.domain.group.service.GroupService;
 import com.grepp.funfun.app.domain.recommend.dto.payload.ChatBotRequest;
 import com.grepp.funfun.app.domain.recommend.dto.payload.RecommendContentResponse;
 import com.grepp.funfun.app.domain.recommend.dto.payload.RecommendGroupResponse;
 import com.grepp.funfun.app.domain.recommend.dto.payload.RecommendRequest;
 import com.grepp.funfun.app.domain.recommend.dto.payload.RecommendTwoListResponse;
-import com.grepp.funfun.app.domain.recommend.service.AiRequestQueue;
-import com.grepp.funfun.app.domain.recommend.service.ChatBotAiService;
 import com.grepp.funfun.app.domain.recommend.service.ChatBotService;
-import com.grepp.funfun.app.domain.recommend.service.DynamicService;
-import com.grepp.funfun.app.domain.user.service.UserService;
 import com.grepp.funfun.app.infra.response.ApiResponse;
 import com.grepp.funfun.app.infra.response.ResponseCode;
 import dev.langchain4j.service.output.OutputParsingException;
@@ -20,10 +14,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

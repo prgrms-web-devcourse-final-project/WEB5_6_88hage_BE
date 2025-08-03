@@ -200,56 +200,56 @@ public class ChatBotService {
                                              .build();
     }
 
-    public List<ChatBotDTO> findAll() {
-        final List<ChatBot> chatBots = chatBotRepository.findAll(Sort.by("id"));
-        return chatBots.stream()
-                       .map(chatBot -> mapToDTO(chatBot, new ChatBotDTO()))
-                       .toList();
-    }
-
-    public ChatBotDTO get(final Long id) {
-        return chatBotRepository.findById(id)
-                                .map(chatBot -> mapToDTO(chatBot, new ChatBotDTO()))
-                                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-    }
-
-    public Long create(final ChatBotDTO chatBotDTO) {
-        final ChatBot chatBot = new ChatBot();
-        mapToEntity(chatBotDTO, chatBot);
-        return chatBotRepository.save(chatBot)
-                                .getId();
-    }
-
-    public void update(final Long id, final ChatBotDTO chatBotDTO) {
-        final ChatBot chatBot = chatBotRepository.findById(id)
-                                                 .orElseThrow(() -> new CommonException(
-                                                     ResponseCode.NOT_FOUND));
-        mapToEntity(chatBotDTO, chatBot);
-        chatBotRepository.save(chatBot);
-    }
-
-    public void delete(final Long id) {
-        chatBotRepository.deleteById(id);
-    }
-
-    private ChatBotDTO mapToDTO(final ChatBot chatBot, final ChatBotDTO chatBotDTO) {
-        chatBotDTO.setId(chatBot.getId());
-        chatBotDTO.setEmail(chatBot.getEmail());
-        chatBotDTO.setGroupSummary(chatBot.getGroupSummary());
-        chatBotDTO.setContentSummary(chatBot.getContentSummary());
-        chatBotDTO.setType(chatBot.getType());
-        return chatBotDTO;
-    }
-
-    private ChatBot mapToEntity(final ChatBotDTO chatBotDTO, final ChatBot chatBot) {
-        chatBot.builder()
-               .email(chatBotDTO.getEmail())
-               .contentSummary(chatBotDTO.getContentSummary())
-               .groupSummary(chatBotDTO.getGroupSummary())
-               .type(chatBotDTO.getType())
-               .build();
-        return chatBot;
-    }
+//    public List<ChatBotDTO> findAll() {
+//        final List<ChatBot> chatBots = chatBotRepository.findAll(Sort.by("id"));
+//        return chatBots.stream()
+//                       .map(chatBot -> mapToDTO(chatBot, new ChatBotDTO()))
+//                       .toList();
+//    }
+//
+//    public ChatBotDTO get(final Long id) {
+//        return chatBotRepository.findById(id)
+//                                .map(chatBot -> mapToDTO(chatBot, new ChatBotDTO()))
+//                                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
+//    }
+//
+//    public Long create(final ChatBotDTO chatBotDTO) {
+//        final ChatBot chatBot = new ChatBot();
+//        mapToEntity(chatBotDTO, chatBot);
+//        return chatBotRepository.save(chatBot)
+//                                .getId();
+//    }
+//
+//    public void update(final Long id, final ChatBotDTO chatBotDTO) {
+//        final ChatBot chatBot = chatBotRepository.findById(id)
+//                                                 .orElseThrow(() -> new CommonException(
+//                                                     ResponseCode.NOT_FOUND));
+//        mapToEntity(chatBotDTO, chatBot);
+//        chatBotRepository.save(chatBot);
+//    }
+//
+//    public void delete(final Long id) {
+//        chatBotRepository.deleteById(id);
+//    }
+//
+//    private ChatBotDTO mapToDTO(final ChatBot chatBot, final ChatBotDTO chatBotDTO) {
+//        chatBotDTO.setId(chatBot.getId());
+//        chatBotDTO.setEmail(chatBot.getEmail());
+//        chatBotDTO.setGroupSummary(chatBot.getGroupSummary());
+//        chatBotDTO.setContentSummary(chatBot.getContentSummary());
+//        chatBotDTO.setType(chatBot.getType());
+//        return chatBotDTO;
+//    }
+//
+//    private ChatBot mapToEntity(final ChatBotDTO chatBotDTO, final ChatBot chatBot) {
+//        chatBot.builder()
+//               .email(chatBotDTO.getEmail())
+//               .contentSummary(chatBotDTO.getContentSummary())
+//               .groupSummary(chatBotDTO.getGroupSummary())
+//               .type(chatBotDTO.getType())
+//               .build();
+//        return chatBot;
+//    }
 
 
     public String getPrompt(String summary, String agePrompt, String address) {
@@ -313,9 +313,6 @@ public class ChatBotService {
         );
 
         return groupFuture.thenApply(groups -> {
-            //Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            //log.info("🔴 CompletableFuture 실행 시 인증 정보: {}", auth);
-
             if (groups == null || groups.group() == null) {
                 return RecommendGroupResponse.builder().groups(List.of()).build();
             }
@@ -328,12 +325,6 @@ public class ChatBotService {
                                                    .map(RecommendDTO::id)
                                                    .filter(Objects::nonNull)
                                                    .toList();
-
-            log.info("모임 추천 결과 ==================");
-            for (RecommendDTO dto : recommendList) {
-                log.info("id: {}", dto.id());
-                log.info("추천이유 : {}", dto.reason());
-            }
 
             List<GroupWithReasonDTO> recommendGroups = groupService.findByIds(recommendIds);
             recommendGroups.forEach(content ->
@@ -358,7 +349,6 @@ public class ChatBotService {
             + " 내가 선호하는 활동을 고려해서 장소에 맞게 활동들을 추천해줘";
 
         String promptForPlace = userAddress + " 근처에서 할만한 활동을 추천해줘";
-
         log.info("행사 프롬프트: {}", promptForEvent);
 
         CompletableFuture<RecommendContentDTO> contentFuture = new CompletableFuture<>();
