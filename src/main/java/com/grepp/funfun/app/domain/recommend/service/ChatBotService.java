@@ -8,7 +8,6 @@ import com.grepp.funfun.app.domain.group.document.GroupEmbedding;
 import com.grepp.funfun.app.domain.group.dto.GroupWithReasonDTO;
 import com.grepp.funfun.app.domain.group.service.GroupService;
 import com.grepp.funfun.app.domain.group.vo.GroupClassification;
-import com.grepp.funfun.app.domain.recommend.dto.ChatBotDTO;
 import com.grepp.funfun.app.domain.recommend.dto.RecommendContentDTO;
 import com.grepp.funfun.app.domain.recommend.dto.RecommendDTO;
 import com.grepp.funfun.app.domain.recommend.dto.RecommendGroupDTO;
@@ -24,16 +23,12 @@ import com.grepp.funfun.app.domain.recommend.repository.ChatBotRepository;
 import com.grepp.funfun.app.domain.recommend.repository.ContentEmbeddingRepository;
 import com.grepp.funfun.app.domain.recommend.repository.GroupEmbeddingRepository;
 import com.grepp.funfun.app.domain.user.service.UserService;
-import com.grepp.funfun.app.infra.error.exceptions.CommonException;
 import com.grepp.funfun.app.infra.response.ApiResponse;
-import com.grepp.funfun.app.infra.response.ResponseCode;
 import dev.langchain4j.data.embedding.Embedding;
-
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
-import jakarta.validation.Valid;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -42,14 +37,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Sort;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -199,58 +190,6 @@ public class ChatBotService {
                                              .minScore(0.6)
                                              .build();
     }
-
-//    public List<ChatBotDTO> findAll() {
-//        final List<ChatBot> chatBots = chatBotRepository.findAll(Sort.by("id"));
-//        return chatBots.stream()
-//                       .map(chatBot -> mapToDTO(chatBot, new ChatBotDTO()))
-//                       .toList();
-//    }
-//
-//    public ChatBotDTO get(final Long id) {
-//        return chatBotRepository.findById(id)
-//                                .map(chatBot -> mapToDTO(chatBot, new ChatBotDTO()))
-//                                .orElseThrow(() -> new CommonException(ResponseCode.NOT_FOUND));
-//    }
-//
-//    public Long create(final ChatBotDTO chatBotDTO) {
-//        final ChatBot chatBot = new ChatBot();
-//        mapToEntity(chatBotDTO, chatBot);
-//        return chatBotRepository.save(chatBot)
-//                                .getId();
-//    }
-//
-//    public void update(final Long id, final ChatBotDTO chatBotDTO) {
-//        final ChatBot chatBot = chatBotRepository.findById(id)
-//                                                 .orElseThrow(() -> new CommonException(
-//                                                     ResponseCode.NOT_FOUND));
-//        mapToEntity(chatBotDTO, chatBot);
-//        chatBotRepository.save(chatBot);
-//    }
-//
-//    public void delete(final Long id) {
-//        chatBotRepository.deleteById(id);
-//    }
-//
-//    private ChatBotDTO mapToDTO(final ChatBot chatBot, final ChatBotDTO chatBotDTO) {
-//        chatBotDTO.setId(chatBot.getId());
-//        chatBotDTO.setEmail(chatBot.getEmail());
-//        chatBotDTO.setGroupSummary(chatBot.getGroupSummary());
-//        chatBotDTO.setContentSummary(chatBot.getContentSummary());
-//        chatBotDTO.setType(chatBot.getType());
-//        return chatBotDTO;
-//    }
-//
-//    private ChatBot mapToEntity(final ChatBotDTO chatBotDTO, final ChatBot chatBot) {
-//        chatBot.builder()
-//               .email(chatBotDTO.getEmail())
-//               .contentSummary(chatBotDTO.getContentSummary())
-//               .groupSummary(chatBotDTO.getGroupSummary())
-//               .type(chatBotDTO.getType())
-//               .build();
-//        return chatBot;
-//    }
-
 
     public String getPrompt(String summary, String agePrompt, String address) {
         String prompt = agePrompt + "나는 지금 " + address + "에 있어 ";
