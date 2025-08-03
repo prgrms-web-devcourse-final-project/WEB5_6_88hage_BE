@@ -5,6 +5,14 @@
 > **주제**: 여가시간 활동 추천 서비스
 
 ---
+### 👨‍🎓 팀원 소개
+| 박병석 | 김윤서 | 손혜은 | 정기문 | 전정원 |
+|:------:|:------:|:------:|:------:|:------:|
+| <img height="150" style="width: auto;" alt="박병석" src="https://avatars.githubusercontent.com/u/147399765?v=4" /> | <img src="https://avatars.githubusercontent.com/u/145417394?v=4" height="150" style="width: auto;"> | <img src="https://avatars.githubusercontent.com/u/97518677?v=4" height="150" style="width: auto;"> | <img alt="정기문" src="https://avatars.githubusercontent.com/u/131163024?v=4" height="150" style="width: auto;" /> | <img height="150" style="width: auto;" alt="전정원" src="https://avatars.githubusercontent.com/u/120391720?v=4" /> |
+| **팀장** | **팀원** | **팀원** | **팀원** | **팀원** |
+| [@Parkbyungseok](https://github.com/Parkbyungseok) | [@yunseoy](https://github.com/yunseoy) | [@hesador12](https://github.com/hesador12) | [@Irreplaceable-j](https://github.com/Irreplaceable-j) | [@JeonJW24](https://github.com/JeonJW24) |
+---
+
 
 ### 📝 주제 선정 이유
 - 여가 시간이 생겼을 때, 의미 있게 활용할 수 있도록 도와주는 AI 추천 서비스의 필요성을 느꼈습니다.
@@ -85,3 +93,18 @@
    - 네이버, 구글 소셜 로그인 지원으로 간편한 사용자 인증 및 가입 프로세스 제공
 
 ---
+
+###  시퀀스
+
+### 1. 로그인/정지
+![login.png](WEB_6_88hage_BE/docs/sequence/login.png)
+![stop.png](WEB_6_88hage_BE/docs/sequence/stop.png)
+### 2. 조회수
+![view.png.png](WEB_6_88hage_BE/docs/sequence/view.png)
+### 3. 데이터 파이프 라인
+![yun.png](WEB_6_88hage_BE/docs/sequence/yun.png)
+![yuntwo.png](WEB_6_88hage_BE/docs/sequence/yuntwo.png)
+### 4. 여가 활동 추천
+![recommend.png](WEB_6_88hage_BE/docs/sequence/recommend.png)
+### 5. 관리자
+![hye.png](WEB_6_88hage_BE/docs/sequence/hye.png)
