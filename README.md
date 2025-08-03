@@ -97,14 +97,14 @@
 ###  시퀀스
 
 ### 1. 로그인/정지
-![login.png](WEB_6_88hage_BE/docs/sequence/login.png)
-![stop.png](WEB_6_88hage_BE/docs/sequence/stop.png)
+![login.png](/docs/sequence/login.png)
+![stop.png](/docs/sequence/stop.png)
 ### 2. 조회수
-![view.png.png](WEB_6_88hage_BE/docs/sequence/view.png)
+![view.png.png](/docs/sequence/view.png)
 ### 3. 데이터 파이프 라인
-![yun.png](WEB_6_88hage_BE/docs/sequence/yun.png)
-![yuntwo.png](WEB_6_88hage_BE/docs/sequence/yuntwo.png)
+![yun.png](/docs/sequence/yun.png)
+![yuntwo.png](/docs/sequence/yuntwo.png)
 ### 4. 여가 활동 추천
-![recommend.png](WEB_6_88hage_BE/docs/sequence/recommend.png)
+![recommend.png](/docs/sequence/recommend.png)
 ### 5. 관리자
-![hye.png](WEB_6_88hage_BE/docs/sequence/hye.png)
+![hye.png](/docs/sequence/hye.png)
