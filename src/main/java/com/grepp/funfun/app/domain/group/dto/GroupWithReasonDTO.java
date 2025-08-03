@@ -20,21 +20,10 @@ public class GroupWithReasonDTO {
 
     private Long id;
     private String title;
-    private String explain;
     private String simpleExplain;
     private String placeName;
-    private String address;
     private LocalDateTime groupDate;
-    private Integer maxPeople;
-    private Integer nowPeople;
     private String imageUrl;
-    private GroupStatus status;
-    private Double latitude;
-    private Double longitude;
-    private Integer during;
-    private GroupClassification category;
     private String leader;
-    private List<GroupParticipantDTO> participants;
-    private List<GroupHashtagDTO> hashtags;
     private String reason;
 }
