@@ -5,6 +5,14 @@
 > **주제**: 여가시간 활동 추천 서비스
 
 ---
+### 👨‍🎓 팀원 소개
+| 박병석 | 김윤서 | 손혜은 | 정기문 | 전정원 |
+|:------:|:------:|:------:|:------:|:------:|
+| <img height="150" style="width: auto;" alt="박병석" src="https://avatars.githubusercontent.com/u/147399765?v=4" /> | <img src="https://avatars.githubusercontent.com/u/145417394?v=4" height="150" style="width: auto;"> | <img src="https://avatars.githubusercontent.com/u/97518677?v=4" height="150" style="width: auto;"> | <img alt="정기문" src="https://avatars.githubusercontent.com/u/131163024?v=4" height="150" style="width: auto;" /> | <img height="150" style="width: auto;" alt="전정원" src="https://avatars.githubusercontent.com/u/120391720?v=4" /> |
+| **팀장** | **팀원** | **팀원** | **팀원** | **팀원** |
+| [@Parkbyungseok](https://github.com/Parkbyungseok) | [@yunseoy](https://github.com/yunseoy) | [@hesador12](https://github.com/hesador12) | [@Irreplaceable-j](https://github.com/Irreplaceable-j) | [@JeonJW24](https://github.com/JeonJW24) |
+---
+
 
 ### 📝 주제 선정 이유
 - 여가 시간이 생겼을 때, 의미 있게 활용할 수 있도록 도와주는 AI 추천 서비스의 필요성을 느꼈습니다.
@@ -20,16 +28,16 @@
 
 ### 🚀 핵심 기능
 
-1. 🎯 **콘텐츠 추천**
+1.  **콘텐츠 추천**
     - 사용자의 취향, 위치, 여가 시간에 맞춰 영화, 전시, 체험 등 다양한 활동 콘텐츠 추천
 
-2. 🤝 **모임 추천**
+2.  **모임 추천**
     - 비슷한 관심사를 가진 사용자들과 연결되는 오프라인/온라인 모임 추천
 
-3. 👥 **모임 기능**
+3.  **모임 기능**
     - 추천받은 모임에 참여하거나 직접 모임을 생성하고 구성원 관리 가능
 
-4. 💬 **채팅 기능**
+4.  **채팅 기능**
     - 모임 참여자 간 실시간 소통이 가능한 채팅 기능 제공
 
 ---
@@ -85,3 +93,18 @@
    - 네이버, 구글 소셜 로그인 지원으로 간편한 사용자 인증 및 가입 프로세스 제공
 
 ---
+
+### 🧾 시퀀스 다이어그램
+
+### 1. 로그인/정지
+![login.png](/docs/sequence/login.png)
+![stop.png](/docs/sequence/stop.png)
+### 2. 조회수
+![view.png.png](/docs/sequence/view.png)
+### 3. 데이터 파이프 라인
+![yun.png](/docs/sequence/yun.png)
+![yuntwo.png](/docs/sequence/yuntwo.png)
+### 4. 여가 활동 추천
+![recommend.png](/docs/sequence/recommend.png)
+### 5. 관리자
+![hye.png](/docs/sequence/hye.png)
