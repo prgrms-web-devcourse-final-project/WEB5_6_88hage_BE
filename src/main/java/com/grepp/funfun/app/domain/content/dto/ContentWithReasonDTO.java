@@ -18,41 +18,12 @@ import lombok.Setter;
 public class ContentWithReasonDTO {
 
     private Long id;
-
     private String contentTitle;
-
-    private String age;
-
-    private String fee;
-
     private LocalDate startDate;
-
     private LocalDate endDate;
-
     private String address;
-
-    private String guname;
-
-    private String time;
-
-    private String runTime;
-
-    private String startTime;
-
     private String poster;
-
-    private String description;
-
-    private String category;
-
-    private List<ContentImageDTO> images;
-
-    private List<ContentUrlDTO> urls;
-
     private EventType eventType;
-
-    private Integer bookmarkCount;
-
     private String reason;
 
 }
