@@ -8,9 +8,9 @@
 
 ### 🎬 페이지
 ![funfun.gif](/docs/funfun/funfun.gif)
-- 프론트 배포 주소 : funfunhage.vercel.app
-- 백엔드 배포 주소 : funfun.cloud
-- 유튜브 링크 : 
+- 프론트 배포 주소 : https://funfunhage.vercel.app/
+- 백엔드 배포 주소 : https://funfun.cloud
+- 시연 영상 : https://www.youtube.com/watch?v=iGjS_Mp_pP8
 ---
 
 ### 👨‍🎓 팀원 소개
