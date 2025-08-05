@@ -5,6 +5,14 @@
 > **주제**: 여가시간 활동 추천 서비스
 
 ---
+
+### 🎬 페이지
+![funfun.gif](/docs/funfun/funfun.gif)
+- 프론트 배포 주소 : https://funfunhage.vercel.app/
+- 백엔드 배포 주소 : https://funfun.cloud
+- 시연 영상 : https://www.youtube.com/watch?v=iGjS_Mp_pP8
+---
+
 ### 👨‍🎓 팀원 소개
 | 박병석 | 김윤서 | 손혜은 | 정기문 | 전정원 |
 |:------:|:------:|:------:|:------:|:------:|
@@ -12,7 +20,6 @@
 | **팀장** | **팀원** | **팀원** | **팀원** | **팀원** |
 | [@Parkbyungseok](https://github.com/Parkbyungseok) | [@yunseoy](https://github.com/yunseoy) | [@hesador12](https://github.com/hesador12) | [@Irreplaceable-j](https://github.com/Irreplaceable-j) | [@JeonJW24](https://github.com/JeonJW24) |
 ---
-
 
 ### 📝 주제 선정 이유
 - 여가 시간이 생겼을 때, 의미 있게 활용할 수 있도록 도와주는 AI 추천 서비스의 필요성을 느꼈습니다.
