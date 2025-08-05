@@ -7,7 +7,7 @@
 ---
 
 ### 🎬 페이지
-![funfun.gif](/docs/funfunGif/funfun.gif)
+![funfun.gif](https://raw.githubusercontent.com/prgrms-web-devcourse-final-project/WEB5_6_88hage_BE/dev/docs/funfunGif/funfun.gif)
 - 프론트 배포 주소 : funfunhage.vercel.app
 - 백엔드 배포 주소 : funfun.cloud
 ---
