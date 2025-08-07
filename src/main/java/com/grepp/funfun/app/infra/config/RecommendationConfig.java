@@ -13,6 +13,7 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import dev.langchain4j.model.embedding.onnx.allminilml6v2q.AllMiniLmL6V2QuantizedEmbeddingModel;
 
 @Configuration
 public class RecommendationConfig {
@@ -21,7 +22,8 @@ public class RecommendationConfig {
     // 문장 -> 벡터로
     @Bean
     public EmbeddingModel embeddingModel() {
-        return new AllMiniLmL6V2EmbeddingModel();
+        // 기존보다 훨씬 가벼운 모델 (차원수가 작음)
+        return new AllMiniLmL6V2QuantizedEmbeddingModel();
     }
 
     // MongoDB 벡터 DB로 사용하기 위한 설정

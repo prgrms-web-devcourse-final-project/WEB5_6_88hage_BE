@@ -76,6 +76,8 @@ dependencies {
     implementation("dev.langchain4j:langchain4j:1.0.0-beta3")
     implementation("dev.langchain4j:langchain4j-core:1.0.0-beta3")
 
+    implementation 'dev.langchain4j:langchain4j-embeddings-all-minilm-l6-v2-q:1.0.0-beta3'
+
     // Lombok
     compileOnly 'org.projectlombok:lombok:1.18.32'
     annotationProcessor 'org.projectlombok:lombok:1.18.32'
