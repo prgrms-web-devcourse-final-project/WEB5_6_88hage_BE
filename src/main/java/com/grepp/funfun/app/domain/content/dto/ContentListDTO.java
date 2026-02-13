@@ -30,4 +30,8 @@ public class ContentListDTO {
 
     private EventType eventType;
 
+    private Double latitude;
+
+    private Double longitude;
+
 }
